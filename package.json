@@ -1,7 +1,8 @@
 {
-  "name": "extensions",
+  "name": "netskys-extensions",
   "version": "1.0.0",
-  "description": "Additional sources for Paperback",
+  "repositoryName": "MangaStream Extensions",
+  "description": "Contains sources using the MangaStream template",
   "scripts": {
     "start": "tsc && node dist/api.js",
     "build": "tsc",
@@ -10,14 +11,14 @@
     "bundle": "paperback bundle",
     "serve": "paperback serve -p 8000"
   },
-  "author": "Paperback",
+  "author": "Netsky",
   "license": "MIT",
   "dependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cheerio": "^1.0.0-rc.5",
     "entities": "^2.2.0",
-    "paperback-cli": "^1.4.0",
+    "paperback-cli": "^1.2.5",
     "paperback-extensions-common": "^2.1.125",
     "ts-mocha": "^7.0.0",
     "tsify": "^4.0.2",

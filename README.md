@@ -8,7 +8,7 @@ Fork of [Paperback's main exensions repo](https://github.com/Paperback-iOS/exten
 [Click Here](https://thenetsky.github.io/netskys-extensions/) to add this repo to your app!
 
 ### Branches
-- [Main](https://github.com/TheNetsky/netskys-extensions/tree/stable) (Default) Stable releases of my sources being served in the in-app repo.
+- [Main](https://github.com/TheNetsky/netskys-extensions/tree/main) (Default) Stable releases of my sources being served in the in-app repo.
 - [Dev](https://github.com/TheNetsky/netskys-extensions/tree/dev) All the latest versions of all my sources.
 - [GH-Pages](https://github.com/TheNetsky/netskys-extensions/tree/gh-pages) Used to serve the sources to the app.
 

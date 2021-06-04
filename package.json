@@ -1,8 +1,8 @@
 {
   "name": "netskys-extensions",
   "version": "1.0.0",
-  "repositoryName": "MangaStream Extensions",
-  "description": "Contains sources using the MangaStream template",
+  "repositoryName": "Netsky's Extensions (Dev)",
+  "description": "DEVELOPMENT VERSIONS OF ALL MY SOURCES",
   "scripts": {
     "start": "tsc && node dist/api.js",
     "build": "tsc",

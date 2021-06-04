@@ -1,4 +1,5 @@
-# Index
+# Netsky's Repo Index
+[Github Repo](https://github.com/TheNetsky/netskys-extensions)
 
 ## Current Repo
 

@@ -8,10 +8,9 @@ Fork of [Paperback's main exensions repo](https://github.com/Paperback-iOS/exten
 [Click Here](https://paperback.moe/addRepo/?name=Netsky%27s+Extensions&url=https%3A%2F%2Fthenetsky.github.io%2Fextensions-promises) to add this repo to Paperback!
 
 ### Branches
-- [Stable](https://github.com/TheNetsky/extensions-promises/tree/stable) (Default) Stable releases of my sources being served in the in-app repo.
-- [Dev](https://github.com/TheNetsky/extensions-promises/tree/dev) All the latest versions of all my sources.
-- [Main](https://github.com/TheNetsky/extensions-promises/tree/master) Used to merge with the [main repo](https://github.com/Paperback-iOS/extensions-promises).
-- [GH-Pages](https://github.com/TheNetsky/extensions-promises/tree/gh-pages) Used to serve the sources to the app.
+- [Main](https://github.com/TheNetsky/netskys-extensions/tree/stable) (Default) Stable releases of my sources being served in the in-app repo.
+- [Dev](https://github.com/TheNetsky/netskys-extensions/tree/dev) All the latest versions of all my sources.
+- [GH-Pages](https://github.com/TheNetsky/netskys-extensions/tree/gh-pages) Used to serve the sources to the app.
 
 ##  Sources in this repo
 * [MangaFox2](https://fanfox.net)
@@ -26,3 +25,6 @@ Fork of [Paperback's main exensions repo](https://github.com/Paperback-iOS/exten
 * ~~[MangaGenki](https://mangagenki.com)~~ 18+ Discontinued
 * [MangaBuddy](http://mangabuddy.com)
 * ~~[HentaiHere](https://hentaihere.com)~~ 18+ moved to [main h-repo](https://github.com/Paperback-iOS/h-extensions).
+
+
+All my sources are still available in the dev branch.

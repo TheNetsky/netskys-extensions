@@ -1,0 +1,41 @@
+on: push
+name: Bundle and Publish Sources
+jobs:
+  build:
+    name: Bundle and Publish Sources
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: ${{ matrix.node-version }}
+      
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
+      - name: Checkout existing bundles
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+          path: bundles
+
+      - run: npm install
+      - run: npm run bundle -- --folder=${{ steps.extract_branch.outputs.branch }}
+
+      - name: Deploy
+        uses: s0/git-publish-subdir-action@master
+        env:
+          REPO: self
+          BRANCH: gh-pages
+          FOLDER: bundles
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

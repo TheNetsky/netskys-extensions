@@ -5,7 +5,7 @@ Sources were a highly requested feature for Paperback as it allows users to read
 ##  Netsky's Notes
 Fork of [Paperback's main exensions repo](https://github.com/Paperback-iOS/extensions-promises).
 
-[Click Here](https://paperback.moe/addRepo/?name=Netsky%27s+Extensions&url=https%3A%2F%2Fthenetsky.github.io%2Fextensions-promises) to add this repo to Paperback!
+[Click Here](https://thenetsky.github.io/netskys-extensions/) to add this repo to your app!
 
 ### Branches
 - [Main](https://github.com/TheNetsky/netskys-extensions/tree/stable) (Default) Stable releases of my sources being served in the in-app repo.

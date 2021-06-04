@@ -1,0 +1,37 @@
+{
+  "name": "extensions",
+  "version": "1.0.0",
+  "description": "Additional sources for Paperback",
+  "scripts": {
+    "start": "tsc && node dist/api.js",
+    "build": "tsc",
+    "test": "node_modules/.bin/mocha --timeout 300000 -r ts-node/register src/**/*.test.ts",
+    "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test",
+    "bundle": "paperback bundle",
+    "serve": "paperback serve -p 8000"
+  },
+  "author": "Paperback",
+  "license": "MIT",
+  "dependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "cheerio": "^1.0.0-rc.5",
+    "entities": "^2.2.0",
+    "paperback-cli": "^1.4.0",
+    "paperback-extensions-common": "^2.1.125",
+    "ts-mocha": "^7.0.0",
+    "tsify": "^4.0.2",
+    "typescript": "^3.9.6"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.21",
+    "@types/mocha": "^7.0.2",
+    "@typescript-eslint/eslint-plugin": "^4.14.1",
+    "eslint": "^7.18.0",
+    "eslint-config-oclif": "^3.1.0",
+    "eslint-config-oclif-typescript": "^0.2.0",
+    "mocha": "^7.2.0",
+    "nyc": "^15.1.0",
+    "typedoc": "^0.17.6"
+  }
+}

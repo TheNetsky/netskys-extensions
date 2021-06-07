@@ -1,8 +1,8 @@
 {
   "name": "netskys-extensions",
   "version": "1.0.0",
-  "repositoryName": "Netsky's Extensions (Dev)",
-  "description": "DEVELOPMENT VERSIONS OF ALL MY SOURCES",
+  "repositoryName": "Netsky's Extensions",
+  "description": "Contains a variety of sources!",
   "scripts": {
     "start": "tsc && node dist/api.js",
     "build": "tsc",

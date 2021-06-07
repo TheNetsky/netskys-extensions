@@ -215,7 +215,7 @@ export class Webtoons extends Source {
 
   async searchRequest(query: SearchRequest, metadata: any): Promise<PagedResults> {
     const request = createRequestObject({
-      url: `${WEBTOON_DOMAIN}/en/search?keyword=${query.title}`,
+      url: `${WEBTOON_DOMAIN}/en/search?keyword=${encodeURI(query.title)}`,
       method: "GET",
       headers: {
         referer: WEBTOON_DOMAIN,

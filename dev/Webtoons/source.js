@@ -340,7 +340,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const WebtoonsParser_1 = require("./WebtoonsParser");
 const WEBTOON_DOMAIN = "https://www.webtoons.com";
 exports.WebtoonsInfo = {
-    version: "1.0.0",
+    version: "1.0.1",
     name: "WebToons",
     icon: "logo.png",
     author: "VibrantClouds",

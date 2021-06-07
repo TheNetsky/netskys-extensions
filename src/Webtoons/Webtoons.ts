@@ -26,7 +26,7 @@ import {
 const WEBTOON_DOMAIN = "https://www.webtoons.com";
 
 export const WebtoonsInfo: SourceInfo = {
-  version: "1.0.0",
+  version: "1.0.1",
   name: "WebToons",
   icon: "logo.png",
   author: "VibrantClouds",

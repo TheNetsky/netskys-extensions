@@ -512,7 +512,7 @@ class Webtoons extends paperback_extensions_common_1.Source {
     searchRequest(query, metadata) {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
-                url: `${WEBTOON_DOMAIN}/en/search?keyword=${query.title}`,
+                url: `${WEBTOON_DOMAIN}/en/search?keyword=${encodeURI(query.title)}`,
                 method: "GET",
                 headers: {
                     referer: WEBTOON_DOMAIN,

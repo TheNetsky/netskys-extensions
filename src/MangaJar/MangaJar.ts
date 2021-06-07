@@ -17,7 +17,7 @@ const MJ_DOMAIN = 'https://mangajar.com'
 const method = 'GET'
 
 export const MangaJarInfo: SourceInfo = {
-  version: '1.0.5',
+  version: '1.0.6',
   name: 'MangaJar',
   icon: 'icon.png',
   author: 'Netsky',
@@ -34,7 +34,11 @@ export const MangaJarInfo: SourceInfo = {
 }
 
 export class MangaJar extends Source {
-  readonly cookies = [createCookie({ name: 'adultConfirmed', value: '1', domain: "mangajar.com" })];
+  readonly cookies = [
+    createCookie({ name: 'adultConfirmed', value: '1', domain: "mangajar.com" }),
+    createCookie({ name: 'readingMode', value: 'v', domain: "mangajar.com" })
+  ];
+
   getMangaShareUrl(mangaId: string): string | null { return `${MJ_DOMAIN}/manga/${mangaId}` };
 
   async getMangaDetails(mangaId: string): Promise<Manga> {
@@ -51,25 +55,30 @@ export class MangaJar extends Source {
   }
 
   async getChapters(mangaId: string): Promise<Chapter[]> {
-    const request = createRequestObject({
-      url: `${MJ_DOMAIN}/manga/`,
-      method,
-      param: mangaId + "/chaptersList",
-      cookies: this.cookies,
-    });
+    let chapters: any = [];
+    let page: number = 1;
+    let isLast: boolean = false;
 
-    const response = await this.requestManager.schedule(request, 1);
-    const $ = this.cheerio.load(response.data);
+    while (!isLast) {
+      const request = createRequestObject({
+        url: `${MJ_DOMAIN}/manga/${mangaId}/chaptersList`,
+        method,
+        param: `?infinite=1&page=${page++}`,
+        cookies: this.cookies,
+      });
 
-    return parseChapters($, mangaId);
+      const response = await this.requestManager.schedule(request, 1);
+      const $ = this.cheerio.load(response.data);
+      isLast = !isLastPage($) ? false : true;
+      chapters = chapters.concat(parseChapters($, mangaId))
+    }
+    return chapters
   }
 
   async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
-    let metadata = { 'mangaId': mangaId, 'chapterId': chapterId, 'nextPage': false, 'page': 1 }
     const request = createRequestObject({
       url: `${MJ_DOMAIN}/manga/${mangaId}/chapter/${chapterId}`,
       method: method,
-      metadata: metadata,
       cookies: this.cookies,
     });
 
@@ -108,7 +117,7 @@ export class MangaJar extends Source {
   async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
     const section1 = createHomeSection({ id: 'hot_update', title: 'Top Manga Updates', view_more: true });
     const section2 = createHomeSection({ id: 'new_trending', title: 'New Trending', view_more: true });
-    const section3 = createHomeSection({ id: 'hot_manga', title: 'Popular Manga', view_more: true });
+    const section3 = createHomeSection({ id: 'popular_manga', title: 'Popular Manga', view_more: true });
     const section4 = createHomeSection({ id: 'new_manga', title: 'Recently Added', view_more: true });
     const sections = [section1, section2, section3, section4];
 
@@ -133,17 +142,17 @@ export class MangaJar extends Source {
       case "new_trending":
         param = `/manga?sortBy=-year&page=${page}`;
         break;
-      case "hot_manga":
+      case "popular_manga":
         param = `/manga?sortBy=popular&page=${page}`;
         break;
       case "new_manga":
         param = `/manga?sortBy=-published_at&page=${page}`;
         break;
       default:
-        return Promise.resolve(null);;
+        throw new Error(`Requested to getViewMoreItems for a section ID which doesn't exist`)
     }
     const request = createRequestObject({
-      url: `${MJ_DOMAIN}`,
+      url: MJ_DOMAIN,
       method,
       param,
       cookies: this.cookies,

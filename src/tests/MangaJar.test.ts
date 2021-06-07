@@ -15,7 +15,7 @@ describe('MangaJar Tests', function () {
      * Try to choose a manga which is updated frequently, so that the historical checking test can 
      * return proper results, as it is limited to searching 30 days back due to extremely long processing times otherwise.
      */
-    var mangaId = "soredemo-ayumu-wa-yosetekuru";   // Mashle
+    var mangaId = "boarding-school-juliet";   // Mashle
 
     it("Retrieve Manga Details", async () => {
         let details = await wrapper.getMangaDetails(source, mangaId);
@@ -31,7 +31,6 @@ describe('MangaJar Tests', function () {
         expect(data.titles, "Missing Titles").to.be.not.empty;
         expect(data.rating, "Missing Rating").to.exist;
     });
-
     it("Get Chapters", async () => {
         let data = await wrapper.getChapters(source, mangaId);
 
@@ -58,40 +57,41 @@ describe('MangaJar Tests', function () {
     it("Testing home page results for hot update titles", async () => {
         let results = await wrapper.getViewMoreItems(source, "hot_update", {}, 1)
 
-        expect(results, "No results whatsoever for this section").to.exist
-        expect(results, "No results whatsoever for this section").to.exist
+        expect(results, "This section does not exist").to.exist
+        expect(results, "No results whatsoever for this section").to.be.not.empty;
 
         let data = results![0]
         expect(data.id, "No ID present").to.exist
         expect(data.image, "No image present").to.exist
         expect(data.title.text, "No title present").to.exist
     });
-    it("Testing home page results for new trending", async () => {
+    it("Testing home page results for new trending titles", async () => {
         let results = await wrapper.getViewMoreItems(source, "new_trending", {}, 1)
 
-        expect(results, "No results whatsoever for this section").to.exist
-        expect(results, "No results whatsoever for this section").to.exist
-
-        let data = results![0]
-        expect(data.id, "No ID present").to.exist
-        expect(data.image, "No image present").to.exist
-    });
-    it("Testing home page results for latest hot titles", async () => {
-        let results = await wrapper.getViewMoreItems(source, "hot_manga", {}, 1)
-
-        expect(results, "No results whatsoever for this section").to.exist
-        expect(results, "No results whatsoever for this section").to.exist
+        expect(results, "This section does not exist").to.exist
+        expect(results, "No results whatsoever for this section").to.be.not.empty;
 
         let data = results![0]
         expect(data.id, "No ID present").to.exist
         expect(data.image, "No image present").to.exist
         expect(data.title.text, "No title present").to.exist
     });
-    it("Testing home page results for latest new titles", async () => {
-        let results = await wrapper.getViewMoreItems(source, "new_manga", {page: 1}, 1)
+    it("Testing home page results for popular titles", async () => {
+        let results = await wrapper.getViewMoreItems(source, "popular_manga", {}, 1)
 
-        expect(results, "No results whatsoever for this section").to.exist
-        expect(results, "No results whatsoever for this section").to.exist
+        expect(results, "This section does not exist").to.exist
+        expect(results, "No results whatsoever for this section").to.be.not.empty;
+
+        let data = results![0]
+        expect(data.id, "No ID present").to.exist
+        expect(data.image, "No image present").to.exist
+        expect(data.title.text, "No title present").to.exist
+    });
+    it("Testing home page results for new manga titles", async () => {
+        let results = await wrapper.getViewMoreItems(source, "new_manga", {}, 1)
+
+        expect(results, "This section does not exist").to.exist
+        expect(results, "No results whatsoever for this section").to.be.not.empty;
 
         let data = results![0]
         expect(data.id, "No ID present").to.exist
@@ -100,41 +100,38 @@ describe('MangaJar Tests', function () {
     });
     it("Testing search", async () => {
         let testSearch = createSearchRequest({
-            title: 'attack'
+            title: 'love'
         });
 
         let search = await wrapper.searchRequest(source, testSearch, { page: 1 });
         let result = search.results[0]
-        console.log(search.results)
 
         expect(result, "No response from server").to.exist;
-
         expect(result.id, "No ID found for search query").to.be.not.empty;
         expect(result.image, "No image found for search").to.be.not.empty;
         expect(result.title, "No title").to.be.not.null;
         expect(result.subtitleText, "No subtitle text").to.be.not.null;
     });
-
     it("Testing Home-Page aquisition", async () => {
         let homePages = await wrapper.getHomePageSections(source)
         expect(homePages, "No response from server").to.exist
-        expect(homePages[0], "No top weekly section available").to.exist
-        expect(homePages[1], "No latest updates section available").to.exist
-        expect(homePages[2], "No new manga section available").to.exist
+        expect(homePages[0], "No top manga updates section available").to.exist
+        expect(homePages[1], "No new trending section available").to.exist
+        expect(homePages[2], "No popular section available").to.exist
+        expect(homePages[3], "No recently added section available").to.exist
     });
-        it("Get tags", async () => {
+    /*
+    it("Testing Notifications", async () => {
+        let updates = await wrapper.filterUpdatedManga(source, new Date("2021-4-15"), [mangaId, "my-wife-is-a-demon-queen"])
+        expect(updates, "No server response").to.exist
+        expect(updates, "Empty server response").to.not.be.empty
+        expect(updates[0], "No updates").to.not.be.empty;
+    });
+    */
+    it("Get tags", async () => {
         let tags = await wrapper.getTags(source)
         expect(tags, "No server response").to.exist
         expect(tags, "Empty server response").to.not.be.empty
     });
-
-    it("Testing Notifications", async () => {
-        //await new Promise(r => setTimeout(r, 100000));
-
-        let updates = await wrapper.filterUpdatedManga(source, new Date("2021-3-31"), [mangaId])
-        expect(updates, "No server response").to.exist
-        expect(updates, "Empty server response").to.not.be.empty
-        expect(updates[0], "No updates").to.not.be.empty;
-    })
 
 })

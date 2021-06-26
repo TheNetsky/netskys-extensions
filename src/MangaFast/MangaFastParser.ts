@@ -44,7 +44,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): Manga => {
   return createManga({
     id: mangaId,
     titles: titles,
-    image: !image ? "https://i.imgur.com/GYUxEX8.png" : image,
+    image: image ? image : "https://i.imgur.com/GYUxEX8.png",
     rating: 0,
     status: status,
     author: author,
@@ -60,7 +60,7 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
 
   for (const chapter of $("a", "div.chapter-link-w").toArray()) {
     const title = $("span.left", chapter).text().trim();
-    const id = $(chapter).attr('href')?.replace(`${MF_DOMAIN}/`, "") ?? ""; //Has entrailing slash, fix on 0.6
+    const id = $(chapter).attr('href')?.split("/").pop();
     if ($("span.left > i", chapter).text().trim().toLowerCase().includes("spoiler")) continue; //Latest chaper is usually an empty spoiler page.
     const date = new Date($("span.right", chapter).text().trim());
     const chapRegex = title.match(/(\d+\.?\_?\d?)/);
@@ -103,7 +103,7 @@ export const parseUpdatedManga = ($: CheerioStatic, time: Date, ids: string[]): 
   const updatedManga: string[] = [];
 
   for (const manga of $("div.ls4.last-updates-content", "div.ls4w").toArray()) {
-    const id = $("a", manga).attr('href')?.replace(`${MF_DOMAIN}/read/`, "")?.replace(/\/$/, "") ?? ""
+    const id = $("a", manga).attr('href')?.split("/").pop();
     const dateSection = $("span.ls4s", manga).text().trim();
     const dateRegex = dateSection.match(/[Ll]ast\s[Uu]pdate\s(.*)/);
     let date: any = null;
@@ -128,14 +128,14 @@ export const parseHomeSections = ($: CheerioSelector, section: HomeSection): Man
     //Top Manga 
     case "top_manga":
       for (const manga of $("div.ls23", "div.ls123").toArray()) {
-        const id = $("a", manga).attr('href')?.replace(`${MF_DOMAIN}/read/`, "")?.replace(/\/$/, "") ?? ""
+        const id = $("a", manga).attr('href')?.split("/").pop();
         const title = $("a", manga).attr('title');
         const image = $("img", manga).attr('src')?.split("?")[0] ?? "";
         const lastChapter = $("span.ls23s", manga).text().trim();
         if (!id || !title) continue;
         mangaTiles.push(createMangaTile({
           id: id,
-          image: !image ? "https://i.imgur.com/GYUxEX8.png" : image,
+          image: image ? image : "https://i.imgur.com/GYUxEX8.png",
           title: createIconText({ text: title }),
           subtitleText: createIconText({ text: lastChapter }),
         }));
@@ -144,14 +144,14 @@ export const parseHomeSections = ($: CheerioSelector, section: HomeSection): Man
     //Latest Manga Update 
     case "latest_manga_update":
       for (const manga of $("div.ls4,last-updates-content", "div.ls4w").toArray()) {
-        const id = $("a", manga).attr('href')?.replace(`${MF_DOMAIN}/read/`, "")?.replace(/\/$/, "") ?? ""
+        const id = $("a", manga).attr('href')?.split("/").pop();
         const title = $("a", manga).attr('title');
         const image = $("img", manga).attr('src')?.split("?")[0] ?? "";
         const lastChapter = $("a.ls24", manga).text().trim();
         if (!id || !title) continue;
         mangaTiles.push(createMangaTile({
           id: id,
-          image: !image ? "https://i.imgur.com/GYUxEX8.png" : image,
+          image: image ? image : "https://i.imgur.com/GYUxEX8.png",
           title: createIconText({ text: title }),
           subtitleText: createIconText({ text: lastChapter }),
         }));
@@ -160,14 +160,14 @@ export const parseHomeSections = ($: CheerioSelector, section: HomeSection): Man
     //New Manga 
     case "new_manga":
       for (const manga of $("div.ls4,last-updates-content", "div.ls4w").toArray()) {
-        const id = $("a", manga).attr('href')?.replace(`${MF_DOMAIN}/read/`, "")?.replace(/\/$/, "") ?? ""
+        const id = $("a", manga).attr('href')?.split("/").pop();
         const title = $("a", manga).attr('title');
         const image = $("img", manga).attr('src')?.split("?")[0] ?? "";
         const lastChapter = $("a.ls24", manga).text().trim();
         if (!id || !title) continue;
         mangaTiles.push(createMangaTile({
           id: id,
-          image: !image ? "https://i.imgur.com/GYUxEX8.png" : image,
+          image: image ? image : "https://i.imgur.com/GYUxEX8.png",
           title: createIconText({ text: title }),
           subtitleText: createIconText({ text: lastChapter }),
         }));
@@ -176,14 +176,14 @@ export const parseHomeSections = ($: CheerioSelector, section: HomeSection): Man
     //Latest Manhua Update
     case "latest_manhua_update":
       for (const manga of $("div.ls4,last-updates-content", "div.ls4w").toArray()) {
-        const id = $("a", manga).attr('href')?.replace(`${MF_DOMAIN}/read/`, "")?.replace(/\/$/, "") ?? ""
+        const id = $("a", manga).attr('href')?.split("/").pop();
         const title = $("a", manga).attr('title');
         const image = $("img", manga).attr('src')?.split("?")[0] ?? "";
         const lastChapter = $("a.ls24", manga).text().trim();
         if (!id || !title) continue;
         mangaTiles.push(createMangaTile({
           id: id,
-          image: !image ? "https://i.imgur.com/GYUxEX8.png" : image,
+          image: image ? image : "https://i.imgur.com/GYUxEX8.png",
           title: createIconText({ text: title }),
           subtitleText: createIconText({ text: lastChapter }),
         }));
@@ -192,14 +192,14 @@ export const parseHomeSections = ($: CheerioSelector, section: HomeSection): Man
     //Popular Manga
     case "popular_manga":
       for (const manga of $("div.ls2", "div.ls12").toArray()) {
-        const id = $("a", manga).attr('href')?.replace(`${MF_DOMAIN}/read/`, "")?.replace(/\/$/, "") ?? ""
+        const id = $("a", manga).attr('href')?.split("/").pop();
         const title = $("a", manga).attr('title');
         const image = $("img", manga).attr('src')?.split("?")[0] ?? "";
         const lastChapter = $("a.ls2l", manga).text().trim();
         if (!id || !title) continue;
         mangaTiles.push(createMangaTile({
           id: id,
-          image: !image ? "https://i.imgur.com/GYUxEX8.png" : image,
+          image: image ? image : "https://i.imgur.com/GYUxEX8.png",
           title: createIconText({ text: title }),
           subtitleText: createIconText({ text: lastChapter }),
         }));
@@ -213,33 +213,7 @@ export const parseHomeSections = ($: CheerioSelector, section: HomeSection): Man
 
 export const generateSearch = (query: SearchRequest): string => {
   let search: string = query.title ?? "";
-  return encodeURI(search);
-}
-
-export const parseSearch = ($: CheerioStatic): MangaTile[] => {
-  const mangas: MangaTile[] = [];
-  const collectedIds: string[] = [];
-
-  for (const manga of $(".list-content .ls4").toArray()) {
-    const id = $("a", manga).attr('href')?.replace(`${MF_DOMAIN}/read/`, "")?.replace(/\/$/, "") ?? ""
-    const title = $("a", manga).attr('title');
-    const image = $("img", manga).attr('src')?.split("?")[0] ?? "";
-    const chapterSection = $("a.ls24", manga).text();
-    const chapRegex = chapterSection.match(/(\d+\.?\_?\d?)/);
-    let chapterNumber: any = "N/A";
-    if (chapRegex && chapRegex[1]) chapterNumber = chapRegex[1].replace(/\\/g, ".");
-    const subtitle = `Chapter ${chapterNumber}`
-    if (collectedIds.includes(id) || !id || !title) continue;
-    mangas.push(createMangaTile({
-      id,
-      image: !image ? "https://i.imgur.com/GYUxEX8.png" : image,
-      title: createIconText({ text: title }),
-      subtitleText: createIconText({ text: subtitle }),
-    }));
-    collectedIds.push(id);
-
-  }
-  return mangas;
+  return search;
 }
 
 export const parseTags = ($: CheerioStatic): TagSection[] | null => {
@@ -252,12 +226,6 @@ export const parseTags = ($: CheerioStatic): TagSection[] | null => {
   }
   const tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => createTag(x)) })];
   return tagSections;
-}
-
-export const isLastPage = ($: CheerioStatic): boolean => {
-  let isLast = false;
-  if ($("a:contains(Next »)", "div.p-3.btn-w").length) isLast = true;
-  return isLast;
 }
 
 const parseDate = (date: string): Date => {

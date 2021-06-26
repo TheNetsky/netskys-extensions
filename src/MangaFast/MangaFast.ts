@@ -203,6 +203,7 @@ export class MangaFast extends Source {
     const mangas = [];
     const collectedIds: string[] = [];
     for (const manga of data.hits) {
+      if (!manga?.slug || !manga?.title) continue;
       if (collectedIds.includes(manga.slug)) continue;
       mangas.push(createMangaTile({
         id: manga.slug,

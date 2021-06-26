@@ -11,13 +11,13 @@ import {
   TagType,
   TagSection,
 } from "paperback-extensions-common"
-import { parseTags, parseSearch, isLastPage, parseUpdatedManga, generateSearch, parseChapterDetails, parseChapters, parseHomeSections, parseMangaDetails, UpdatedManga } from "./MangaFastParser"
+import { parseTags, parseUpdatedManga, generateSearch, parseChapterDetails, parseChapters, parseHomeSections, parseMangaDetails, UpdatedManga } from "./MangaFastParser"
 
 const MF_DOMAIN = 'https://mangafast.net'
 const method = 'GET'
 
 export const MangaFastInfo: SourceInfo = {
-  version: '1.0.6',
+  version: '1.0.7',
   name: 'MangaFast',
   icon: 'icon.png',
   author: 'Netsky',
@@ -29,10 +29,6 @@ export const MangaFastInfo: SourceInfo = {
     {
       text: "Notifications",
       type: TagType.GREEN
-    },
-    {
-      text: "Slow",
-      type: TagType.YELLOW
     }
   ]
 }
@@ -85,13 +81,13 @@ export class MangaFast extends Source {
     };
 
     const params = [
-      "?section=latest-update",
-      "?section=latest-manhua"
+      "latest-update",
+      "latest-manhua"
     ]
 
     for (const param of params) {
       const request = createRequestObject({
-        url: `${MF_DOMAIN}/`,
+        url: `${MF_DOMAIN}/home/`,
         method,
         param: param
       });
@@ -114,9 +110,9 @@ export class MangaFast extends Source {
       //New Manga
       {
         request: createRequestObject({
-          url: MF_DOMAIN,
+          url: `${MF_DOMAIN}/home/`,
           method,
-          param: "/?section=new-manga"
+          param: "new-manga"
         }),
         section: createHomeSection({
           id: "new_manga",
@@ -124,24 +120,12 @@ export class MangaFast extends Source {
           view_more: false,
         }),
       },
-      //Top Manga
-      {
-        request: createRequestObject({
-          url: MF_DOMAIN,
-          method,
-        }),
-        section: createHomeSection({
-          id: "top_manga",
-          title: "Top Manga",
-          view_more: false,
-        }),
-      },
       //Popular Manga
       {
         request: createRequestObject({
-          url: MF_DOMAIN,
+          url: `${MF_DOMAIN}/home/`,
           method,
-          param: "/?section=popular-type"
+          param: "popular-type"
         }),
         section: createHomeSection({
           id: "popular_manga",
@@ -152,9 +136,9 @@ export class MangaFast extends Source {
       //Latest Manga Update 
       {
         request: createRequestObject({
-          url: MF_DOMAIN,
+          url: `${MF_DOMAIN}/home/`,
           method,
-          param: "/?section=latest-update"
+          param: "latest-update"
         }),
         section: createHomeSection({
           id: "latest_manga_update",
@@ -165,9 +149,9 @@ export class MangaFast extends Source {
       //Latest Manhua Update 
       {
         request: createRequestObject({
-          url: MF_DOMAIN,
+          url: `${MF_DOMAIN}/home/`,
           method,
-          param: "/?section=latest-manhua"
+          param: "latest-manhua"
         }),
         section: createHomeSection({
           id: "latest_manhua_update",
@@ -195,21 +179,42 @@ export class MangaFast extends Source {
   }
 
   async searchRequest(query: SearchRequest, metadata: any): Promise<PagedResults> {
-    let page: number = metadata?.page ?? 1;
+    let page: number = metadata?.page ?? 0;
     const search = generateSearch(query);
     const request = createRequestObject({
-      url: `${MF_DOMAIN}/page/${page}/?s=`,
-      method,
-      param: search
+      url: `https://search.mangafast.net/indexes/comics/search`,
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "X-Meili-API-Key": "masterKey"
+
+      },
+      data: JSON.stringify({
+        "q": search,
+        "limit": 50,
+        "offset": page
+      })
     });
 
-    const response = await this.requestManager.schedule(request, 1);
-    const $ = this.cheerio.load(response.data);
-    const manga = parseSearch($);
-    metadata = !isLastPage($) ? { page: page + 1 } : undefined;
+    let response = await this.requestManager.schedule(request, 1);
+    response = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
+    const data = Object(response);
+
+    const mangas = [];
+    const collectedIds: string[] = [];
+    for (const manga of data.hits) {
+      if (collectedIds.includes(manga.slug)) continue;
+      mangas.push(createMangaTile({
+        id: manga.slug,
+        image: manga?.thumbnail ? manga.thumbnail : "https://i.imgur.com/GYUxEX8.png",
+        title: createIconText({ text: manga.title }),
+      }));
+    }
+
+    metadata = { page: page + 50 };
 
     return createPagedResults({
-      results: manga,
+      results: mangas,
       metadata
     });
   }

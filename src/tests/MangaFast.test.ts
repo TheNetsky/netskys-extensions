@@ -15,7 +15,7 @@ describe('MangaFast Tests', function () {
      * Try to choose a manga which is updated frequently, so that the historical checking test can 
      * return proper results, as it is limited to searching 30 days back due to extremely long processing times otherwise.
      */
-    var mangaId = "inaka-no-home-center-otoko-no-jiyuu-na-isekai-seikatsu-eng";   // Mashle
+    var mangaId = "versatile-mage";   // Mashle
 
     it("Retrieve Manga Details", async () => {
         let details = await wrapper.getMangaDetails(source, mangaId);
@@ -57,7 +57,7 @@ describe('MangaFast Tests', function () {
     });
     it("Testing search", async () => {
         let testSearch = createSearchRequest({
-            title: 'love'
+            title: 'love is'
         });
 
         let search = await wrapper.searchRequest(source, testSearch, { page: 1 });
@@ -73,10 +73,9 @@ describe('MangaFast Tests', function () {
         let homePages = await wrapper.getHomePageSections(source)
         expect(homePages, "No response from server").to.exist
         expect(homePages[0], "No new manga section available").to.exist
-        expect(homePages[1], "No top manga section available").to.exist
-        expect(homePages[2], "No popular manga section available").to.exist
-        expect(homePages[3], "No latest manga updates section available").to.exist
-        expect(homePages[5], "No latest manhua updates section available").to.exist
+        expect(homePages[1], "No popular manga section available").to.exist
+        expect(homePages[2], "No latest manga updates section available").to.exist
+        expect(homePages[3], "No latest manhua updates section available").to.exist
     });
     it("Get tags", async () => {
         let tags = await wrapper.getTags(source)
@@ -84,7 +83,7 @@ describe('MangaFast Tests', function () {
         expect(tags, "Empty server response").to.not.be.empty
     });
     it("Testing Notifications", async () => {
-        let updates = await wrapper.filterUpdatedManga(source, new Date("2021-4-29"), [mangaId])
+        let updates = await wrapper.filterUpdatedManga(source, new Date("2021-5-29"), [mangaId, "immortal-swordsman-in-the-reverse-world"])
         expect(updates, "No server response").to.exist
         expect(updates, "Empty server response").to.not.be.empty
         expect(updates[0], "No updates").to.not.be.empty;

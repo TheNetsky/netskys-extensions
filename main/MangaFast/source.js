@@ -518,6 +518,8 @@ class MangaFast extends paperback_extensions_common_1.Source {
             const mangas = [];
             const collectedIds = [];
             for (const manga of data.hits) {
+                if (!(manga === null || manga === void 0 ? void 0 : manga.slug) || !(manga === null || manga === void 0 ? void 0 : manga.title))
+                    continue;
                 if (collectedIds.includes(manga.slug))
                     continue;
                 mangas.push(createMangaTile({

@@ -9,7 +9,7 @@ export interface UpdatedManga {
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): Manga => {
   const titles = [];
   titles.push(decodeHTMLEntity($("h1._3xnDj").contents().first().text().trim()));
-  for (const title of $("h1._3xnDj > small").text().trim().split("/")) {
+  for (const title of $("h1._3xnDj > small").text().trim().split(/\\|; /)) {
     if (title !== "") titles.push(decodeHTMLEntity(title.trim()));
   }
 

@@ -78,7 +78,8 @@ export class Mangahub extends Source {
     let response = await this.requestManager.schedule(request, 1);
     response = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
     const data = Object(response.data);
-    if (!data?.chapter?.pages) throw new Error('Missing "chaper" or "pages" property!');
+    if (!data?.chapter) throw new Error('Missing "chapter" property!');
+    if (!data.chapter?.pages) throw new Error('Missing "pages" property!');
     const rawPages = JSON.parse(data.chapter.pages);
 
     const pages: string[] = [];

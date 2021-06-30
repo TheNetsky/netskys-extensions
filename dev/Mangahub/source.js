@@ -696,8 +696,10 @@ class Mangahub extends paperback_extensions_common_1.Source {
             let response = yield this.requestManager.schedule(request, 1);
             response = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
             const data = Object(response.data);
-            if (!((_a = data === null || data === void 0 ? void 0 : data.chapter) === null || _a === void 0 ? void 0 : _a.pages))
-                throw new Error('Missing "chaper" or "pages" property!');
+            if (!(data === null || data === void 0 ? void 0 : data.chapter))
+                throw new Error('Missing "chapter" property!');
+            if (!((_a = data.chapter) === null || _a === void 0 ? void 0 : _a.pages))
+                throw new Error('Missing "pages" property!');
             const rawPages = JSON.parse(data.chapter.pages);
             const pages = [];
             for (const i in rawPages) {
@@ -823,7 +825,7 @@ exports.parseMangaDetails = ($, mangaId) => {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     const titles = [];
     titles.push(decodeHTMLEntity($("h1._3xnDj").contents().first().text().trim()));
-    for (const title of $("h1._3xnDj > small").text().trim().split("/")) {
+    for (const title of $("h1._3xnDj > small").text().trim().split(/\\|; /)) {
         if (title !== "")
             titles.push(decodeHTMLEntity(title.trim()));
     }

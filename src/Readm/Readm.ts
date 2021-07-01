@@ -18,7 +18,7 @@ const RM_DOMAIN = 'https://readm.org'
 const method = 'GET'
 
 export const ReadmInfo: SourceInfo = {
-  version: '1.0.10',
+  version: '1.0.11',
   name: 'Readm',
   icon: 'icon.png',
   author: 'Netsky',
@@ -30,6 +30,10 @@ export const ReadmInfo: SourceInfo = {
     {
       text: "Notifications",
       type: TagType.GREEN
+    },
+    {
+      text: "Cloudflare",
+      type: TagType.RED
     }
   ]
 }
@@ -137,7 +141,7 @@ export class Readm extends Source {
         param = `/latest-releases/${page}`;
         break;
       default:
-        return Promise.resolve(null);;
+        throw new Error(`Requested to getViewMoreItems for a section ID which doesn't exist`);
     }
 
     const request = createRequestObject({
@@ -177,8 +181,8 @@ export class Readm extends Source {
     if (!data.manga) throw new Error("Failed to create proper response object, missing manga property!");
 
     for (const m of data.manga) {
-      if (!m.url) {
-        console.log("Missing URL property in manga object!");
+      if (!m.url || !m.title) {
+        console.log("Missing URL or Title property in manga object!");
         continue;
       }
       const id = m.url.replace("/manga/", "");
@@ -195,5 +199,12 @@ export class Readm extends Source {
       results: manga,
     });
   }
-}
 
+
+  getCloudflareBypassRequest() {
+    return createRequestObject({
+      url: RM_DOMAIN,
+      method: method,
+    })
+  }
+}

@@ -341,7 +341,7 @@ const ReadmParser_1 = require("./ReadmParser");
 const RM_DOMAIN = 'https://readm.org';
 const method = 'GET';
 exports.ReadmInfo = {
-    version: '1.0.10',
+    version: '1.0.11',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -353,6 +353,10 @@ exports.ReadmInfo = {
         {
             text: "Notifications",
             type: paperback_extensions_common_1.TagType.GREEN
+        },
+        {
+            text: "Cloudflare",
+            type: paperback_extensions_common_1.TagType.RED
         }
     ]
 };
@@ -457,8 +461,7 @@ class Readm extends paperback_extensions_common_1.Source {
                     param = `/latest-releases/${page}`;
                     break;
                 default:
-                    return Promise.resolve(null);
-                    ;
+                    throw new Error(`Requested to getViewMoreItems for a section ID which doesn't exist`);
             }
             const request = createRequestObject({
                 url: RM_DOMAIN,
@@ -494,8 +497,8 @@ class Readm extends paperback_extensions_common_1.Source {
             if (!data.manga)
                 throw new Error("Failed to create proper response object, missing manga property!");
             for (const m of data.manga) {
-                if (!m.url) {
-                    console.log("Missing URL property in manga object!");
+                if (!m.url || !m.title) {
+                    console.log("Missing URL or Title property in manga object!");
                     continue;
                 }
                 const id = m.url.replace("/manga/", "");
@@ -512,6 +515,12 @@ class Readm extends paperback_extensions_common_1.Source {
             });
         });
     }
+    getCloudflareBypassRequest() {
+        return createRequestObject({
+            url: RM_DOMAIN,
+            method: method,
+        });
+    }
 }
 exports.Readm = Readm;
 
@@ -522,10 +531,10 @@ exports.isLastPage = exports.parseViewMore = exports.generateSearch = exports.pa
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const RM_DOMAIN = 'https://readm.org';
 exports.parseMangaDetails = ($, mangaId) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+    var _a, _b, _c, _d, _e, _f, _g;
     const titles = [];
     titles.push($("h1.page-title").text().trim());
-    const altTitles = $("div.sub-title.pt-sm").text().split(",");
+    const altTitles = $("div.sub-title.pt-sm").text().split(/, |; /);
     for (const t of altTitles) {
         titles.push(t.trim());
     }
@@ -533,13 +542,11 @@ exports.parseMangaDetails = ($, mangaId) => {
     const author = (_c = $("small", "span#first_episode").text().trim()) !== null && _c !== void 0 ? _c : "";
     const artist = (_d = $("small", "span#last_episode").text().trim()) !== null && _d !== void 0 ? _d : "";
     const description = (_e = $("p", "div.series-summary-wrapper").text().trim()) !== null && _e !== void 0 ? _e : "No description available";
-    const rating = (_f = $("div.color-imdb").text().trim()) !== null && _f !== void 0 ? _f : "";
-    const views = Number((_g = $('div:contains("Views")', "div.media-meta").next().text().replace(/,/g, "")) !== null && _g !== void 0 ? _g : 0);
     let hentai = false;
     const arrayTags = [];
     for (const tag of $("a", $("div.ui.list", "div.item")).toArray()) {
         const label = $(tag).text().trim();
-        const id = (_j = (_h = $(tag).attr('href')) === null || _h === void 0 ? void 0 : _h.replace("/category/", "")) !== null && _j !== void 0 ? _j : "";
+        const id = (_g = (_f = $(tag).attr('href')) === null || _f === void 0 ? void 0 : _f.replace("/category/", "")) !== null && _g !== void 0 ? _g : "";
         if (!id || !label)
             continue;
         if (["ADULT", "SMUT", "MATURE"].includes(label.toUpperCase()))
@@ -564,13 +571,12 @@ exports.parseMangaDetails = ($, mangaId) => {
         id: mangaId,
         titles: titles,
         image,
-        rating: Number(rating),
+        rating: 0,
         status: status,
         author: author,
         artist: artist,
         tags: tagSections,
         desc: description,
-        views: views,
         //hentai: hentai,
         hentai: false //Due to MangaDex being down
     });
@@ -657,12 +663,15 @@ exports.parseHomeSections = ($, sections, sectionCallback) => {
         const rawId = (_a = $('a', m).attr('href')) !== null && _a !== void 0 ? _a : "";
         const id = /\/manga\/(.*?)\//.test(rawId) ? rawId.match(/\/manga\/(.*?)\//)[1] : null;
         const image = (_c = RM_DOMAIN + ((_b = $("img", m)) === null || _b === void 0 ? void 0 : _b.attr("src"))) !== null && _c !== void 0 ? _c : "";
+        let subtitle = $("a.caption > span", m).text().trim();
+        subtitle = subtitle ? "Chapter " + subtitle : "";
         if (!id || !title)
             continue;
         hotMangaUpdate.push(createMangaTile({
             id: id,
             image: image,
             title: createIconText({ text: title }),
+            subtitleText: createIconText({ text: subtitle }),
         }));
     }
     sections[0].items = hotMangaUpdate;
@@ -691,12 +700,15 @@ exports.parseHomeSections = ($, sections, sectionCallback) => {
         const title = $("h2", m).first().text().trim();
         const id = (_k = (_j = $('a', m).attr('href')) === null || _j === void 0 ? void 0 : _j.replace("/manga/", "")) !== null && _k !== void 0 ? _k : "";
         const image = (_m = RM_DOMAIN + ((_l = $("img", m)) === null || _l === void 0 ? void 0 : _l.attr("data-src"))) !== null && _m !== void 0 ? _m : "";
+        let subtitle = $("div.poster-subject > ul.chapters > li", m).first().text().trim();
+        subtitle = subtitle ? "Chapter " + subtitle : "";
         if (!id || !title)
             continue;
         latestManga.push(createMangaTile({
             id: id,
             image: image,
             title: createIconText({ text: title }),
+            subtitleText: createIconText({ text: subtitle }),
         }));
     }
     sections[2].items = latestManga;

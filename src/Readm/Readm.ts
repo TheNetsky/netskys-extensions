@@ -132,7 +132,7 @@ export class Readm extends Source {
 
   async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults | null> {
     let page: number = metadata?.page ?? 1;
-    let param = "";
+    let param: string = "";
     switch (homepageSectionId) {
       case "hot_manga":
         param = `/popular-manga/${page}`;
@@ -185,9 +185,9 @@ export class Readm extends Source {
         console.log("Missing URL or Title property in manga object!");
         continue;
       }
-      const id = m.url.replace("/manga/", "");
-      const image = RM_DOMAIN + m.image;
-      const title = m.title;
+      const id: string = m.url.replace("/manga/", "");
+      const image: string = RM_DOMAIN + m.image;
+      const title: string = m.title;
       manga.push(createMangaTile({
         id,
         image: image,

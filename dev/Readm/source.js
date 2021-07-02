@@ -531,22 +531,24 @@ exports.isLastPage = exports.parseViewMore = exports.generateSearch = exports.pa
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const RM_DOMAIN = 'https://readm.org';
 exports.parseMangaDetails = ($, mangaId) => {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f;
     const titles = [];
     titles.push($("h1.page-title").text().trim());
     const altTitles = $("div.sub-title.pt-sm").text().split(/, |; /);
     for (const t of altTitles) {
         titles.push(t.trim());
     }
-    const image = (_b = RM_DOMAIN + ((_a = $("img.series-profile-thumb")) === null || _a === void 0 ? void 0 : _a.attr("src"))) !== null && _b !== void 0 ? _b : "https://i.imgur.com/GYUxEX8.png";
-    const author = (_c = $("small", "span#first_episode").text().trim()) !== null && _c !== void 0 ? _c : "";
-    const artist = (_d = $("small", "span#last_episode").text().trim()) !== null && _d !== void 0 ? _d : "";
-    const description = (_e = $("p", "div.series-summary-wrapper").text().trim()) !== null && _e !== void 0 ? _e : "No description available";
+    //Check if the image extension could be parsed, if it can, complete it with the domain, else display failback image.
+    const parseImage = (_a = $("img.series-profile-thumb")) === null || _a === void 0 ? void 0 : _a.attr("src");
+    const image = parseImage ? (RM_DOMAIN + parseImage) : "https://i.imgur.com/GYUxEX8.png";
+    const author = (_b = $("small", "span#first_episode").text().trim()) !== null && _b !== void 0 ? _b : "";
+    const artist = (_c = $("small", "span#last_episode").text().trim()) !== null && _c !== void 0 ? _c : "";
+    const description = (_d = $("p", "div.series-summary-wrapper").text().trim()) !== null && _d !== void 0 ? _d : "No description available";
     let hentai = false;
     const arrayTags = [];
     for (const tag of $("a", $("div.ui.list", "div.item")).toArray()) {
         const label = $(tag).text().trim();
-        const id = (_g = (_f = $(tag).attr('href')) === null || _f === void 0 ? void 0 : _f.replace("/category/", "")) !== null && _g !== void 0 ? _g : "";
+        const id = (_f = (_e = $(tag).attr('href')) === null || _e === void 0 ? void 0 : _e.replace("/category/", "")) !== null && _f !== void 0 ? _f : "";
         if (!id || !label)
             continue;
         if (["ADULT", "SMUT", "MATURE"].includes(label.toUpperCase()))
@@ -653,7 +655,7 @@ exports.parseUpdatedManga = ($, time, ids) => {
     };
 };
 exports.parseHomeSections = ($, sections, sectionCallback) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     for (const section of sections)
         sectionCallback(section);
     //Hot Mango Update
@@ -662,9 +664,10 @@ exports.parseHomeSections = ($, sections, sectionCallback) => {
         const title = $("strong", m).text().trim();
         const rawId = (_a = $('a', m).attr('href')) !== null && _a !== void 0 ? _a : "";
         const id = /\/manga\/(.*?)\//.test(rawId) ? rawId.match(/\/manga\/(.*?)\//)[1] : null;
-        const image = (_c = RM_DOMAIN + ((_b = $("img", m)) === null || _b === void 0 ? void 0 : _b.attr("src"))) !== null && _c !== void 0 ? _c : "";
+        const parseImage = (_b = $("img", m)) === null || _b === void 0 ? void 0 : _b.attr("src");
+        const image = parseImage ? (RM_DOMAIN + parseImage) : "https://i.imgur.com/GYUxEX8.png";
         let subtitle = $("a.caption > span", m).text().trim();
-        subtitle = subtitle ? "Chapter " + subtitle : "";
+        subtitle = subtitle ? ("Chapter " + subtitle) : "";
         if (!id || !title)
             continue;
         hotMangaUpdate.push(createMangaTile({
@@ -680,9 +683,10 @@ exports.parseHomeSections = ($, sections, sectionCallback) => {
     const hotManga = [];
     for (const m of $("ul#latest_trailers li").toArray()) {
         const title = $("h6", m).text().trim();
-        const id = (_e = (_d = $('a', m).attr('href')) === null || _d === void 0 ? void 0 : _d.replace("/manga/", "")) !== null && _e !== void 0 ? _e : "";
-        const image = (_g = RM_DOMAIN + ((_f = $("img", m)) === null || _f === void 0 ? void 0 : _f.attr("data-src"))) !== null && _g !== void 0 ? _g : "";
-        const subtitle = (_h = $("small", m).first().text().trim()) !== null && _h !== void 0 ? _h : "";
+        const id = (_d = (_c = $('a', m).attr('href')) === null || _c === void 0 ? void 0 : _c.replace("/manga/", "")) !== null && _d !== void 0 ? _d : "";
+        const parseImage = (_e = $("img", m)) === null || _e === void 0 ? void 0 : _e.attr("data-src");
+        const image = parseImage ? (RM_DOMAIN + parseImage) : "https://i.imgur.com/GYUxEX8.png";
+        const subtitle = (_f = $("small", m).first().text().trim()) !== null && _f !== void 0 ? _f : "";
         if (!id || !title)
             continue;
         hotManga.push(createMangaTile({
@@ -698,10 +702,11 @@ exports.parseHomeSections = ($, sections, sectionCallback) => {
     const latestManga = [];
     for (const m of $("div.poster.poster-xs", $("ul.clearfix.latest-updates").first()).toArray()) {
         const title = $("h2", m).first().text().trim();
-        const id = (_k = (_j = $('a', m).attr('href')) === null || _j === void 0 ? void 0 : _j.replace("/manga/", "")) !== null && _k !== void 0 ? _k : "";
-        const image = (_m = RM_DOMAIN + ((_l = $("img", m)) === null || _l === void 0 ? void 0 : _l.attr("data-src"))) !== null && _m !== void 0 ? _m : "";
+        const id = (_h = (_g = $('a', m).attr('href')) === null || _g === void 0 ? void 0 : _g.replace("/manga/", "")) !== null && _h !== void 0 ? _h : "";
+        const parseImage = (_j = $("img", m)) === null || _j === void 0 ? void 0 : _j.attr("data-src");
+        const image = parseImage ? (RM_DOMAIN + parseImage) : "https://i.imgur.com/GYUxEX8.png";
         let subtitle = $("div.poster-subject > ul.chapters > li", m).first().text().trim();
-        subtitle = subtitle ? "Chapter " + subtitle : "";
+        subtitle = subtitle ? ("Chapter " + subtitle) : "";
         if (!id || !title)
             continue;
         latestManga.push(createMangaTile({
@@ -717,8 +722,9 @@ exports.parseHomeSections = ($, sections, sectionCallback) => {
     const newManga = [];
     for (const m of $("li", "ul.clearfix.mb-0").toArray()) {
         const title = $("h2", m).first().text().trim();
-        const id = (_p = (_o = $('a', m).attr('href')) === null || _o === void 0 ? void 0 : _o.replace("/manga/", "")) !== null && _p !== void 0 ? _p : "";
-        const image = RM_DOMAIN + ((_q = $("img", m)) === null || _q === void 0 ? void 0 : _q.attr("data-src"));
+        const id = (_l = (_k = $('a', m).attr('href')) === null || _k === void 0 ? void 0 : _k.replace("/manga/", "")) !== null && _l !== void 0 ? _l : "";
+        const parseImage = (_m = $("img", m)) === null || _m === void 0 ? void 0 : _m.attr("data-src");
+        const image = parseImage ? (RM_DOMAIN + parseImage) : "https://i.imgur.com/GYUxEX8.png";
         if (!id || !title)
             continue;
         newManga.push(createMangaTile({
@@ -738,13 +744,14 @@ exports.generateSearch = (query) => {
     return encodeURI(search);
 };
 exports.parseViewMore = ($, homepageSectionId) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f;
     const manga = [];
     if (homepageSectionId === "hot_manga") {
         for (const m of $("li.mb-lg", "ul.filter-results").toArray()) {
             const title = $("h2", m).first().text().trim();
             const id = (_b = (_a = $('a', m).attr('href')) === null || _a === void 0 ? void 0 : _a.replace("/manga/", "")) !== null && _b !== void 0 ? _b : "";
-            const image = (_d = RM_DOMAIN + ((_c = $("img", m)) === null || _c === void 0 ? void 0 : _c.attr("src"))) !== null && _d !== void 0 ? _d : "";
+            const parseImage = (_c = $("img", m)) === null || _c === void 0 ? void 0 : _c.attr("src");
+            const image = parseImage ? (RM_DOMAIN + parseImage) : "https://i.imgur.com/GYUxEX8.png";
             if (!id || !title)
                 continue;
             manga.push(createMangaTile({
@@ -757,8 +764,9 @@ exports.parseViewMore = ($, homepageSectionId) => {
     else {
         for (const m of $("div.poster.poster-xs", $("ul.clearfix.latest-updates").first()).toArray()) {
             const title = $("h2", m).first().text().trim();
-            const id = (_f = (_e = $('a', m).attr('href')) === null || _e === void 0 ? void 0 : _e.replace("/manga/", "")) !== null && _f !== void 0 ? _f : "";
-            const image = (_h = RM_DOMAIN + ((_g = $("img", m)) === null || _g === void 0 ? void 0 : _g.attr("data-src"))) !== null && _h !== void 0 ? _h : "";
+            const id = (_e = (_d = $('a', m).attr('href')) === null || _d === void 0 ? void 0 : _d.replace("/manga/", "")) !== null && _e !== void 0 ? _e : "";
+            const parseImage = (_f = $("img", m)) === null || _f === void 0 ? void 0 : _f.attr("data-src");
+            const image = parseImage ? (RM_DOMAIN + parseImage) : "https://i.imgur.com/GYUxEX8.png";
             if (!id || !title)
                 continue;
             manga.push(createMangaTile({

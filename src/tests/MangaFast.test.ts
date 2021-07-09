@@ -15,7 +15,7 @@ describe('MangaFast Tests', function () {
      * Try to choose a manga which is updated frequently, so that the historical checking test can 
      * return proper results, as it is limited to searching 30 days back due to extremely long processing times otherwise.
      */
-    var mangaId = "versatile-mage";   // Mashle
+    var mangaId = "human-ranch";   // Mashle
 
     it("Retrieve Manga Details", async () => {
         let details = await wrapper.getMangaDetails(source, mangaId);
@@ -57,7 +57,7 @@ describe('MangaFast Tests', function () {
     });
     it("Testing search", async () => {
         let testSearch = createSearchRequest({
-            title: 'love is'
+            title: 'love'
         });
 
         let search = await wrapper.searchRequest(source, testSearch, { page: 1 });

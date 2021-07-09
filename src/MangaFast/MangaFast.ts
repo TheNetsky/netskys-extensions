@@ -17,7 +17,7 @@ const MF_DOMAIN = 'https://mangafast.net'
 const method = 'GET'
 
 export const MangaFastInfo: SourceInfo = {
-  version: '1.0.7',
+  version: '1.0.8',
   name: 'MangaFast',
   icon: 'icon.png',
   author: 'Netsky',
@@ -182,12 +182,11 @@ export class MangaFast extends Source {
     let page: number = metadata?.page ?? 0;
     const search = generateSearch(query);
     const request = createRequestObject({
-      url: `https://search.mangafast.net/indexes/comics/search`,
+      url: `https://search.mangafast.net/comics/ms`,
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "X-Meili-API-Key": "masterKey"
-
+        "mangafast": "mangafast"
       },
       data: JSON.stringify({
         "q": search,
@@ -197,7 +196,7 @@ export class MangaFast extends Source {
     });
 
     let response = await this.requestManager.schedule(request, 1);
-    response = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
+    response = typeof (response.data) === "string" ? JSON.parse(response.data) : response.data;
     const data = Object(response);
 
     const mangas = [];

@@ -341,7 +341,7 @@ const MangaFastParser_1 = require("./MangaFastParser");
 const MF_DOMAIN = 'https://mangafast.net';
 const method = 'GET';
 exports.MangaFastInfo = {
-    version: '1.0.7',
+    version: '1.0.8',
     name: 'MangaFast',
     icon: 'icon.png',
     author: 'Netsky',
@@ -500,11 +500,11 @@ class MangaFast extends paperback_extensions_common_1.Source {
             let page = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.page) !== null && _a !== void 0 ? _a : 0;
             const search = MangaFastParser_1.generateSearch(query);
             const request = createRequestObject({
-                url: `https://search.mangafast.net/indexes/comics/search`,
+                url: `https://search.mangafast.net/comics/ms`,
                 method: "POST",
                 headers: {
                     "content-type": "application/json",
-                    "X-Meili-API-Key": "masterKey"
+                    "mangafast": "mangafast"
                 },
                 data: JSON.stringify({
                     "q": search,
@@ -513,7 +513,7 @@ class MangaFast extends paperback_extensions_common_1.Source {
                 })
             });
             let response = yield this.requestManager.schedule(request, 1);
-            response = typeof response.data === "string" ? JSON.parse(response.data) : response.data;
+            response = typeof (response.data) === "string" ? JSON.parse(response.data) : response.data;
             const data = Object(response);
             const mangas = [];
             const collectedIds = [];

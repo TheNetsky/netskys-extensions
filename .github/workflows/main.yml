@@ -1,5 +1,9 @@
-on: push
 name: Bundle and Publish Sources
+on: 
+  push:
+    branches:
+      - '**'
+      - '!main'
 jobs:
   build:
     name: Bundle and Publish Sources
@@ -7,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [14.x] 
 
     steps:
       - name: Checkout Branch
@@ -25,6 +29,7 @@ jobs:
 
       - name: Checkout existing bundles
         uses: actions/checkout@v2
+        continue-on-error: true
         with:
           ref: gh-pages
           path: bundles
@@ -32,10 +37,8 @@ jobs:
       - run: npm install
       - run: npm run bundle -- --folder=${{ steps.extract_branch.outputs.branch }}
 
-      - name: Deploy
-        uses: s0/git-publish-subdir-action@master
-        env:
-          REPO: self
-          BRANCH: gh-pages
-          FOLDER: bundles
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@4.1.0
+        with:
+          branch: gh-pages
+          folder: bundles

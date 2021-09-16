@@ -4,14 +4,14 @@ import {
     SearchRequest,
     Source
 } from 'paperback-extensions-common'
-import { MangaKatana } from '../MangaKatana/MangaKatana'
+import { Readm } from '../Readm/Readm'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 
-describe('MangaKatana Tests', () => {
+describe('Readm Tests', () => {
 
     const wrapper: APIWrapper = new APIWrapper()
-    const source: Source = new MangaKatana(cheerio)
+    const source: Source = new Readm(cheerio)
     const expect = chai.expect
     chai.use(chaiAsPromised)
 
@@ -20,7 +20,7 @@ describe('MangaKatana Tests', () => {
    * Try to choose a manga which is updated frequently, so that the historical checking test can
    * return proper results, as it is limited to searching 30 days back due to extremely long processing times otherwise.
    */
-    const mangaId = 'bowblade-spirit.25297' // bowblade-spirit.25297
+    const mangaId = '20171' // Choujin X
 
     it('Retrieve Manga Details', async () => {
         const details = await wrapper.getMangaDetails(source, mangaId)
@@ -33,7 +33,7 @@ describe('MangaKatana Tests', () => {
         expect(data.status, 'Missing Status').to.exist
         expect(data.desc, 'Missing Description').to.be.not.empty
         expect(data.titles, 'Missing Titles').to.be.not.empty
-        //expect(data.rating, 'Missing Rating').to.exist
+        expect(data.rating, 'Missing Rating').to.exist
     })
 
     it('Get Chapters', async () => {
@@ -61,22 +61,16 @@ describe('MangaKatana Tests', () => {
         expect(data.pages, 'No pages present').to.be.not.empty
     })
 
-    it('Get tags', async () => {
-        const tags = await wrapper.getTags(source)
-        expect(tags, 'No server response').to.exist
-        expect(tags, 'Empty server response').to.not.be.empty
-    })
-
-
     it('Testing search', async () => {
         const testSearch: SearchRequest = {
-            title: 'love',
+            title: 'Solo',
             parameters: {
                 includeOperator: ['action']
             }
         }
 
         const search = await wrapper.searchRequest(source, testSearch, 1)
+        console.log(search)
         const result = search.results[0]
 
         expect(result, 'No response from server').to.exist
@@ -94,12 +88,16 @@ describe('MangaKatana Tests', () => {
     })
 
     it('Testing Notifications', async () => {
-        const updates = await wrapper.filterUpdatedManga(source, new Date('2021-9-10'), [mangaId])
+        const updates = await wrapper.filterUpdatedManga(source, new Date('2021-3-18'), [mangaId])
         expect(updates, 'No server response').to.exist
         expect(updates, 'Empty server response').to.not.be.empty
         expect(updates[0], 'No updates').to.not.be.empty
     })
 
-
+    it('Get tags', async () => {
+        const tags = await wrapper.getTags(source)
+        expect(tags, 'No server response').to.exist
+        expect(tags, 'Empty server response').to.not.be.empty
+    })
 
 })

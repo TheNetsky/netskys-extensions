@@ -1,0 +1,32 @@
+name: Clean up published sources for deleted branch
+on: 
+  delete:
+    branches:
+      - '**'
+      - '!main'
+jobs:
+  delete:
+    if: github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clean up
+        run: |
+          echo "Clean up for branch ${{ github.event.ref }}"
+
+      - name: Checkout Branch
+        uses: actions/checkout@v2
+
+      - name: Checkout existing bundles
+        uses: actions/checkout@v2
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: bundles
+
+      - run: rm -rf bundles/${{ github.event.ref }}
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@4.1.0
+        with:
+          branch: gh-pages
+          folder: bundles

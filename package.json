@@ -1,38 +1,40 @@
 {
   "name": "netskys-extensions",
-  "version": "1.0.0",
-  "repositoryName": "Netsky's Extensions",
-  "description": "Contains a variety of sources!",
+  "version": "2.0.0",
+  "description": "Netsky's extensions for 0.6!",
+  "main": "index.js",
   "scripts": {
-    "start": "tsc && node dist/api.js",
-    "build": "tsc",
-    "test": "node_modules/.bin/mocha --timeout 300000 -r ts-node/register src/**/*.test.ts",
-    "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test",
     "bundle": "paperback bundle",
-    "serve": "paperback serve -p 8000"
+    "serve": "paperback serve",
+    "test": "node_modules/.bin/mocha --timeout 300000 -r ts-node/register src/**/*.test.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Paperback-iOS/extensions-official.git"
   },
   "author": "Netsky",
-  "license": "MIT",
-  "dependencies": {
-    "chai": "^4.2.0",
-    "chai-as-promised": "^7.1.1",
-    "cheerio": "^1.0.0-rc.5",
-    "entities": "^2.2.0",
-    "paperback-cli": "^1.2.5",
-    "paperback-extensions-common": "^2.1.125",
-    "ts-mocha": "^7.0.0",
-    "tsify": "^4.0.2",
-    "typescript": "^3.9.6"
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/Paperback-iOS/extensions-official/issues"
   },
+  "homepage": "https://github.com/Paperback-iOS/extensions-official#readme",
   "devDependencies": {
+    "@types/chai": "^4.2.21",
+    "@types/chai-as-promised": "^7.1.4",
     "@types/cheerio": "^0.22.21",
-    "@types/mocha": "^7.0.2",
-    "@typescript-eslint/eslint-plugin": "^4.14.1",
-    "eslint": "^7.18.0",
-    "eslint-config-oclif": "^3.1.0",
-    "eslint-config-oclif-typescript": "^0.2.0",
-    "mocha": "^7.2.0",
-    "nyc": "^15.1.0",
-    "typedoc": "^0.17.6"
+    "@types/mocha": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.25.0",
+    "@typescript-eslint/parser": "^4.25.0",
+    "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^7.27.0",
+    "eslint-plugin-modules-newline": "^0.0.6",
+    "mocha": "^9.1.1",
+    "typescript": "^4.3.2"
+  },
+  "dependencies": {
+    "paperback-cli": "^1.4.0",
+    "paperback-extensions-common": "^4.3.5",
+    "ts-node": "^10.2.1"
   }
 }

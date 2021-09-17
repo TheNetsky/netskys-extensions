@@ -1,1 +1,1 @@
-{"buildTime":"2021-09-16T21:13:54.848Z","sources":[]}
+{"buildTime":"2021-09-17T18:01:12.050Z","sources":[{"id":"MangaKatana","name":"MangaKatana","author":"Netsky","desc":"Extension that pulls manga from MangaKatana.","website":"https://github.com/TheNetsky","contentRating":"MATURE","version":"2.0.0","icon":"icon.png","tags":[{"text":"Notifications","type":"success"}],"websiteBaseURL":"https://mangakatana.com"}]}

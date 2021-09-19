@@ -398,7 +398,7 @@ const headers = {
     'content-type': 'application/x-www-form-urlencoded'
 };
 exports.MangaHereInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -538,7 +538,7 @@ class MangaHere extends paperback_extensions_common_1.Source {
             const url = new MangaHereHelper_1.URLBuilder(MH_DOMAIN)
                 .addPathComponent('search')
                 .addQueryParameter('page', page)
-                .addQueryParameter('title', encodeURI((query === null || query === void 0 ? void 0 : query.title) || 'love'))
+                .addQueryParameter('title', encodeURI((query === null || query === void 0 ? void 0 : query.title) || ''))
                 .addQueryParameter('genres', (_b = query.includedTags) === null || _b === void 0 ? void 0 : _b.map((x) => x.id).join('%2C'))
                 .buildUrl();
             const request = createRequestObject({

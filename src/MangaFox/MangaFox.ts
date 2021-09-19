@@ -35,7 +35,7 @@ const headers = {
 }
 
 export const MangaFoxInfo: SourceInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -179,7 +179,7 @@ export class MangaFox extends Source {
         const url = new URLBuilder(FF_DOMAIN)
             .addPathComponent('search')
             .addQueryParameter('page', page)
-            .addQueryParameter('title', encodeURI(query?.title || 'love'))
+            .addQueryParameter('title', encodeURI(query?.title || ''))
             .addQueryParameter('genres', query.includedTags?.map((x: any) => x.id).join('%2C'))
             .buildUrl()
 

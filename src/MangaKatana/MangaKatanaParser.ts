@@ -32,6 +32,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): Manga => {
         const label = $(tag).text().trim()
         const id = $(tag).attr('href')?.split('genre/')[1] ?? ''
         if (['ADULT', 'SMUT', 'MATURE'].includes(label.toUpperCase())) hentai = true
+        if (!id || !label) continue
         arrayTags.push({ id: id, label: label })
     }
     const tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => createTag(x)) })]
@@ -119,8 +120,8 @@ export const parseTags = ($: CheerioStatic): TagSection[] => {
         const id = $('a', tag).attr('href')?.split('genre/')[1] ?? ''
         if (!id || !label) continue
         arrayTags.push({ id: id, label: label })
-
     }
+    
     const tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => createTag(x)) })]
     return tagSections
 }
@@ -168,7 +169,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         if (!id || !title) continue
         hotMangaUpdate.push(createMangaTile({
             id: id,
-            image: image,
+            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
             title: createIconText({ text: title }),
             subtitleText: createIconText({ text: subtitle }),
         }))
@@ -186,7 +187,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         if (!id || !title) continue
         hotManga.push(createMangaTile({
             id: id,
-            image: image,
+            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
             title: createIconText({ text: title }),
             subtitleText: createIconText({ text: subtitle }),
         }))
@@ -204,7 +205,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         if (!id || !title) continue
         latestManga.push(createMangaTile({
             id: id,
-            image: image,
+            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
             title: createIconText({ text: title }),
             subtitleText: createIconText({ text: subtitle }),
         }))
@@ -260,7 +261,7 @@ export const parseViewMore = ($: CheerioStatic): MangaTile[] => {
         if (!id || !title) continue
         manga.push(createMangaTile({
             id,
-            image,
+            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
             title: createIconText({ text: title }),
             subtitleText: createIconText({ text: subtitle }),
         }))

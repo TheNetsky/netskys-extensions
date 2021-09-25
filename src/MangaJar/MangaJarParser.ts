@@ -59,9 +59,10 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
     const id = $("a", chapter).attr('href')?.replace(`/manga/${mangaId}/chapter/`, "") ?? "";
     const date = parseDate($("span.chapter-date", chapter).text().trim());
     const chapterRaw = $("span.chapter-title", chapter).text().trim();
-    const chapRegex = chapterRaw.match(/(\d+\.?\_?\d?)/);
-    let chapterNumber: number = 0;
-    if (chapRegex && chapRegex[1]) chapterNumber = Number(chapRegex[1]);
+    const volumeString = chapterRaw?.split('Volume')[1]?.split('Chapter')[0].trim()
+    const volume = volumeString ? Number(volumeString) : undefined
+    const chapNumString = chapterRaw?.split('Chapter')[1]?.split(' ')[1].trim()
+    const chapNum = chapNumString ? Number(chapNumString) : 0
     const chapterName = $("span.chapter-title", chapter).parent().contents().remove().last().text().trim();
     if (!id) continue;
 
@@ -70,7 +71,8 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
       mangaId,
       name: !chapterName ? "" : decodeHTMLEntity(chapterName),
       langCode: LanguageCode.ENGLISH,
-      chapNum: chapterNumber,
+      volume,
+      chapNum,
       time: date,
     }));
   }

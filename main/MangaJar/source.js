@@ -637,7 +637,7 @@ const MangaJarParser_1 = require("./MangaJarParser");
 const MJ_DOMAIN = 'https://mangajar.com';
 const method = 'GET';
 exports.MangaJarInfo = {
-    version: '1.0.6',
+    version: '1.0.7',
     name: 'MangaJar',
     icon: 'icon.png',
     author: 'Netsky',
@@ -877,16 +877,16 @@ exports.parseMangaDetails = ($, mangaId) => {
     });
 };
 exports.parseChapters = ($, mangaId) => {
-    var _a, _b;
+    var _a, _b, _c, _d;
     const chapters = [];
     for (const chapter of $("li.list-group-item.chapter-item").toArray()) {
         const id = (_b = (_a = $("a", chapter).attr('href')) === null || _a === void 0 ? void 0 : _a.replace(`/manga/${mangaId}/chapter/`, "")) !== null && _b !== void 0 ? _b : "";
         const date = parseDate($("span.chapter-date", chapter).text().trim());
         const chapterRaw = $("span.chapter-title", chapter).text().trim();
-        const chapRegex = chapterRaw.match(/(\d+\.?\_?\d?)/);
-        let chapterNumber = 0;
-        if (chapRegex && chapRegex[1])
-            chapterNumber = Number(chapRegex[1]);
+        const volumeString = (_c = chapterRaw === null || chapterRaw === void 0 ? void 0 : chapterRaw.split('Volume')[1]) === null || _c === void 0 ? void 0 : _c.split('Chapter')[0].trim();
+        const volume = volumeString ? Number(volumeString) : undefined;
+        const chapNumString = (_d = chapterRaw === null || chapterRaw === void 0 ? void 0 : chapterRaw.split('Chapter')[1]) === null || _d === void 0 ? void 0 : _d.split(' ')[1].trim();
+        const chapNum = chapNumString ? Number(chapNumString) : 0;
         const chapterName = $("span.chapter-title", chapter).parent().contents().remove().last().text().trim();
         if (!id)
             continue;
@@ -895,8 +895,11 @@ exports.parseChapters = ($, mangaId) => {
             mangaId,
             name: !chapterName ? "" : decodeHTMLEntity(chapterName),
             langCode: paperback_extensions_common_1.LanguageCode.ENGLISH,
-            chapNum: chapterNumber,
+            volume,
+            chapNum,
             time: date,
+            // @ts-ignore
+            sortingIndex: (((volume !== null && volume !== void 0 ? volume : 0) > 0 && !isNaN(volume)) ? volume : 999) * 100000000 + chapNum,
         }));
     }
     return chapters;

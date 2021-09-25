@@ -5,8 +5,8 @@
 
 | Source Type | Description |          Link |
 | ---        |    ----   |         --- |
-| Stable      | Latest stable versions of the sources. (Deprecated)     | [Click me!](https://thenetsky.github.io/netskys-extensions/main/)    |
-| Stable (0.6)   | Sources made for the 0.6 version of the app. (Recommended)        |  [Click me!](https://thenetsky.github.io/netskys-extensions/0.6/)    |
+| Stable  (0.5)    | Stable versions of the sources. (Deprecated)     | [Click me!](https://thenetsky.github.io/netskys-extensions/main/)    |
+| Stable (0.6)   | Stable versions of the sources (Recommended)        |  [Click me!](https://thenetsky.github.io/netskys-extensions/0.6/)    |
 | Development   | Development versions of the sources. (Unstable)        |  [Click me!](https://thenetsky.github.io/netskys-extensions/dev/)    |
 
 ___

@@ -74,6 +74,8 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
       volume,
       chapNum,
       time: date,
+      // @ts-ignore
+      sortingIndex: (((volume ?? 0) > 0 && !isNaN(volume)) ? volume : 999) * 100000000 + chapNum,
     }));
   }
   return chapters;

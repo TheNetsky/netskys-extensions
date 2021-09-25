@@ -17,7 +17,7 @@ const MJ_DOMAIN = 'https://mangajar.com'
 const method = 'GET'
 
 export const MangaJarInfo: SourceInfo = {
-  version: '1.0.6',
+  version: '1.0.7',
   name: 'MangaJar',
   icon: 'icon.png',
   author: 'Netsky',

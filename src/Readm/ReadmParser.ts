@@ -196,8 +196,8 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     hotUpdateSection.items = hotMangaUpdate
     sectionCallback(hotUpdateSection)
 
-    //Hot Mango
-    const hotManga: MangaTile[] = []
+    //Popular Mango
+    const popularManga: MangaTile[] = []
     for (const manga of $('ul#latest_trailers li').toArray()) {
 
         const title: string = $('h6', manga).text().trim()
@@ -207,14 +207,14 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         const subtitle: string = $('small', manga).first().text().trim() ?? ''
 
         if (!id || !title) continue
-        hotManga.push(createMangaTile({
+        popularManga.push(createMangaTile({
             id: id,
             image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }))
     }
-    popularMangaSection.items = hotManga
+    popularMangaSection.items = popularManga
     sectionCallback(popularMangaSection)
 
     //Latest Mango
@@ -262,7 +262,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
 export const parseViewMore = ($: CheerioStatic, homepageSectionId: string): MangaTile[] => {
     const manga: MangaTile[] = []
 
-    if (homepageSectionId === 'hot_manga') {
+    if (homepageSectionId === 'popular_manga') {
         for (const m of $('li.mb-lg', 'ul.filter-results').toArray()) {
 
             const title: string = $('h2', m).first().text().trim()

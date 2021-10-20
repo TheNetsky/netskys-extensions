@@ -29,7 +29,7 @@ import {
 const RM_DOMAIN = 'https://readm.org'
 
 export const ReadmInfo: SourceInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -149,7 +149,7 @@ export class Readm extends Source {
                 param = `/popular-manga/${page}`
                 break
             case 'latest_updates':
-                param = `/latest_updates/${page}`
+                param = `/latest-releases/${page}`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')

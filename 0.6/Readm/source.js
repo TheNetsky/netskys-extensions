@@ -688,7 +688,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ReadmParser_1 = require("./ReadmParser");
 const RM_DOMAIN = 'https://readm.org';
 exports.ReadmInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -807,7 +807,7 @@ class Readm extends paperback_extensions_common_1.Source {
                     param = `/popular-manga/${page}`;
                     break;
                 case 'latest_updates':
-                    param = `/latest_updates/${page}`;
+                    param = `/latest-releases/${page}`;
                     break;
                 default:
                     throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
@@ -1071,8 +1071,8 @@ const parseHomeSections = ($, sectionCallback) => {
     }
     hotUpdateSection.items = hotMangaUpdate;
     sectionCallback(hotUpdateSection);
-    //Hot Mango
-    const hotManga = [];
+    //Popular Mango
+    const popularManga = [];
     for (const manga of $('ul#latest_trailers li').toArray()) {
         const title = $('h6', manga).text().trim();
         const id = (_c = (_b = $('a', manga).attr('href')) === null || _b === void 0 ? void 0 : _b.replace('/manga/', '')) !== null && _c !== void 0 ? _c : '';
@@ -1081,14 +1081,14 @@ const parseHomeSections = ($, sectionCallback) => {
         const subtitle = (_d = $('small', manga).first().text().trim()) !== null && _d !== void 0 ? _d : '';
         if (!id || !title)
             continue;
-        hotManga.push(createMangaTile({
+        popularManga.push(createMangaTile({
             id: id,
             image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }));
     }
-    popularMangaSection.items = hotManga;
+    popularMangaSection.items = popularManga;
     sectionCallback(popularMangaSection);
     //Latest Mango
     const latestManga = [];
@@ -1132,7 +1132,7 @@ exports.parseHomeSections = parseHomeSections;
 const parseViewMore = ($, homepageSectionId) => {
     var _a, _b, _c, _d;
     const manga = [];
-    if (homepageSectionId === 'hot_manga') {
+    if (homepageSectionId === 'popular_manga') {
         for (const m of $('li.mb-lg', 'ul.filter-results').toArray()) {
             const title = $('h2', m).first().text().trim();
             const id = (_b = (_a = $('a', m).attr('href')) === null || _a === void 0 ? void 0 : _a.replace('/manga/', '')) !== null && _b !== void 0 ? _b : '';

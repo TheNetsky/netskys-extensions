@@ -11,19 +11,21 @@ import {
     TagSection
 } from 'paperback-extensions-common'
 
+import entities = require('entities')
+
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): Manga => {
 
     const titles = []
-    titles.push($('h1.heading').first().text().trim())
+    titles.push(decodeHTMLEntity($('h1.heading').first().text().trim()))
 
     const altTitles = $('div.alt_name').text().split(';')
     for (const title of altTitles) {
-        titles.push(title.trim())
+        titles.push(decodeHTMLEntity(title.trim()))
     }
 
     const image = $('div.media div.cover img').attr('src')
     const author = $('.author').text().trim()
-    const description = $('.summary > p').text().trim()
+    const description = decodeHTMLEntity($('.summary > p').text().trim())
 
     let hentai = false
 
@@ -121,7 +123,7 @@ export const parseTags = ($: CheerioStatic): TagSection[] => {
         if (!id || !label) continue
         arrayTags.push({ id: id, label: label })
     }
-    
+
     const tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => createTag(x)) })]
     return tagSections
 }
@@ -158,7 +160,6 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     const hotSection = createHomeSection({ id: 'hot_manga', title: 'Hot Manga', view_more: true })
     const latestSection = createHomeSection({ id: 'latest_updates', title: 'Latest Updates', view_more: true })
 
-
     //Hot Mango Update
     const hotMangaUpdate: MangaTile[] = []
     for (const manga of $('div.item', 'div#hot_update').toArray()) {
@@ -170,7 +171,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         hotMangaUpdate.push(createMangaTile({
             id: id,
             image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
-            title: createIconText({ text: title }),
+            title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }))
     }
@@ -188,7 +189,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         hotManga.push(createMangaTile({
             id: id,
             image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
-            title: createIconText({ text: title }),
+            title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }))
     }
@@ -206,7 +207,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         latestManga.push(createMangaTile({
             id: id,
             image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
-            title: createIconText({ text: title }),
+            title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }))
     }
@@ -222,14 +223,14 @@ export const parseSearch = ($: CheerioStatic): MangaTile[] => {
         const title = $('h1.heading').first().text().trim() ?? ''
         const id = $('meta[property$=url]').attr('content')?.split('/')?.pop() ?? ''
         const image = $('div.media div.cover img').attr('src') ?? ''
-        if (!collectedIds.includes(id) && id && title) {
-            mangas.push(createMangaTile({
-                id,
-                image: image,
-                title: createIconText({ text: title }),
-            }))
-            collectedIds.push(id)
-        }
+        if (!id || !title || collectedIds.includes(id)) return []
+        mangas.push(createMangaTile({
+            id,
+            image: image,
+            title: createIconText({ text: decodeHTMLEntity(title) }),
+        }))
+        collectedIds.push(id)
+
     } else {
 
         for (const manga of $('div.item', '#book_list').toArray()) {
@@ -237,15 +238,14 @@ export const parseSearch = ($: CheerioStatic): MangaTile[] => {
             const id = $('a', manga).attr('href')?.split('/').pop() ?? ''
             const image = $('img', manga).attr('src') ?? ''
             const subtitle: string = $('.chapter', manga).first().text().trim()
-            if (!collectedIds.includes(id) && id && title) {
-                mangas.push(createMangaTile({
-                    id,
-                    image: image,
-                    title: createIconText({ text: title }),
-                    subtitleText: createIconText({ text: subtitle }),
-                }))
-                collectedIds.push(id)
-            }
+            if (!id || !title || collectedIds.includes(id)) continue
+            mangas.push(createMangaTile({
+                id,
+                image: image,
+                title: createIconText({ text: decodeHTMLEntity(title) }),
+                subtitleText: createIconText({ text: subtitle }),
+            }))
+            collectedIds.push(id)
         }
     }
     return mangas
@@ -262,7 +262,7 @@ export const parseViewMore = ($: CheerioStatic): MangaTile[] => {
         manga.push(createMangaTile({
             id,
             image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
-            title: createIconText({ text: title }),
+            title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }))
     }
@@ -275,4 +275,8 @@ export const isLastPage = ($: CheerioStatic): boolean => {
     const hasNext = Boolean($('a.next.page-numbers', 'ul.uk-pagination').text())
     if (hasNext) isLast = false
     return isLast
+}
+
+const decodeHTMLEntity = (str: string): string => {
+    return entities.decodeHTML(str)
 }

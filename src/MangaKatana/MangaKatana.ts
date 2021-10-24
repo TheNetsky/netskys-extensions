@@ -29,12 +29,9 @@ import {
 
 const MK_DOMAIN = 'https://mangakatana.com'
 const method = 'GET'
-const headers = {
-    'content-type': 'application/x-www-form-urlencoded'
-}
 
 export const MangaKatanaInfo: SourceInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
@@ -180,14 +177,12 @@ export class MangaKatana extends Source {
             request = createRequestObject({
                 url: MK_DOMAIN,
                 method,
-                headers,
                 param: `/page/${page}?search=${encodeURI(query.title)}&search_by=book_name`
             })
         } else {
             request = createRequestObject({
                 url: MK_DOMAIN,
                 method,
-                headers,
                 param: `/genre/${query?.includedTags?.map((x: any) => x.id)[0]}/page/${page}`
             })
         }

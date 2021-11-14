@@ -14,4 +14,5 @@ ___
 
 | Repo name | Description |          Link |
 | ---        |    ----   |         --- |
-| MangaStream   | My generic class MangaStream repo with more sources!        |  [Click me!](https://thenetsky.github.io/extensions-mangastream/)    |
+| MangaStream Extensions | My generic class MangaStream repo with more sources!        |  [Click me!](https://thenetsky.github.io/extensions-mangastream/)    |
+| BuddyComplex Extensions	| My generic class BuddyComplex repo with more sources!        |  [Click me!](https://thenetsky.github.io/extensions-buddycomplex/)    |

@@ -1,7 +1,7 @@
 {
   "name": "netskys-extensions",
   "version": "2.0.0",
-   "repositoryName": "Netsky's Extensions 0.6",
+  "repositoryName": "Netsky's Extensions (0.6)",
   "description": "Netsky's extensions for 0.6!",
   "main": "index.js",
   "scripts": {

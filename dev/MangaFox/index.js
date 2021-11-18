@@ -371,25 +371,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MangaHere = exports.MangaHereInfo = void 0;
+exports.MangaFox = exports.MangaFoxInfo = void 0;
 /* eslint-disable linebreak-style */
 const paperback_extensions_common_1 = require("paperback-extensions-common");
-const MangaHereParser_1 = require("./MangaHereParser");
-const MangaHereHelper_1 = require("./MangaHereHelper");
-const MH_DOMAIN = 'https://www.mangahere.cc';
-const MH_DOMAIN_MOBILE = 'http://m.mangahere.cc';
+const MangaFoxParser_1 = require("./MangaFoxParser");
+const MangaFoxHelper_1 = require("./MangaFoxHelper");
+const FF_DOMAIN = 'https://fanfox.net';
+const FF_DOMAIN_MOBILE = 'https://m.fanfox.net';
 const headers = {
     'content-type': 'application/x-www-form-urlencoded'
 };
-exports.MangaHereInfo = {
+exports.MangaFoxInfo = {
     version: '2.0.1',
-    name: 'MangaHere',
+    name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
     description: 'Extension that pulls manga from MangaHere.',
     contentRating: paperback_extensions_common_1.ContentRating.MATURE,
-    websiteBaseURL: MH_DOMAIN,
+    websiteBaseURL: FF_DOMAIN,
     sourceTags: [
         {
             text: 'Notifications',
@@ -397,7 +397,7 @@ exports.MangaHereInfo = {
         }
     ]
 };
-class MangaHere extends paperback_extensions_common_1.Source {
+class MangaFox extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
         this.cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })];
@@ -406,43 +406,43 @@ class MangaHere extends paperback_extensions_common_1.Source {
             requestTimeout: 20000,
         });
     }
-    getMangaShareUrl(mangaId) { return `${MH_DOMAIN}/manga/${mangaId}`; }
+    getMangaShareUrl(mangaId) { return `${FF_DOMAIN}/manga/${mangaId}`; }
     getMangaDetails(mangaId) {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
-                url: `${MH_DOMAIN}/manga/`,
+                url: `${FF_DOMAIN}/manga/`,
                 method: 'GET',
                 param: mangaId,
                 cookies: this.cookies
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
-            return (0, MangaHereParser_1.parseMangaDetails)($, mangaId);
+            return (0, MangaFoxParser_1.parseMangaDetails)($, mangaId);
         });
     }
     getChapters(mangaId) {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
-                url: `${MH_DOMAIN}/manga/`,
+                url: `${FF_DOMAIN}/manga/`,
                 method: 'GET',
                 param: mangaId,
                 cookies: this.cookies
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
-            return (0, MangaHereParser_1.parseChapters)($, mangaId);
+            return (0, MangaFoxParser_1.parseChapters)($, mangaId);
         });
     }
     getChapterDetails(mangaId, chapterId) {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
-                url: `${MH_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
+                url: `${FF_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
                 method: 'GET',
                 cookies: this.cookies
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
-            return (0, MangaHereParser_1.parseChapterDetails)($, mangaId, chapterId);
+            return (0, MangaFoxParser_1.parseChapterDetails)($, mangaId, chapterId);
         });
     }
     filterUpdatedManga(mangaUpdatesFoundCallback, time, ids) {
@@ -454,13 +454,13 @@ class MangaHere extends paperback_extensions_common_1.Source {
             };
             while (updatedManga.loadMore) {
                 const request = createRequestObject({
-                    url: `${MH_DOMAIN}/latest/${page++}`,
+                    url: `${FF_DOMAIN}/releases/${page++}`,
                     method: 'GET',
                     cookies: this.cookies
                 });
                 const response = yield this.requestManager.schedule(request, 1);
                 const $ = this.cheerio.load(response.data);
-                updatedManga = (0, MangaHereParser_1.parseUpdatedManga)($, time, ids);
+                updatedManga = (0, MangaFoxParser_1.parseUpdatedManga)($, time, ids);
                 if (updatedManga.ids.length > 0) {
                     mangaUpdatesFoundCallback(createMangaUpdates({
                         ids: updatedManga.ids
@@ -472,13 +472,13 @@ class MangaHere extends paperback_extensions_common_1.Source {
     getHomePageSections(sectionCallback) {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
-                url: MH_DOMAIN,
+                url: FF_DOMAIN,
                 method: 'GET',
                 cookies: this.cookies
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
-            (0, MangaHereParser_1.parseHomeSections)($, sectionCallback);
+            (0, MangaFoxParser_1.parseHomeSections)($, sectionCallback);
         });
     }
     getViewMoreItems(homepageSectionId, metadata) {
@@ -494,21 +494,21 @@ class MangaHere extends paperback_extensions_common_1.Source {
                     param = `/directory/${page}.htm?news`;
                     break;
                 case 'latest_updates':
-                    param = `/latest/${page}`;
+                    param = `/releases/${page}`;
                     break;
                 default:
                     throw new Error(`Invalid homeSectionId | ${homepageSectionId}`);
             }
             const request = createRequestObject({
-                url: `${MH_DOMAIN}/`,
+                url: `${FF_DOMAIN}/`,
                 method: 'GET',
                 param,
                 cookies: this.cookies
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
-            const manga = (0, MangaHereParser_1.parseViewMore)($, homepageSectionId);
-            metadata = !(0, MangaHereParser_1.isLastPage)($) ? { page: page + 1 } : undefined;
+            const manga = (0, MangaFoxParser_1.parseViewMore)($, homepageSectionId);
+            metadata = !(0, MangaFoxParser_1.isLastPage)($) ? { page: page + 1 } : undefined;
             return createPagedResults({
                 results: manga,
                 metadata
@@ -519,7 +519,7 @@ class MangaHere extends paperback_extensions_common_1.Source {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const page = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.page) !== null && _a !== void 0 ? _a : 1;
-            const url = new MangaHereHelper_1.URLBuilder(MH_DOMAIN)
+            const url = new MangaFoxHelper_1.URLBuilder(FF_DOMAIN)
                 .addPathComponent('search')
                 .addQueryParameter('page', page)
                 .addQueryParameter('title', encodeURI((query === null || query === void 0 ? void 0 : query.title) || ''))
@@ -533,8 +533,8 @@ class MangaHere extends paperback_extensions_common_1.Source {
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
-            const manga = (0, MangaHereParser_1.parseSearch)($);
-            metadata = !(0, MangaHereParser_1.isLastPage)($) ? { page: page + 1 } : undefined;
+            const manga = (0, MangaFoxParser_1.parseSearch)($);
+            metadata = !(0, MangaFoxParser_1.isLastPage)($) ? { page: page + 1 } : undefined;
             return createPagedResults({
                 results: manga,
                 metadata
@@ -544,19 +544,19 @@ class MangaHere extends paperback_extensions_common_1.Source {
     getTags() {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
-                url: `${MH_DOMAIN}/search?`,
+                url: `${FF_DOMAIN}/search?`,
                 method: 'GET',
                 cookies: this.cookies,
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
-            return (0, MangaHereParser_1.parseTags)($);
+            return (0, MangaFoxParser_1.parseTags)($);
         });
     }
 }
-exports.MangaHere = MangaHere;
+exports.MangaFox = MangaFox;
 
-},{"./MangaHereHelper":48,"./MangaHereParser":49,"paperback-extensions-common":4}],48:[function(require,module,exports){
+},{"./MangaFoxHelper":48,"./MangaFoxParser":49,"paperback-extensions-common":4}],48:[function(require,module,exports){
 "use strict";
 /* eslint-disable linebreak-style */
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -759,8 +759,8 @@ const parseHomeSections = ($, sectionCallback) => {
         for (const manga of $('li', section.selector).toArray()) {
             const id = (_b = (_a = $('a', manga).attr('href')) === null || _a === void 0 ? void 0 : _a.split('/manga/')[1]) === null || _b === void 0 ? void 0 : _b.replace(/\//g, '');
             const image = (_c = $('img', manga).first().attr('src')) !== null && _c !== void 0 ? _c : '';
-            const title = (_e = (_d = $('img', manga).first().attr('alt')) === null || _d === void 0 ? void 0 : _d.trim()) !== null && _e !== void 0 ? _e : '';
-            const subtitle = $('div.manga-list-1-item-subtitle', manga).text().trim();
+            const title = (_e = (_d = $('a', manga).first().attr('title')) === null || _d === void 0 ? void 0 : _d.trim()) !== null && _e !== void 0 ? _e : '';
+            const subtitle = $('p.manga-list-1-item-subtitle', manga).text().trim();
             if (!id || !title || !image)
                 continue;
             if (collectedIds.includes(id))

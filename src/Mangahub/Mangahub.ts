@@ -28,7 +28,7 @@ const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/'
 
 
 export const MangahubInfo: SourceInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -397,7 +397,7 @@ export class Mangahub extends Source {
         }
 
         const manga = parseViewMore(data)
-        metadata = { offset: offset + 30 }
+        metadata = { offset: offset  }
         return createPagedResults({
             results: manga,
             metadata

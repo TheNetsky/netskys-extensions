@@ -690,7 +690,7 @@ const MH_DOMAIN = 'https://mangahub.io';
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/';
 exports.MangahubInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1056,7 +1056,7 @@ class Mangahub extends paperback_extensions_common_1.Source {
                 throw new Error(`${e}`);
             }
             const manga = MangahubParser_1.parseViewMore(data);
-            metadata = { offset: offset + 30 };
+            metadata = { offset: offset };
             return createPagedResults({
                 results: manga,
                 metadata

@@ -12,6 +12,7 @@ import {
     TagSection,
     Tag,
     ContentRating,
+    MangaTile,
 } from 'paperback-extensions-common'
 import {
     parseUpdatedManga,
@@ -19,7 +20,8 @@ import {
     parseMangaDetails,
     parseViewMore,
     UpdatedManga,
-    parseHomeSections
+    parseHomeSections,
+    parseSearch
 } from './MangahubParser'
 
 const MH_DOMAIN = 'https://mangahub.io'
@@ -28,7 +30,7 @@ const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/'
 
 
 export const MangahubInfo: SourceInfo = {
-    version: '2.0.0',
+    version: '2.0.2',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -134,7 +136,7 @@ export class Mangahub extends Source {
             },
             data: {
                 query: `query {
-                    chapter(x: m01, slug: "${mangaId}", number: ${chapterId}) {
+                    chapter(x: m01, slug: "${mangaId}", number: ${Number(chapterId)}) {
                       pages
                       title
                       slug
@@ -364,43 +366,94 @@ export class Mangahub extends Source {
 
         const searchTag: any = query?.includedTags?.map((x: any) => x.id)
 
-        const request = createRequestObject({
-            url: MH_API_DOMAIN,
-            method: 'POST',
-            headers: {
-                'content-type': 'application/json',
-            },
-            data: {
-                query: `query {
-                    search (x: m01, alt: true, q: "${query?.title ? query.title : ''}", genre: "${searchTag[0] ? searchTag[0] : ''}", offset: ${offset}){
-                      rows {
-                        id
-                        title
-                        slug
-                        image
-                        latestChapter
-                        genres
-                      }
+        const requests = [
+            //No Alt Titles
+            {
+                request: createRequestObject({
+                    url: MH_API_DOMAIN,
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json',
+                    },
+                    data: {
+                        query: `query {
+                            search(x: m01, alt: false, q: "${query?.title ? query.title : ''}", genre: "${searchTag[0] ? searchTag[0] : ''}", offset:${offset}) {
+                              rows {
+                                id
+                                title
+                                slug
+                                image
+                                latestChapter
+                                genres
+                              }
+                            }
+                          }
+                          `,
+
                     }
-                  }`,
+                })
+            },
+            {
+                request: createRequestObject({
+                    url: MH_API_DOMAIN,
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json',
+                    },
+                    data: {
+                        query: `query {
+                            search(x: m01, alt: true, q: "${query?.title ? query.title : ''}", genre: "${searchTag[0] ? searchTag[0] : ''}", offset:${offset}) {
+                              rows {
+                                id
+                                title
+                                slug
+                                image
+                                latestChapter
+                                genres
+                              }
+                            }
+                          }
+                          `,
+
+                    }
+                })
             }
+        ]
+
+        const promises: Promise<void>[] = []
+        let manga: MangaTile[] = []
+
+        for (const req of requests) {
+            promises.push(
+                this.requestManager.schedule(req.request, 1).then(response => {
+                    let data
+                    try {
+                        data = JSON.parse(response.data)
+                    } catch (e) {
+                        throw new Error(`${e}`)
+                    }
+                    manga = manga.concat(parseSearch(data))
+
+                }),
+            )
+        }
+        await Promise.all(promises)
+
+        const seen = new Set()
+        manga = manga.filter(el => {
+            // @ts-ignore
+            const duplicate = seen.has(el.mangaId)
+            // @ts-ignore
+            seen.add(el.mangaId)
+            return !duplicate
         })
 
-        const response = await this.requestManager.schedule(request, 1)
-
-        
-        let data
-        try {
-            data = JSON.parse(response.data)
-        } catch (e) {
-            throw new Error(`${e}`)
-        }
-
-        const manga = parseViewMore(data)
         metadata = { offset: offset + 30 }
+
         return createPagedResults({
             results: manga,
             metadata
         })
+
     }
 }

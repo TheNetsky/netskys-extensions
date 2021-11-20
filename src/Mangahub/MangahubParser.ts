@@ -203,6 +203,28 @@ export const parseViewMore = (data: any): MangaTile[] => {
     return moreManga
 }
 
+export const parseSearch = (data: any): any[] => {
+
+    const collectedIds: string[] = []
+    const searchResults: MangaTile[] = []
+    for (const manga of data.data.search.rows) {
+        const title = manga.title ?? ''
+        const id = manga.slug ?? ''
+        const image = manga?.image ? `${MH_CDN_THUMBS_DOMAIN}/${manga.image}` : 'https://i.imgur.com/GYUxEX8.png'
+        const subtitle = manga?.latestChapter ? 'Chapter ' + manga.latestChapter : ''
+        if (!id || !title || collectedIds.includes(manga.id)) continue
+        searchResults.push(createMangaTile({
+            id: id,
+            image: image,
+            title: createIconText({ text: decodeHTMLEntity(title) }),
+            subtitleText: createIconText({ text: subtitle }),
+        }))
+        collectedIds.push(manga.id)
+
+    }
+    return searchResults
+}
+
 const decodeHTMLEntity = (str: string): string => {
     return entities.decodeHTML(str)
 }

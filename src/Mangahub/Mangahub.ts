@@ -397,7 +397,7 @@ export class Mangahub extends Source {
         }
 
         const manga = parseViewMore(data)
-        metadata = { offset: offset  }
+        metadata = { offset: offset + 30 }
         return createPagedResults({
             results: manga,
             metadata

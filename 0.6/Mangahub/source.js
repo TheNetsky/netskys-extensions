@@ -690,7 +690,7 @@ const MH_DOMAIN = 'https://mangahub.io';
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/';
 exports.MangahubInfo = {
-    version: '2.0.1',
+    version: '2.0.2',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -802,7 +802,7 @@ class Mangahub extends paperback_extensions_common_1.Source {
                 },
                 data: {
                     query: `query {
-                    chapter(x: m01, slug: "${mangaId}", number: ${chapterId}) {
+                    chapter(x: m01, slug: "${mangaId}", number: ${Number(chapterId)}) {
                       pages
                       title
                       slug
@@ -1026,36 +1026,80 @@ class Mangahub extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const offset = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.offset) !== null && _a !== void 0 ? _a : 0;
             const searchTag = (_b = query === null || query === void 0 ? void 0 : query.includedTags) === null || _b === void 0 ? void 0 : _b.map((x) => x.id);
-            const request = createRequestObject({
-                url: MH_API_DOMAIN,
-                method: 'POST',
-                headers: {
-                    'content-type': 'application/json',
+            const requests = [
+                //No Alt Titles
+                {
+                    request: createRequestObject({
+                        url: MH_API_DOMAIN,
+                        method: 'POST',
+                        headers: {
+                            'content-type': 'application/json',
+                        },
+                        data: {
+                            query: `query {
+                            search(x: m01, alt: false, q: "${(query === null || query === void 0 ? void 0 : query.title) ? query.title : ''}", genre: "${searchTag[0] ? searchTag[0] : ''}", offset:${offset}) {
+                              rows {
+                                id
+                                title
+                                slug
+                                image
+                                latestChapter
+                                genres
+                              }
+                            }
+                          }
+                          `,
+                        }
+                    })
                 },
-                data: {
-                    query: `query {
-                    search (x: m01, alt: true, q: "${(query === null || query === void 0 ? void 0 : query.title) ? query.title : ''}", genre: "${searchTag[0] ? searchTag[0] : ''}", offset: ${offset}){
-                      rows {
-                        id
-                        title
-                        slug
-                        image
-                        latestChapter
-                        genres
-                      }
-                    }
-                  }`,
+                {
+                    request: createRequestObject({
+                        url: MH_API_DOMAIN,
+                        method: 'POST',
+                        headers: {
+                            'content-type': 'application/json',
+                        },
+                        data: {
+                            query: `query {
+                            search(x: m01, alt: true, q: "${(query === null || query === void 0 ? void 0 : query.title) ? query.title : ''}", genre: "${searchTag[0] ? searchTag[0] : ''}", offset:${offset}) {
+                              rows {
+                                id
+                                title
+                                slug
+                                image
+                                latestChapter
+                                genres
+                              }
+                            }
+                          }
+                          `,
+                        }
+                    })
                 }
+            ];
+            const promises = [];
+            let manga = [];
+            for (const req of requests) {
+                promises.push(this.requestManager.schedule(req.request, 1).then(response => {
+                    let data;
+                    try {
+                        data = JSON.parse(response.data);
+                    }
+                    catch (e) {
+                        throw new Error(`${e}`);
+                    }
+                    manga = manga.concat(MangahubParser_1.parseSearch(data));
+                }));
+            }
+            yield Promise.all(promises);
+            const seen = new Set();
+            manga = manga.filter(el => {
+                // @ts-ignore
+                const duplicate = seen.has(el.mangaId);
+                // @ts-ignore
+                seen.add(el.mangaId);
+                return !duplicate;
             });
-            const response = yield this.requestManager.schedule(request, 1);
-            let data;
-            try {
-                data = JSON.parse(response.data);
-            }
-            catch (e) {
-                throw new Error(`${e}`);
-            }
-            const manga = MangahubParser_1.parseViewMore(data);
             metadata = { offset: offset + 30 };
             return createPagedResults({
                 results: manga,
@@ -1069,7 +1113,7 @@ exports.Mangahub = Mangahub;
 },{"./MangahubParser":57,"paperback-extensions-common":13}],57:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseViewMore = exports.parseHomeSections = exports.parseUpdatedManga = exports.parseChapters = exports.parseMangaDetails = void 0;
+exports.parseSearch = exports.parseViewMore = exports.parseHomeSections = exports.parseUpdatedManga = exports.parseChapters = exports.parseMangaDetails = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const entities = require("entities");
 const MH_CDN_THUMBS_DOMAIN = 'https://thumb.mghubcdn.com';
@@ -1252,6 +1296,28 @@ const parseViewMore = (data) => {
     return moreManga;
 };
 exports.parseViewMore = parseViewMore;
+const parseSearch = (data) => {
+    var _a, _b;
+    const collectedIds = [];
+    const searchResults = [];
+    for (const manga of data.data.search.rows) {
+        const title = (_a = manga.title) !== null && _a !== void 0 ? _a : '';
+        const id = (_b = manga.slug) !== null && _b !== void 0 ? _b : '';
+        const image = (manga === null || manga === void 0 ? void 0 : manga.image) ? `${MH_CDN_THUMBS_DOMAIN}/${manga.image}` : 'https://i.imgur.com/GYUxEX8.png';
+        const subtitle = (manga === null || manga === void 0 ? void 0 : manga.latestChapter) ? 'Chapter ' + manga.latestChapter : '';
+        if (!id || !title || collectedIds.includes(manga.id))
+            continue;
+        searchResults.push(createMangaTile({
+            id: id,
+            image: image,
+            title: createIconText({ text: decodeHTMLEntity(title) }),
+            subtitleText: createIconText({ text: subtitle }),
+        }));
+        collectedIds.push(manga.id);
+    }
+    return searchResults;
+};
+exports.parseSearch = parseSearch;
 const decodeHTMLEntity = (str) => {
     return entities.decodeHTML(str);
 };

@@ -1056,7 +1056,7 @@ class Mangahub extends paperback_extensions_common_1.Source {
                 throw new Error(`${e}`);
             }
             const manga = MangahubParser_1.parseViewMore(data);
-            metadata = { offset: offset };
+            metadata = { offset: offset + 30 };
             return createPagedResults({
                 results: manga,
                 metadata

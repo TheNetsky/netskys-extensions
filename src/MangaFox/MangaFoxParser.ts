@@ -81,12 +81,17 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
         let chapNum = 0
         if (chapRegex && chapRegex[1]) chapNum = Number(chapRegex[1])
 
+        const volRegex = chapterId?.match(/v([0-9.]+)/)
+        let volNum = 0
+        if (volRegex && volRegex[1]) volNum = Number(volRegex[1])
+
         chapters.push(createChapter({
             id: chapterId,
             mangaId,
             name: title,
             langCode: LanguageCode.ENGLISH,
             chapNum: isNaN(chapNum) ? 0 : chapNum,
+            volume: isNaN(volNum) ? 0 : volNum,
             time: date,
         }))
     }

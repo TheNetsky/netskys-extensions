@@ -398,7 +398,7 @@ const headers = {
     'content-type': 'application/x-www-form-urlencoded'
 };
 exports.MangaHereInfo = {
-    version: '2.0.1',
+    version: '2.0.2',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -686,12 +686,17 @@ const parseChapters = ($, mangaId) => {
         let chapNum = 0;
         if (chapRegex && chapRegex[1])
             chapNum = Number(chapRegex[1]);
+        const volRegex = chapterId === null || chapterId === void 0 ? void 0 : chapterId.match(/v([0-9.]+)/);
+        let volNum = 0;
+        if (volRegex && volRegex[1])
+            volNum = Number(volRegex[1]);
         chapters.push(createChapter({
             id: chapterId,
             mangaId,
             name: title,
             langCode: paperback_extensions_common_1.LanguageCode.ENGLISH,
             chapNum: isNaN(chapNum) ? 0 : chapNum,
+            volume: isNaN(volNum) ? 0 : volNum,
             time: date,
         }));
     }

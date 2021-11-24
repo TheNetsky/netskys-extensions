@@ -688,7 +688,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ReadmParser_1 = require("./ReadmParser");
 const RM_DOMAIN = 'https://readm.org';
 exports.ReadmInfo = {
-    version: '2.0.1',
+    version: '2.0.2',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -722,6 +722,9 @@ class Readm extends paperback_extensions_common_1.Source {
                 url: `${RM_DOMAIN}/manga/`,
                 method: 'GET',
                 param: mangaId,
+                headers: {
+                    'content-type': 'application/x-www-form-urlencoded'
+                }
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -877,7 +880,7 @@ class Readm extends paperback_extensions_common_1.Source {
                 });
                 const response = yield this.requestManager.schedule(request, 1);
                 const $ = this.cheerio.load(response.data);
-                const manga = ReadmParser_1.parseViewMore($, 'hot_manga');
+                const manga = ReadmParser_1.parseViewMore($, 'popular_manga');
                 metadata = !ReadmParser_1.isLastPage($) ? { page: page + 1 } : undefined;
                 return createPagedResults({
                     results: manga,
@@ -966,7 +969,7 @@ const parseChapters = ($, mangaId) => {
             chapterId = chapRegex[1];
         if (!chapterId)
             continue;
-        const chapNumRegex = title.match(/(\d+\.?\d?)/);
+        const chapNumRegex = title.match(/(\d+\.?\d?)+/);
         let chapNum = 0;
         if (chapNumRegex && chapNumRegex[1])
             chapNum = Number(chapNumRegex[1]);

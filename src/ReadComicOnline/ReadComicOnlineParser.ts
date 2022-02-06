@@ -108,17 +108,42 @@ export interface UpdatedManga {
 }
 
 export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: HomeSection) => void): void => {
+    const latestSection = createHomeSection({ id: 'latest_comic', title: 'Latest Updated Comics', view_more: true })
     const newSection = createHomeSection({ id: 'new_comic', title: 'New Comics', view_more: true })
     const popularSection = createHomeSection({ id: 'popular_comic', title: 'Most Popular Comics', view_more: true })
     const TopDaySection = createHomeSection({ id: 'top_day_comic', title: 'Top Day Comics', view_more: false })
     const TopWeekSection = createHomeSection({ id: 'top_week_comic', title: 'Top Week Comics', view_more: false })
     const TopMonthSection = createHomeSection({ id: 'top_month_comic', title: 'Top Month Comics', view_more: false })
 
+    //Latest Updated Comic
+    const latestSection_Array: MangaTile[] = []
+    for (const comic of $('a', $('div.items', 'div.bigBarContainer')).toArray()) {
+        let image: string = $('img', comic).first().attr('src') ?? ''
+        if (image == '') image = $('img', comic).first().attr('srctemp') ?? ''
+        image = image.startsWith('/') ? RCO_DOMAIN + image : image
+
+        const title: string = $(comic).contents().not('span').text().trim() ?? ''
+        const id: string = $(comic).attr('href')?.replace(/comic\//i, '') ?? ''
+        const subtitle: string = $(comic).attr('title') ?? ''
+
+        if (!id || !title) continue
+        latestSection_Array.push(createMangaTile({
+            id: id,
+            image: image,
+            title: createIconText({ text: decodeHTMLEntity(title) }),
+            subtitleText: createIconText({ text: subtitle }),
+        }))
+    }
+
+    latestSection.items = latestSection_Array
+    sectionCallback(latestSection)
+
     //New Comic
     const newSection_Array: MangaTile[] = []
     for (const comic of $('div', 'div#tab-newest').toArray()) {
         let image: string = $('img', comic).first().attr('src') ?? 'https://i.imgur.com/GYUxEX8.png'
         image = image.startsWith('/') ? RCO_DOMAIN + image : image
+
         const title: string = $('a.title', comic).last().text().trim() ?? ''
         const id: string = $('a', comic).attr('href')?.replace(/comic\//i, '') ?? ''
         const subtitle: string = $('span:contains(Latest)', comic).next().text().trim()
@@ -140,6 +165,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     for (const comic of $('div', 'div#tab-mostview').toArray()) {
         let image: string = $('img', comic).first().attr('src') ?? 'https://i.imgur.com/GYUxEX8.png'
         image = image.startsWith('/') ? RCO_DOMAIN + image : image
+
         const title: string = $('a.title', comic).last().text().trim() ?? ''
         const id: string = $('a', comic).attr('href')?.replace(/comic\//i, '') ?? ''
         const subtitle: string = $('span:contains(Latest)', comic).next().text().trim()
@@ -161,6 +187,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     for (const comic of $('div', 'div#tab-top-day').toArray()) {
         let image: string = $('img', comic).first().attr('src') ?? 'https://i.imgur.com/GYUxEX8.png'
         image = image.startsWith('/') ? RCO_DOMAIN + image : image
+
         const title: string = $('a.title', comic).last().text().trim() ?? ''
         const id: string = $('a', comic).attr('href')?.replace(/comic\//i, '') ?? ''
         const subtitle: string = $('span:contains(Latest)', comic).next().text().trim()
@@ -182,6 +209,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     for (const comic of $('div', 'div#tab-top-week').toArray()) {
         let image: string = $('img', comic).first().attr('src') ?? 'https://i.imgur.com/GYUxEX8.png'
         image = image.startsWith('/') ? RCO_DOMAIN + image : image
+
         const title: string = $('a.title', comic).last().text().trim() ?? ''
         const id: string = $('a', comic).attr('href')?.replace(/comic\//i, '') ?? ''
         const subtitle: string = $('span:contains(Latest)', comic).next().text().trim()
@@ -203,6 +231,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     for (const comic of $('div', 'div#tab-top-month').toArray()) {
         let image: string = $('img', comic).first().attr('src') ?? 'https://i.imgur.com/GYUxEX8.png'
         image = image.startsWith('/') ? RCO_DOMAIN + image : image
+
         const title: string = $('a.title', comic).last().text().trim() ?? ''
         const id: string = $('a', comic).attr('href')?.replace(/comic\//i, '') ?? ''
         const subtitle: string = $('span:contains(Latest)', comic).next().text().trim()

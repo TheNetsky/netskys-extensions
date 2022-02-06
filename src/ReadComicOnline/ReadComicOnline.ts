@@ -28,7 +28,7 @@ import {
 const RCO_DOMAIN = 'https://readcomiconline.li'
 
 export const ReadComicOnlineInfo: SourceInfo = {
-    version: '1.0.0',
+    version: '1.0.1',
     name: 'ReadComicOnline',
     icon: 'icon.png',
     author: 'Netsky',
@@ -124,6 +124,9 @@ export class ReadComicOnline extends Source {
         const page: number = metadata?.page ?? 1
         let param = ''
         switch (homepageSectionId) {
+            case 'latest_comic':
+                param = `/LatestUpdate?page=${page}`
+                break
             case 'new_comic':
                 param = `/Newest?page=${page}`
                 break

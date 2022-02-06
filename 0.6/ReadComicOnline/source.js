@@ -688,7 +688,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ReadComicOnlineParser_1 = require("./ReadComicOnlineParser");
 const RCO_DOMAIN = 'https://readcomiconline.li';
 exports.ReadComicOnlineInfo = {
-    version: '1.0.0',
+    version: '1.0.1',
     name: 'ReadComicOnline',
     icon: 'icon.png',
     author: 'Netsky',
@@ -782,6 +782,9 @@ class ReadComicOnline extends paperback_extensions_common_1.Source {
             const page = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.page) !== null && _a !== void 0 ? _a : 1;
             let param = '';
             switch (homepageSectionId) {
+                case 'latest_comic':
+                    param = `/LatestUpdate?page=${page}`;
+                    break;
                 case 'new_comic':
                     param = `/Newest?page=${page}`;
                     break;
@@ -939,19 +942,41 @@ const parseChapterDetails = (data, mangaId, chapterId) => {
 };
 exports.parseChapterDetails = parseChapterDetails;
 const parseHomeSections = ($, sectionCallback) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1;
+    const latestSection = createHomeSection({ id: 'latest_comic', title: 'Latest Updated Comics', view_more: true });
     const newSection = createHomeSection({ id: 'new_comic', title: 'New Comics', view_more: true });
     const popularSection = createHomeSection({ id: 'popular_comic', title: 'Most Popular Comics', view_more: true });
     const TopDaySection = createHomeSection({ id: 'top_day_comic', title: 'Top Day Comics', view_more: false });
     const TopWeekSection = createHomeSection({ id: 'top_week_comic', title: 'Top Week Comics', view_more: false });
     const TopMonthSection = createHomeSection({ id: 'top_month_comic', title: 'Top Month Comics', view_more: false });
+    //Latest Updated Comic
+    const latestSection_Array = [];
+    for (const comic of $('a', $('div.items', 'div.bigBarContainer')).toArray()) {
+        let image = (_a = $('img', comic).first().attr('src')) !== null && _a !== void 0 ? _a : '';
+        if (image == '')
+            image = (_b = $('img', comic).first().attr('srctemp')) !== null && _b !== void 0 ? _b : '';
+        image = image.startsWith('/') ? RCO_DOMAIN + image : image;
+        const title = (_c = $(comic).contents().not('span').text().trim()) !== null && _c !== void 0 ? _c : '';
+        const id = (_e = (_d = $(comic).attr('href')) === null || _d === void 0 ? void 0 : _d.replace(/comic\//i, '')) !== null && _e !== void 0 ? _e : '';
+        const subtitle = (_f = $(comic).attr('title')) !== null && _f !== void 0 ? _f : '';
+        if (!id || !title)
+            continue;
+        latestSection_Array.push(createMangaTile({
+            id: id,
+            image: image,
+            title: createIconText({ text: decodeHTMLEntity(title) }),
+            subtitleText: createIconText({ text: subtitle }),
+        }));
+    }
+    latestSection.items = latestSection_Array;
+    sectionCallback(latestSection);
     //New Comic
     const newSection_Array = [];
     for (const comic of $('div', 'div#tab-newest').toArray()) {
-        let image = (_a = $('img', comic).first().attr('src')) !== null && _a !== void 0 ? _a : 'https://i.imgur.com/GYUxEX8.png';
+        let image = (_g = $('img', comic).first().attr('src')) !== null && _g !== void 0 ? _g : 'https://i.imgur.com/GYUxEX8.png';
         image = image.startsWith('/') ? RCO_DOMAIN + image : image;
-        const title = (_b = $('a.title', comic).last().text().trim()) !== null && _b !== void 0 ? _b : '';
-        const id = (_d = (_c = $('a', comic).attr('href')) === null || _c === void 0 ? void 0 : _c.replace(/comic\//i, '')) !== null && _d !== void 0 ? _d : '';
+        const title = (_h = $('a.title', comic).last().text().trim()) !== null && _h !== void 0 ? _h : '';
+        const id = (_k = (_j = $('a', comic).attr('href')) === null || _j === void 0 ? void 0 : _j.replace(/comic\//i, '')) !== null && _k !== void 0 ? _k : '';
         const subtitle = $('span:contains(Latest)', comic).next().text().trim();
         if (!id || !title)
             continue;
@@ -967,10 +992,10 @@ const parseHomeSections = ($, sectionCallback) => {
     //Most Popular
     const popularSection_Array = [];
     for (const comic of $('div', 'div#tab-mostview').toArray()) {
-        let image = (_e = $('img', comic).first().attr('src')) !== null && _e !== void 0 ? _e : 'https://i.imgur.com/GYUxEX8.png';
+        let image = (_l = $('img', comic).first().attr('src')) !== null && _l !== void 0 ? _l : 'https://i.imgur.com/GYUxEX8.png';
         image = image.startsWith('/') ? RCO_DOMAIN + image : image;
-        const title = (_f = $('a.title', comic).last().text().trim()) !== null && _f !== void 0 ? _f : '';
-        const id = (_h = (_g = $('a', comic).attr('href')) === null || _g === void 0 ? void 0 : _g.replace(/comic\//i, '')) !== null && _h !== void 0 ? _h : '';
+        const title = (_m = $('a.title', comic).last().text().trim()) !== null && _m !== void 0 ? _m : '';
+        const id = (_p = (_o = $('a', comic).attr('href')) === null || _o === void 0 ? void 0 : _o.replace(/comic\//i, '')) !== null && _p !== void 0 ? _p : '';
         const subtitle = $('span:contains(Latest)', comic).next().text().trim();
         if (!id || !title)
             continue;
@@ -986,10 +1011,10 @@ const parseHomeSections = ($, sectionCallback) => {
     //Top Day
     const TopDaySection_Array = [];
     for (const comic of $('div', 'div#tab-top-day').toArray()) {
-        let image = (_j = $('img', comic).first().attr('src')) !== null && _j !== void 0 ? _j : 'https://i.imgur.com/GYUxEX8.png';
+        let image = (_q = $('img', comic).first().attr('src')) !== null && _q !== void 0 ? _q : 'https://i.imgur.com/GYUxEX8.png';
         image = image.startsWith('/') ? RCO_DOMAIN + image : image;
-        const title = (_k = $('a.title', comic).last().text().trim()) !== null && _k !== void 0 ? _k : '';
-        const id = (_m = (_l = $('a', comic).attr('href')) === null || _l === void 0 ? void 0 : _l.replace(/comic\//i, '')) !== null && _m !== void 0 ? _m : '';
+        const title = (_r = $('a.title', comic).last().text().trim()) !== null && _r !== void 0 ? _r : '';
+        const id = (_t = (_s = $('a', comic).attr('href')) === null || _s === void 0 ? void 0 : _s.replace(/comic\//i, '')) !== null && _t !== void 0 ? _t : '';
         const subtitle = $('span:contains(Latest)', comic).next().text().trim();
         if (!id || !title)
             continue;
@@ -1005,10 +1030,10 @@ const parseHomeSections = ($, sectionCallback) => {
     //Top Week
     const TopWeekSection_Array = [];
     for (const comic of $('div', 'div#tab-top-week').toArray()) {
-        let image = (_o = $('img', comic).first().attr('src')) !== null && _o !== void 0 ? _o : 'https://i.imgur.com/GYUxEX8.png';
+        let image = (_u = $('img', comic).first().attr('src')) !== null && _u !== void 0 ? _u : 'https://i.imgur.com/GYUxEX8.png';
         image = image.startsWith('/') ? RCO_DOMAIN + image : image;
-        const title = (_p = $('a.title', comic).last().text().trim()) !== null && _p !== void 0 ? _p : '';
-        const id = (_r = (_q = $('a', comic).attr('href')) === null || _q === void 0 ? void 0 : _q.replace(/comic\//i, '')) !== null && _r !== void 0 ? _r : '';
+        const title = (_v = $('a.title', comic).last().text().trim()) !== null && _v !== void 0 ? _v : '';
+        const id = (_x = (_w = $('a', comic).attr('href')) === null || _w === void 0 ? void 0 : _w.replace(/comic\//i, '')) !== null && _x !== void 0 ? _x : '';
         const subtitle = $('span:contains(Latest)', comic).next().text().trim();
         if (!id || !title)
             continue;
@@ -1024,10 +1049,10 @@ const parseHomeSections = ($, sectionCallback) => {
     //Top Month
     const TopMonthSection_Array = [];
     for (const comic of $('div', 'div#tab-top-month').toArray()) {
-        let image = (_s = $('img', comic).first().attr('src')) !== null && _s !== void 0 ? _s : 'https://i.imgur.com/GYUxEX8.png';
+        let image = (_y = $('img', comic).first().attr('src')) !== null && _y !== void 0 ? _y : 'https://i.imgur.com/GYUxEX8.png';
         image = image.startsWith('/') ? RCO_DOMAIN + image : image;
-        const title = (_t = $('a.title', comic).last().text().trim()) !== null && _t !== void 0 ? _t : '';
-        const id = (_v = (_u = $('a', comic).attr('href')) === null || _u === void 0 ? void 0 : _u.replace(/comic\//i, '')) !== null && _v !== void 0 ? _v : '';
+        const title = (_z = $('a.title', comic).last().text().trim()) !== null && _z !== void 0 ? _z : '';
+        const id = (_1 = (_0 = $('a', comic).attr('href')) === null || _0 === void 0 ? void 0 : _0.replace(/comic\//i, '')) !== null && _1 !== void 0 ? _1 : '';
         const subtitle = $('span:contains(Latest)', comic).next().text().trim();
         if (!id || !title)
             continue;

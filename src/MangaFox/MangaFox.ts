@@ -35,7 +35,7 @@ const headers = {
 }
 
 export const MangaFoxInfo: SourceInfo = {
-    version: '2.0.2',
+    version: '2.0.3',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',

@@ -398,7 +398,7 @@ const headers = {
     'content-type': 'application/x-www-form-urlencoded'
 };
 exports.MangaFoxInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -470,7 +470,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
             };
             while (updatedManga.loadMore) {
                 const request = createRequestObject({
-                    url: `${FF_DOMAIN}/releases/${page++}`,
+                    url: `${FF_DOMAIN}/releases/${page++}.html`,
                     method: 'GET',
                     cookies: this.cookies
                 });
@@ -507,10 +507,10 @@ class MangaFox extends paperback_extensions_common_1.Source {
                     param = '/hot/';
                     break;
                 case 'new_manga':
-                    param = `/directory/${page}.htm?news`;
+                    param = `/directory/${page}.html?news`;
                     break;
                 case 'latest_updates':
-                    param = `/releases/${page}`;
+                    param = `/releases/${page}.html`;
                     break;
                 default:
                     throw new Error(`Invalid homeSectionId | ${homepageSectionId}`);

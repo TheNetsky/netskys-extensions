@@ -398,7 +398,7 @@ const headers = {
     'content-type': 'application/x-www-form-urlencoded'
 };
 exports.MangaFoxInfo = {
-    version: '2.0.4',
+    version: '2.0.5',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -728,7 +728,7 @@ const parseUpdatedManga = ($, time, ids) => {
     var _a, _b;
     let loadMore = true;
     const updatedManga = [];
-    for (const manga of $('li:first', 'div.manga-list-4 ').toArray()) {
+    for (const manga of $('li', 'div.manga-list-4 ').first().toArray()) {
         const id = (_b = (_a = $('a', manga).attr('href')) === null || _a === void 0 ? void 0 : _a.split('/manga/')[1]) === null || _b === void 0 ? void 0 : _b.replace(/\//g, '');
         if (!id)
             continue;

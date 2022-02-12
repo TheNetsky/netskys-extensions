@@ -35,7 +35,7 @@ const headers = {
 }
 
 export const MangaHereInfo: SourceInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',

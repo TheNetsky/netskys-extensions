@@ -130,7 +130,7 @@ export const parseUpdatedManga = ($: CheerioStatic, time: Date, ids: string[]): 
 
     const updatedManga: string[] = []
 
-    for (const manga of $('li:first', 'div.manga-list-4 ').toArray()) {
+    for (const manga of $('li', 'div.manga-list-4 ').first().toArray()) {
         const id = $('a', manga).attr('href')?.split('/manga/')[1]?.replace(/\//g, '')
         if (!id) continue
 

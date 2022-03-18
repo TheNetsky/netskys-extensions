@@ -688,7 +688,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ReadComicOnlineParser_1 = require("./ReadComicOnlineParser");
 const RCO_DOMAIN = 'https://readcomiconline.li';
 exports.ReadComicOnlineInfo = {
-    version: '1.0.1',
+    version: '1.0.2',
     name: 'ReadComicOnline',
     icon: 'icon.png',
     author: 'Netsky',
@@ -696,6 +696,12 @@ exports.ReadComicOnlineInfo = {
     description: 'Extension that pulls comics from ReadComicOnline.li.',
     contentRating: paperback_extensions_common_1.ContentRating.MATURE,
     websiteBaseURL: RCO_DOMAIN,
+    sourceTags: [
+        {
+            text: 'Cloudflare',
+            type: paperback_extensions_common_1.TagType.RED
+        }
+    ]
 };
 class ReadComicOnline extends paperback_extensions_common_1.Source {
     constructor() {

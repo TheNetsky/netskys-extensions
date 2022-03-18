@@ -28,7 +28,7 @@ import {
 const RCO_DOMAIN = 'https://readcomiconline.li'
 
 export const ReadComicOnlineInfo: SourceInfo = {
-    version: '1.0.1',
+    version: '1.0.2',
     name: 'ReadComicOnline',
     icon: 'icon.png',
     author: 'Netsky',
@@ -36,6 +36,12 @@ export const ReadComicOnlineInfo: SourceInfo = {
     description: 'Extension that pulls comics from ReadComicOnline.li.',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: RCO_DOMAIN,
+    sourceTags: [
+        {
+            text: 'Cloudflare',
+            type: TagType.RED
+        }
+    ]
 }
 
 export class ReadComicOnline extends Source {
@@ -190,9 +196,6 @@ export class ReadComicOnline extends Source {
         })
 
         //Genre search, no advanced search since it requires reCaptcha
-
-
-
     }
 
     override getCloudflareBypassRequest(): Request {

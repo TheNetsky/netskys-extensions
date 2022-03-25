@@ -9,6 +9,7 @@ import {
     SourceInfo,
     ContentRating,
     MangaUpdates,
+    TagType,
     Request,
     Response
 } from 'paperback-extensions-common'
@@ -36,6 +37,12 @@ export const ReadComicsOnlineInfo: SourceInfo = {
     description: 'Extension that pulls comics from ReadComicsOnline.ru.',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: RCO_DOMAIN,
+    sourceTags: [
+        {
+            text: 'Notifications',
+            type: TagType.GREEN
+        }
+    ]
 }
 
 export class ReadComicsOnline extends Source {

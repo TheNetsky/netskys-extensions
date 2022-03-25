@@ -696,6 +696,12 @@ exports.ReadComicsOnlineInfo = {
     description: 'Extension that pulls comics from ReadComicsOnline.ru.',
     contentRating: paperback_extensions_common_1.ContentRating.MATURE,
     websiteBaseURL: RCO_DOMAIN,
+    sourceTags: [
+        {
+            text: 'Notifications',
+            type: paperback_extensions_common_1.TagType.GREEN
+        }
+    ]
 };
 class ReadComicsOnline extends paperback_extensions_common_1.Source {
     constructor() {

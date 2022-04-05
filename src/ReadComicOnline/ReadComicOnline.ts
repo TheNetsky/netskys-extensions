@@ -28,7 +28,7 @@ import {
 const RCO_DOMAIN = 'https://readcomiconline.li'
 
 export const ReadComicOnlineInfo: SourceInfo = {
-    version: '1.0.2',
+    version: '1.1.7',
     name: 'ReadComicOnline',
     icon: 'icon.png',
     author: 'Netsky',
@@ -54,7 +54,7 @@ export class ReadComicOnline extends Source {
                 request.headers = {
                     ...(request.headers ?? {}),
                     ...{
-                        'user-agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/78.0${Math.floor(Math.random() * 100000)}`,
+                        'user-agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0`,
                         'referer': RCO_DOMAIN
                     }
                 }
@@ -184,7 +184,7 @@ export class ReadComicOnline extends Source {
                 param: `${query?.includedTags?.map((x: any) => x.id)[0]}?page=${page}`
             })
         }
-
+        
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data)
         const manga = parseSearch($, this.cheerio)
@@ -202,6 +202,9 @@ export class ReadComicOnline extends Source {
         return createRequestObject({
             url: RCO_DOMAIN,
             method: 'GET',
+            headers: {
+                'user-agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0`,
+            }
         })
     }
 }

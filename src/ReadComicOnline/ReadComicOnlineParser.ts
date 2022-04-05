@@ -254,16 +254,11 @@ export const parseViewMore = ($: CheerioStatic, cheerio: any): MangaTile[] => {
     const comics: MangaTile[] = []
     const collectedIds: string[] = []
 
-    for (const item of $('tr', $('.listing').first()).toArray()) {
-        const title: string = $('a', item).first().text().trim() ?? ''
-        const id: string = $('a', item).attr('href')?.split('/').pop()?.split('?').shift() ?? ''
-
-
-        const imageCheerio = cheerio.load($('td', $(item)).first().attr('title') ?? '')
-
-        let image: string = imageCheerio('img').attr('src') ?? 'https://i.imgur.com/GYUxEX8.png'
+    for (const item of $('.list-comic > .item > a:first-child').toArray()) {
+        const title: string = $(item).first().text().trim() ?? ''
+        const id: string = $(item).attr('href')?.split('/').pop()?.split('?').shift() ?? ''
+        let image: string = $('img',item).attr('src') ?? 'https://i.imgur.com/GYUxEX8.png'
         image = image.startsWith('/') ? RCO_DOMAIN + image : image
-
         const subtitle: string = $('td', item).last().text().trim()
         if (!id || !title) continue
 
@@ -323,15 +318,11 @@ export const parseSearch = ($: CheerioStatic, cheerio: any): MangaTile[] => {
     } else {
 
         //Parse search results page
-        for (const item of $('tr', $('.listing').first()).toArray()) {
-            const title: string = $('a', item).first().text().trim() ?? ''
-            const id: string = $('a', item).attr('href')?.split('/').pop()?.split('?').shift() ?? ''
-
-            const imageCheerio = cheerio.load($('td', $(item)).first().attr('title') ?? '')
-
-            let image: string = imageCheerio('img').attr('src') ?? 'https://i.imgur.com/GYUxEX8.png'
+    for (const item of $('.list-comic > .item > a:first-child').toArray()) {
+            const title: string = $(item).first().text().trim() ?? ''
+            const id: string = $(item).attr('href')?.split('/').pop()?.split('?').shift() ?? ''
+            let image: string = $('img',item).attr('src') ?? 'https://i.imgur.com/GYUxEX8.png'
             image = image.startsWith('/') ? RCO_DOMAIN + image : image
-
             const subtitle: string = $('td', item).last().text().trim()
             if (!id || !title) continue
 

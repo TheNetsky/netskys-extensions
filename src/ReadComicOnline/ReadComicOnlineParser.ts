@@ -94,6 +94,9 @@ export const parseChapterDetails = (data: any, mangaId: string, chapterId: strin
       const regexs = RegExp(/lstImages\.push\("(.*)"\)/g);
       var cutted = regexs.exec(url) ?? ''
       var scrambledUrl = cutted[1] ?? ''
+      if (scrambledUrl.startsWith("https")) {
+        return pages.push(scrambledUrl)
+    } else {
       var containsS0 = scrambledUrl?.includes("=s0")
       var nums = 0
       if (containsS0) {nums=3} else {nums=6}
@@ -112,6 +115,7 @@ export const parseChapterDetails = (data: any, mangaId: string, chapterId: strin
         return it.substring(0, it.length - 2) + data
       })
       pages.push(`https://2.bp.blogspot.com/${imagePathResult}`)
+    }
     });
     const chapterDetails = createChapterDetails({
         id: chapterId,

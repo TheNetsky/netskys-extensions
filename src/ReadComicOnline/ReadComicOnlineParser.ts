@@ -87,12 +87,32 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
 
 export const parseChapterDetails = (data: any, mangaId: string, chapterId: string): ChapterDetails => {
     const pages: string[] = []
-
-    const imageMatches = data.matchAll(/lstImages\.push\("(http.*)"\)/g)
-    for (const match of imageMatches) {
-        pages.push(match[1])
-    }
-
+    var page_regex: string[] = []
+    const regex = RegExp(/lstImages\.push\("(.*)"\)/g);
+    page_regex = data.match(regex);
+    page_regex.map(url => {
+      const regexs = RegExp(/lstImages\.push\("(.*)"\)/g);
+      var cutted = regexs.exec(url) ?? ''
+      var scrambledUrl = cutted[1] ?? ''
+      var containsS0 = scrambledUrl?.includes("=s0")
+      var nums = 0
+      if (containsS0) {nums=3} else {nums=6}
+      var imagePathResult = scrambledUrl
+      .substring(0, scrambledUrl.length - nums).let(it => {
+        return it.substring(4, 21) + it.substring(24) 
+      }).let(it => {
+        return it.substring(0, it.length - 6) + it[it.length - 2] + it[it.length - 1]
+      }).let(it => {
+        return Buffer.from(it, 'base64').toString('utf-8');
+      }).let(it => {
+        return it.substring(0, 11) + it.substring(14)
+      }).let(it => {
+        var data = ''
+        if (containsS0) {data="=s0"} else {data="=s1600"}
+        return it.substring(0, it.length - 2) + data
+      })
+      pages.push(`https://2.bp.blogspot.com/${imagePathResult}`)
+    });
     const chapterDetails = createChapterDetails({
         id: chapterId,
         mangaId: mangaId,
@@ -349,4 +369,44 @@ const decodeHTMLEntity = (str: string): string => {
 export const isLastPage = ($: CheerioStatic): boolean => {
     const lastPage = $('.pager').text().includes('Next')
     return !lastPage
+}
+export {};
+
+declare global {
+    interface Number {
+        /**
+         * Calls the specified function block with `this` value as its argument and returns its result
+         * @param block - The function to be executed with `this` as argument
+         * @returns `block`'s result
+         */
+        let<R>(this: Number | null | undefined, block: (it: number) => R): R;
+    }
+    interface String {
+        /**
+         * Calls the specified function block with `this` value as its argument and returns its result
+         * @param block - The function to be executed with `this` as argument
+         * @returns `block`'s result
+         */
+        let<R>(this: String | null | undefined, block: (it: string) => R): R;
+    }
+    interface Boolean {
+        /**
+         * Calls the specified function block with `this` value as its argument and returns its result
+         * @param block - The function to be executed with `this` as argument
+         * @returns `block`'s result
+         */
+        let<R>(this: Boolean | null | undefined, block: (it: boolean) => R): R;
+    }
+}
+
+Number.prototype.let = function(this, block) {
+    return block(this!.valueOf());
+}
+
+String.prototype.let = function(this, block) {
+    return block(this!.valueOf());
+}
+
+Boolean.prototype.let = function(this, block) {
+    return block(this!.valueOf());
 }

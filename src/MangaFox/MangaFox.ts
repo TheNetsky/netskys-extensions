@@ -37,7 +37,7 @@ const headers = {
 }
 
 export const MangaFoxInfo: SourceInfo = {
-    version: '2.0.6',
+    version: '2.0.7',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -55,6 +55,8 @@ export const MangaFoxInfo: SourceInfo = {
 
 export class MangaFox extends Source {
 
+    readonly cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'fanfox.net' })]
+
     requestManager = createRequestManager({
         requestsPerSecond: 5,
         requestTimeout: 20000,
@@ -65,7 +67,6 @@ export class MangaFox extends Source {
                     ...(request.headers ?? {}),
                     ...({
                         'referer': FF_DOMAIN,
-                        'cookies': 'isAdult=1'
                     })
                 }
 
@@ -96,7 +97,8 @@ export class MangaFox extends Source {
         const request = createRequestObject({
             url: `${FF_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId
+            param: mangaId,
+            cookies: this.cookies
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -107,7 +109,8 @@ export class MangaFox extends Source {
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = createRequestObject({
             url: `${FF_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
-            method: 'GET'
+            method: 'GET',
+            cookies: this.cookies
         })
 
         const response = await this.requestManager.schedule(request, 1)

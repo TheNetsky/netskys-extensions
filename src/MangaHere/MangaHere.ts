@@ -34,7 +34,7 @@ const MH_DOMAIN = 'https://www.mangahere.cc'
 const MH_DOMAIN_MOBILE = 'http://m.mangahere.cc'
 
 export const MangaHereInfo: SourceInfo = {
-    version: '2.0.5',
+    version: '2.0.6',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -52,6 +52,8 @@ export const MangaHereInfo: SourceInfo = {
 
 export class MangaHere extends Source {
 
+    readonly cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })]
+
     requestManager = createRequestManager({
         requestsPerSecond: 5,
         requestTimeout: 20000,
@@ -62,7 +64,6 @@ export class MangaHere extends Source {
                     ...(request.headers ?? {}),
                     ...({
                         'referer': MH_DOMAIN,
-                        'cookies': 'isAdult=1'
                     })
                 }
 
@@ -74,7 +75,6 @@ export class MangaHere extends Source {
             }
         }
     })
-
 
     override getMangaShareUrl(mangaId: string): string { return `${MH_DOMAIN}/manga/${mangaId}` }
 
@@ -94,7 +94,8 @@ export class MangaHere extends Source {
         const request = createRequestObject({
             url: `${MH_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId
+            param: mangaId,
+            cookies: this.cookies
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -105,7 +106,8 @@ export class MangaHere extends Source {
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = createRequestObject({
             url: `${MH_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
-            method: 'GET'
+            method: 'GET',
+            cookies: this.cookies
         })
 
         const response = await this.requestManager.schedule(request, 1)

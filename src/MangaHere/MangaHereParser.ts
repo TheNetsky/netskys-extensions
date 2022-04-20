@@ -185,7 +185,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
             const id = $('a', manga).attr('href')?.split('/manga/')[1]?.replace(/\//g, '')
             const image: string = $('img', manga).first().attr('src') ?? ''
             const title: string = $('img', manga).first().attr('alt')?.trim() ?? ''
-            const subtitle: string = $('div.manga-list-1-item-subtitle', manga).text().trim()
+            const subtitle: string = $('.manga-list-1-item-subtitle', manga).text().trim()
             if (!id || !title || !image) continue
 
             if (collectedIds.includes(id)) continue

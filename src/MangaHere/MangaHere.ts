@@ -11,7 +11,9 @@ import {
     MangaUpdates,
     TagType,
     TagSection,
-    ContentRating
+    ContentRating,
+    Request,
+    Response
 } from 'paperback-extensions-common'
 import {
     parseUpdatedManga,
@@ -30,12 +32,9 @@ import { URLBuilder } from './MangaHereHelper'
 
 const MH_DOMAIN = 'https://www.mangahere.cc'
 const MH_DOMAIN_MOBILE = 'http://m.mangahere.cc'
-const headers = {
-    'content-type': 'application/x-www-form-urlencoded'
-}
 
 export const MangaHereInfo: SourceInfo = {
-    version: '2.0.4',
+    version: '2.0.5',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -52,12 +51,30 @@ export const MangaHereInfo: SourceInfo = {
 }
 
 export class MangaHere extends Source {
-    readonly cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })];
 
     requestManager = createRequestManager({
         requestsPerSecond: 5,
         requestTimeout: 20000,
+        interceptor: {
+            interceptRequest: async (request: Request): Promise<Request> => {
+
+                request.headers = {
+                    ...(request.headers ?? {}),
+                    ...({
+                        'referer': MH_DOMAIN,
+                        'cookies': 'isAdult=1'
+                    })
+                }
+
+                return request
+            },
+
+            interceptResponse: async (response: Response): Promise<Response> => {
+                return response
+            }
+        }
     })
+
 
     override getMangaShareUrl(mangaId: string): string { return `${MH_DOMAIN}/manga/${mangaId}` }
 
@@ -65,8 +82,7 @@ export class MangaHere extends Source {
         const request = createRequestObject({
             url: `${MH_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId,
-            cookies: this.cookies
+            param: mangaId
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -78,8 +94,7 @@ export class MangaHere extends Source {
         const request = createRequestObject({
             url: `${MH_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId,
-            cookies: this.cookies
+            param: mangaId
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -90,8 +105,7 @@ export class MangaHere extends Source {
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = createRequestObject({
             url: `${MH_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
-            method: 'GET',
-            cookies: this.cookies
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -109,8 +123,7 @@ export class MangaHere extends Source {
         while (updatedManga.loadMore) {
             const request = createRequestObject({
                 url: `${MH_DOMAIN}/latest/${page++}`,
-                method: 'GET',
-                cookies: this.cookies
+                method: 'GET'
             })
 
             const response = await this.requestManager.schedule(request, 1)
@@ -130,8 +143,7 @@ export class MangaHere extends Source {
 
         const request = createRequestObject({
             url: MH_DOMAIN,
-            method: 'GET',
-            cookies: this.cookies
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -158,8 +170,7 @@ export class MangaHere extends Source {
         const request = createRequestObject({
             url: `${MH_DOMAIN}/`,
             method: 'GET',
-            param,
-            cookies: this.cookies
+            param
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -185,9 +196,7 @@ export class MangaHere extends Source {
 
         const request = createRequestObject({
             url: url,
-            method: 'GET',
-            headers,
-            cookies: this.cookies,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -204,8 +213,7 @@ export class MangaHere extends Source {
     override async getTags(): Promise<TagSection[]> {
         const request = createRequestObject({
             url: `${MH_DOMAIN}/search?`,
-            method: 'GET',
-            cookies: this.cookies,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)

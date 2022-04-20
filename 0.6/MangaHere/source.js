@@ -395,7 +395,7 @@ const MangaHereHelper_1 = require("./MangaHereHelper");
 const MH_DOMAIN = 'https://www.mangahere.cc';
 const MH_DOMAIN_MOBILE = 'http://m.mangahere.cc';
 exports.MangaHereInfo = {
-    version: '2.0.5',
+    version: '2.0.6',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -413,6 +413,7 @@ exports.MangaHereInfo = {
 class MangaHere extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
+        this.cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })];
         this.requestManager = createRequestManager({
             requestsPerSecond: 5,
             requestTimeout: 20000,
@@ -421,7 +422,6 @@ class MangaHere extends paperback_extensions_common_1.Source {
                     var _a;
                     request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), ({
                         'referer': MH_DOMAIN,
-                        'cookies': 'isAdult=1'
                     }));
                     return request;
                 }),
@@ -449,7 +449,8 @@ class MangaHere extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${MH_DOMAIN}/manga/`,
                 method: 'GET',
-                param: mangaId
+                param: mangaId,
+                cookies: this.cookies
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -460,7 +461,8 @@ class MangaHere extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: `${MH_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
-                method: 'GET'
+                method: 'GET',
+                cookies: this.cookies
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);

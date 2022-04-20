@@ -398,7 +398,7 @@ const headers = {
     'content-type': 'application/x-www-form-urlencoded'
 };
 exports.MangaFoxInfo = {
-    version: '2.0.5',
+    version: '2.0.6',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -416,10 +416,22 @@ exports.MangaFoxInfo = {
 class MangaFox extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
-        this.cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })];
         this.requestManager = createRequestManager({
             requestsPerSecond: 5,
             requestTimeout: 20000,
+            interceptor: {
+                interceptRequest: (request) => __awaiter(this, void 0, void 0, function* () {
+                    var _a;
+                    request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), ({
+                        'referer': FF_DOMAIN,
+                        'cookies': 'isAdult=1'
+                    }));
+                    return request;
+                }),
+                interceptResponse: (response) => __awaiter(this, void 0, void 0, function* () {
+                    return response;
+                })
+            }
         });
     }
     getMangaShareUrl(mangaId) { return `${FF_DOMAIN}/manga/${mangaId}`; }
@@ -428,8 +440,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${FF_DOMAIN}/manga/`,
                 method: 'GET',
-                param: mangaId,
-                cookies: this.cookies
+                param: mangaId
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -441,8 +452,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${FF_DOMAIN}/manga/`,
                 method: 'GET',
-                param: mangaId,
-                cookies: this.cookies
+                param: mangaId
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -453,8 +463,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: `${FF_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
-                method: 'GET',
-                cookies: this.cookies
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -471,8 +480,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
             while (updatedManga.loadMore) {
                 const request = createRequestObject({
                     url: `${FF_DOMAIN}/releases/${page++}.html`,
-                    method: 'GET',
-                    cookies: this.cookies
+                    method: 'GET'
                 });
                 const response = yield this.requestManager.schedule(request, 1);
                 const $ = this.cheerio.load(response.data);
@@ -489,8 +497,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: FF_DOMAIN,
-                method: 'GET',
-                cookies: this.cookies
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -518,8 +525,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${FF_DOMAIN}/`,
                 method: 'GET',
-                param,
-                cookies: this.cookies
+                param
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -544,8 +550,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: url,
                 method: 'GET',
-                headers,
-                cookies: this.cookies,
+                headers
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -561,8 +566,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: `${FF_DOMAIN}/search?`,
-                method: 'GET',
-                cookies: this.cookies,
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);

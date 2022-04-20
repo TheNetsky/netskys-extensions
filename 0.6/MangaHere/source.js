@@ -394,11 +394,8 @@ const MangaHereParser_1 = require("./MangaHereParser");
 const MangaHereHelper_1 = require("./MangaHereHelper");
 const MH_DOMAIN = 'https://www.mangahere.cc';
 const MH_DOMAIN_MOBILE = 'http://m.mangahere.cc';
-const headers = {
-    'content-type': 'application/x-www-form-urlencoded'
-};
 exports.MangaHereInfo = {
-    version: '2.0.4',
+    version: '2.0.5',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -416,10 +413,22 @@ exports.MangaHereInfo = {
 class MangaHere extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
-        this.cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })];
         this.requestManager = createRequestManager({
             requestsPerSecond: 5,
             requestTimeout: 20000,
+            interceptor: {
+                interceptRequest: (request) => __awaiter(this, void 0, void 0, function* () {
+                    var _a;
+                    request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), ({
+                        'referer': MH_DOMAIN,
+                        'cookies': 'isAdult=1'
+                    }));
+                    return request;
+                }),
+                interceptResponse: (response) => __awaiter(this, void 0, void 0, function* () {
+                    return response;
+                })
+            }
         });
     }
     getMangaShareUrl(mangaId) { return `${MH_DOMAIN}/manga/${mangaId}`; }
@@ -428,8 +437,7 @@ class MangaHere extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${MH_DOMAIN}/manga/`,
                 method: 'GET',
-                param: mangaId,
-                cookies: this.cookies
+                param: mangaId
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -441,8 +449,7 @@ class MangaHere extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${MH_DOMAIN}/manga/`,
                 method: 'GET',
-                param: mangaId,
-                cookies: this.cookies
+                param: mangaId
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -453,8 +460,7 @@ class MangaHere extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: `${MH_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
-                method: 'GET',
-                cookies: this.cookies
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -471,8 +477,7 @@ class MangaHere extends paperback_extensions_common_1.Source {
             while (updatedManga.loadMore) {
                 const request = createRequestObject({
                     url: `${MH_DOMAIN}/latest/${page++}`,
-                    method: 'GET',
-                    cookies: this.cookies
+                    method: 'GET'
                 });
                 const response = yield this.requestManager.schedule(request, 1);
                 const $ = this.cheerio.load(response.data);
@@ -489,8 +494,7 @@ class MangaHere extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: MH_DOMAIN,
-                method: 'GET',
-                cookies: this.cookies
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -518,8 +522,7 @@ class MangaHere extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${MH_DOMAIN}/`,
                 method: 'GET',
-                param,
-                cookies: this.cookies
+                param
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -543,9 +546,7 @@ class MangaHere extends paperback_extensions_common_1.Source {
                 .buildUrl();
             const request = createRequestObject({
                 url: url,
-                method: 'GET',
-                headers,
-                cookies: this.cookies,
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -561,8 +562,7 @@ class MangaHere extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: `${MH_DOMAIN}/search?`,
-                method: 'GET',
-                cookies: this.cookies,
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -781,7 +781,7 @@ const parseHomeSections = ($, sectionCallback) => {
             const id = (_b = (_a = $('a', manga).attr('href')) === null || _a === void 0 ? void 0 : _a.split('/manga/')[1]) === null || _b === void 0 ? void 0 : _b.replace(/\//g, '');
             const image = (_c = $('img', manga).first().attr('src')) !== null && _c !== void 0 ? _c : '';
             const title = (_e = (_d = $('img', manga).first().attr('alt')) === null || _d === void 0 ? void 0 : _d.trim()) !== null && _e !== void 0 ? _e : '';
-            const subtitle = $('div.manga-list-1-item-subtitle', manga).text().trim();
+            const subtitle = $('.manga-list-1-item-subtitle', manga).text().trim();
             if (!id || !title || !image)
                 continue;
             if (collectedIds.includes(id))

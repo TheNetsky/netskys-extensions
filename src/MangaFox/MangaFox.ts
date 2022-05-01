@@ -11,7 +11,9 @@ import {
     MangaUpdates,
     TagType,
     TagSection,
-    ContentRating
+    ContentRating,
+    Request,
+    Response
 } from 'paperback-extensions-common'
 import {
     parseUpdatedManga,
@@ -35,7 +37,7 @@ const headers = {
 }
 
 export const MangaFoxInfo: SourceInfo = {
-    version: '2.0.1',
+    version: '2.0.7',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -52,11 +54,29 @@ export const MangaFoxInfo: SourceInfo = {
 }
 
 export class MangaFox extends Source {
-    readonly cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })];
+
+    readonly cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'fanfox.net' })]
 
     requestManager = createRequestManager({
         requestsPerSecond: 5,
         requestTimeout: 20000,
+        interceptor: {
+            interceptRequest: async (request: Request): Promise<Request> => {
+
+                request.headers = {
+                    ...(request.headers ?? {}),
+                    ...({
+                        'referer': FF_DOMAIN,
+                    })
+                }
+
+                return request
+            },
+
+            interceptResponse: async (response: Response): Promise<Response> => {
+                return response
+            }
+        }
     })
 
     override getMangaShareUrl(mangaId: string): string { return `${FF_DOMAIN}/manga/${mangaId}` }
@@ -65,8 +85,7 @@ export class MangaFox extends Source {
         const request = createRequestObject({
             url: `${FF_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId,
-            cookies: this.cookies
+            param: mangaId
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -108,9 +127,8 @@ export class MangaFox extends Source {
 
         while (updatedManga.loadMore) {
             const request = createRequestObject({
-                url: `${FF_DOMAIN}/releases/${page++}`,
-                method: 'GET',
-                cookies: this.cookies
+                url: `${FF_DOMAIN}/releases/${page++}.html`,
+                method: 'GET'
             })
 
             const response = await this.requestManager.schedule(request, 1)
@@ -130,8 +148,7 @@ export class MangaFox extends Source {
 
         const request = createRequestObject({
             url: FF_DOMAIN,
-            method: 'GET',
-            cookies: this.cookies
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -147,10 +164,10 @@ export class MangaFox extends Source {
                 param = '/hot/'
                 break
             case 'new_manga':
-                param = `/directory/${page}.htm?news`
+                param = `/directory/${page}.html?news`
                 break
             case 'latest_updates':
-                param = `/releases/${page}`
+                param = `/releases/${page}.html`
                 break
             default:
                 throw new Error(`Invalid homeSectionId | ${homepageSectionId}`)
@@ -158,8 +175,7 @@ export class MangaFox extends Source {
         const request = createRequestObject({
             url: `${FF_DOMAIN}/`,
             method: 'GET',
-            param,
-            cookies: this.cookies
+            param
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -186,8 +202,7 @@ export class MangaFox extends Source {
         const request = createRequestObject({
             url: url,
             method: 'GET',
-            headers,
-            cookies: this.cookies,
+            headers
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -204,8 +219,7 @@ export class MangaFox extends Source {
     override async getTags(): Promise<TagSection[]> {
         const request = createRequestObject({
             url: `${FF_DOMAIN}/search?`,
-            method: 'GET',
-            cookies: this.cookies,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)

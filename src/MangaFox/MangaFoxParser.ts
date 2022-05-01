@@ -10,7 +10,6 @@ import {
     Manga,
     MangaStatus,
     MangaTile,
-    //SearchRequest,
     TagSection
 } from 'paperback-extensions-common'
 
@@ -81,12 +80,17 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
         let chapNum = 0
         if (chapRegex && chapRegex[1]) chapNum = Number(chapRegex[1])
 
+        const volRegex = chapterId?.match(/v([0-9.]+)/)
+        let volNum = 0
+        if (volRegex && volRegex[1]) volNum = Number(volRegex[1])
+
         chapters.push(createChapter({
             id: chapterId,
             mangaId,
             name: title,
             langCode: LanguageCode.ENGLISH,
             chapNum: isNaN(chapNum) ? 0 : chapNum,
+            volume: isNaN(volNum) ? 0 : volNum,
             time: date,
         }))
     }
@@ -126,7 +130,7 @@ export const parseUpdatedManga = ($: CheerioStatic, time: Date, ids: string[]): 
 
     const updatedManga: string[] = []
 
-    for (const manga of $('li', 'div.manga-list-4 ').toArray()) {
+    for (const manga of $('li', 'div.manga-list-4 ').first().toArray()) {
         const id = $('a', manga).attr('href')?.split('/manga/')[1]?.replace(/\//g, '')
         if (!id) continue
 

@@ -4,14 +4,14 @@ import {
     SearchRequest,
     Source
 } from 'paperback-extensions-common'
-import { Readm } from '../Readm/Readm'
+import { DynastyScans } from '../DynastyScans/DynastyScans'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 
-describe('Readm Tests', () => {
+describe('DynastyScans Tests', () => {
 
     const wrapper: APIWrapper = new APIWrapper()
-    const source: Source = new Readm(cheerio)
+    const source: Source = new DynastyScans(cheerio)
     const expect = chai.expect
     chai.use(chaiAsPromised)
 
@@ -20,7 +20,7 @@ describe('Readm Tests', () => {
    * Try to choose a manga which is updated frequently, so that the historical checking test can
    * return proper results, as it is limited to searching 30 days back due to extremely long processing times otherwise.
    */
-    const mangaId = '19575' // Choujin X
+    const mangaId = 'chapters/taking_a_picture_of_yuu' // taking_a_picture_of_yuu or series/alice_quartet
 
     it('Retrieve Manga Details', async () => {
         const details = await wrapper.getMangaDetails(source, mangaId)
@@ -33,6 +33,7 @@ describe('Readm Tests', () => {
         expect(data.status, 'Missing Status').to.exist
         expect(data.desc, 'Missing Description').to.be.not.empty
         expect(data.titles, 'Missing Titles').to.be.not.empty
+        //expect(data.rating, 'Missing Rating').to.exist
     })
 
     it('Get Chapters', async () => {
@@ -62,15 +63,14 @@ describe('Readm Tests', () => {
 
     it('Testing search', async () => {
         const testSearch: SearchRequest = {
-            //title: 'Solo',
+            title: 'love',
             parameters: {
-                includedTags: ['action']
+                includedTags: []
             }
         }
 
         const search = await wrapper.searchRequest(source, testSearch, 1)
         const result = search.results[0]
-        console.log(result)
 
         expect(result, 'No response from server').to.exist
 
@@ -87,16 +87,12 @@ describe('Readm Tests', () => {
     })
 
     it('Testing Notifications', async () => {
-        const updates = await wrapper.filterUpdatedManga(source, new Date('2021-10-17'), [mangaId])
+        const updates = await wrapper.filterUpdatedManga(source, new Date('2021-9-10'), [mangaId])
         expect(updates, 'No server response').to.exist
         expect(updates, 'Empty server response').to.not.be.empty
         expect(updates[0], 'No updates').to.not.be.empty
     })
 
-    it('Get tags', async () => {
-        const tags = await wrapper.getTags(source)
-        expect(tags, 'No server response').to.exist
-        expect(tags, 'Empty server response').to.not.be.empty
-    })
+
 
 })

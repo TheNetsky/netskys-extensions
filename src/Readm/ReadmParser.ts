@@ -84,7 +84,7 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
         if (chapRegex && chapRegex[1]) chapterId = chapRegex[1]
         if (!chapterId) continue
 
-        const chapNumRegex = title.match(/(\d+\.?\d?)/)
+        const chapNumRegex = title.match(/(\d+\.?\d?)+/)
         let chapNum = 0
         if (chapNumRegex && chapNumRegex[1]) chapNum = Number(chapNumRegex[1])
 

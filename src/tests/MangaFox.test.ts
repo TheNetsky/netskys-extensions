@@ -4,14 +4,14 @@ import {
     SearchRequest,
     Source
 } from 'paperback-extensions-common'
-import { MangaHere } from '../MangaHere/MangaHere'
+import { MangaFox } from '../MangaFox/MangaFox'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 
-describe('MangaHere Tests', () => {
+describe('MangaFox Tests', () => {
 
     const wrapper: APIWrapper = new APIWrapper()
-    const source: Source = new MangaHere(cheerio)
+    const source: Source = new MangaFox(cheerio)
     const expect = chai.expect
     chai.use(chaiAsPromised)
 
@@ -20,7 +20,7 @@ describe('MangaHere Tests', () => {
    * Try to choose a manga which is updated frequently, so that the historical checking test can
    * return proper results, as it is limited to searching 30 days back due to extremely long processing times otherwise.
    */
-    const mangaId = 'martial_arts_reigns' // martial_arts_reigns
+    const mangaId = 're_cervin' // he_heavenly_demon_destroys_the_lich_king_s_murim
 
     it('Retrieve Manga Details', async () => {
         const details = await wrapper.getMangaDetails(source, mangaId)

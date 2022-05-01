@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 import {
     Source,
     Manga,
@@ -8,40 +7,36 @@ import {
     SearchRequest,
     PagedResults,
     SourceInfo,
+    ContentRating,
     MangaUpdates,
     TagType,
-    TagSection,
-    ContentRating,
     Request,
     Response
 } from 'paperback-extensions-common'
+
 import {
-    parseUpdatedManga,
-    isLastPage,
-    parseTags,
     parseChapterDetails,
+    isLastPage,
     parseChapters,
     parseHomeSections,
     parseMangaDetails,
-    parseSearch,
     parseViewMore,
+    parseSearch,
+    parseUpdatedManga,
     UpdatedManga
-} from './MangaHereParser'
+} from './ReadComicsOnlineParser'
 
-import { URLBuilder } from './MangaHereHelper'
+const RCO_DOMAIN = 'https://readcomicsonline.ru'
 
-const MH_DOMAIN = 'https://www.mangahere.cc'
-const MH_DOMAIN_MOBILE = 'http://m.mangahere.cc'
-
-export const MangaHereInfo: SourceInfo = {
-    version: '2.0.6',
-    name: 'MangaHere',
+export const ReadComicsOnlineInfo: SourceInfo = {
+    version: '1.0.0',
+    name: 'ReadComicsOnline',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from MangaHere.',
+    description: 'Extension that pulls comics from ReadComicsOnline.ru.',
     contentRating: ContentRating.MATURE,
-    websiteBaseURL: MH_DOMAIN,
+    websiteBaseURL: RCO_DOMAIN,
     sourceTags: [
         {
             text: 'Notifications',
@@ -50,21 +45,19 @@ export const MangaHereInfo: SourceInfo = {
     ]
 }
 
-export class MangaHere extends Source {
-
-    readonly cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })]
-
+export class ReadComicsOnline extends Source {
     requestManager = createRequestManager({
-        requestsPerSecond: 5,
-        requestTimeout: 20000,
+        requestsPerSecond: 4,
+        requestTimeout: 15000,
         interceptor: {
             interceptRequest: async (request: Request): Promise<Request> => {
 
                 request.headers = {
                     ...(request.headers ?? {}),
-                    ...({
-                        'referer': MH_DOMAIN,
-                    })
+                    ...{
+                        'referer': RCO_DOMAIN
+                    }
+
                 }
 
                 return request
@@ -76,41 +69,42 @@ export class MangaHere extends Source {
         }
     })
 
-    override getMangaShareUrl(mangaId: string): string { return `${MH_DOMAIN}/manga/${mangaId}` }
 
-    async getMangaDetails(mangaId: string): Promise<Manga> {
+    override getMangaShareUrl(mangaId: string): string { return `${RCO_DOMAIN}/comic/${mangaId}` }
+
+    override async getMangaDetails(mangaId: string): Promise<Manga> {
         const request = createRequestObject({
-            url: `${MH_DOMAIN}/manga/`,
+            url: `${RCO_DOMAIN}/comic/`,
             method: 'GET',
             param: mangaId
         })
-
         const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data)
         return parseMangaDetails($, mangaId)
     }
 
-    async getChapters(mangaId: string): Promise<Chapter[]> {
+    override async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = createRequestObject({
-            url: `${MH_DOMAIN}/manga/`,
+            url: `${RCO_DOMAIN}/comic/`,
             method: 'GET',
             param: mangaId,
-            cookies: this.cookies
         })
 
         const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data)
         return parseChapters($, mangaId)
     }
 
-    async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
+    override async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = createRequestObject({
-            url: `${MH_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
+            url: `${RCO_DOMAIN}/comic/${mangaId}/${chapterId}`,
             method: 'GET',
-            cookies: this.cookies
         })
 
         const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data)
         return parseChapterDetails($, mangaId, chapterId)
     }
@@ -124,8 +118,8 @@ export class MangaHere extends Source {
 
         while (updatedManga.loadMore) {
             const request = createRequestObject({
-                url: `${MH_DOMAIN}/latest/${page++}`,
-                method: 'GET'
+                url: `${RCO_DOMAIN}/latest-release?page=${page++}`,
+                method: 'GET',
             })
 
             const response = await this.requestManager.schedule(request, 1)
@@ -142,13 +136,13 @@ export class MangaHere extends Source {
     }
 
     override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
-
         const request = createRequestObject({
-            url: MH_DOMAIN,
-            method: 'GET'
+            url: RCO_DOMAIN,
+            method: 'GET',
         })
 
         const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data)
         parseHomeSections($, sectionCallback)
     }
@@ -157,28 +151,27 @@ export class MangaHere extends Source {
         const page: number = metadata?.page ?? 1
         let param = ''
         switch (homepageSectionId) {
-            case 'hot_release':
-                param = '/hot/'
+            case 'latest_comic':
+                param = `?page=${page}&sortBy=last_release&asc=false`
                 break
-            case 'new_manga':
-                param = `/directory/${page}.htm?news`
-                break
-            case 'latest_updates':
-                param = `/latest/${page}`
+            case 'popular_comic':
+                param = `?page=${page}&sortBy=views&asc=false`
                 break
             default:
-                throw new Error(`Invalid homeSectionId | ${homepageSectionId}`)
+                throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
         }
+
         const request = createRequestObject({
-            url: `${MH_DOMAIN}/`,
+            url: `${RCO_DOMAIN}/filterList`,
             method: 'GET',
             param
         })
 
         const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data)
 
-        const manga = parseViewMore($, homepageSectionId)
+        const manga = parseViewMore($)
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
         return createPagedResults({
             results: manga,
@@ -186,40 +179,32 @@ export class MangaHere extends Source {
         })
     }
 
-    async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
-        const page: number = metadata?.page ?? 1
-
-        const url = new URLBuilder(MH_DOMAIN)
-            .addPathComponent('search')
-            .addQueryParameter('page', page)
-            .addQueryParameter('title', encodeURI(query?.title || ''))
-            .addQueryParameter('genres', query.includedTags?.map((x: any) => x.id).join('%2C'))
-            .buildUrl()
-
+    override async getSearchResults(query: SearchRequest): Promise<PagedResults> {
         const request = createRequestObject({
-            url: url,
+            url: `${RCO_DOMAIN}/search?query=${encodeURI(query.title ?? '')}`,
             method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
-        const manga = parseSearch($)
-        metadata = !isLastPage($) ? { page: page + 1 } : undefined
+        this.CloudFlareError(response.status)
+        const manga = parseSearch(response.data)
 
         return createPagedResults({
             results: manga,
-            metadata
         })
+
     }
 
-    override async getTags(): Promise<TagSection[]> {
-        const request = createRequestObject({
-            url: `${MH_DOMAIN}/search?`,
+    CloudFlareError(status: number) {
+        if (status == 503) {
+            throw new Error('CLOUDFLARE BYPASS ERROR:\nPlease go to Settings > Sources > \<\The name of this source\> and press Cloudflare Bypass')
+        }
+    }
+
+    override getCloudflareBypassRequest(): Request {
+        return createRequestObject({
+            url: RCO_DOMAIN,
             method: 'GET'
         })
-
-        const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
-        return parseTags($)
     }
 }

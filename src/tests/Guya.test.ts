@@ -4,14 +4,14 @@ import {
     SearchRequest,
     Source
 } from 'paperback-extensions-common'
-import { MangaFox } from '../MangaFox/MangaFox'
+import { Guya } from '../Guya/Guya'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 
-describe('MangaFox Tests', () => {
+describe('Guya Tests', () => {
 
     const wrapper: APIWrapper = new APIWrapper()
-    const source: Source = new MangaFox(cheerio)
+    const source: Source = new Guya(cheerio)
     const expect = chai.expect
     chai.use(chaiAsPromised)
 
@@ -20,7 +20,7 @@ describe('MangaFox Tests', () => {
    * Try to choose a manga which is updated frequently, so that the historical checking test can
    * return proper results, as it is limited to searching 30 days back due to extremely long processing times otherwise.
    */
-    const mangaId = 'the_heavenly_demon_destroys_the_lich_king_s_murim' // he_heavenly_demon_destroys_the_lich_king_s_murim
+    const mangaId = 'We-Want-To-Talk-About-Kaguya' // We-Want-To-Talk-About-Kaguya
 
     it('Retrieve Manga Details', async () => {
         const details = await wrapper.getMangaDetails(source, mangaId)
@@ -61,31 +61,11 @@ describe('MangaFox Tests', () => {
         expect(data.pages, 'No pages present').to.be.not.empty
     })
 
-    it('Get tags', async () => {
-        const tags = await wrapper.getTags(source)
-        expect(tags, 'No server response').to.exist
-        expect(tags, 'Empty server response').to.not.be.empty
-    })
-
-    it('Testing home page results for popular titles', async () => {
-        const results = await wrapper.getViewMoreItems(source, 'hot_release', {}, 1)
-
-        expect(results, 'This section does not exist').to.exist
-        expect(results, 'No results whatsoever for this section').to.be.not.empty
-
-        //console.log(results)
-        //  const data = results![0]
-        //  expect(data?.id, 'No ID present').to.exist
-        //   expect(data?.image, 'No image present').to.exist
-        // expect(data?.title.text, 'No title present').to.exist
-    })
-
-
     it('Testing search', async () => {
         const testSearch: SearchRequest = {
             title: 'love',
             parameters: {
-                includedTags: ['action']
+                includedTags: []
             }
         }
 

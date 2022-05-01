@@ -9,29 +9,28 @@ import {
     SourceInfo,
     MangaUpdates,
     TagType,
-    //TagSection,
+    TagSection,
+    Tag,
     ContentRating,
-    MangaTile
+    MangaTile,
 } from 'paperback-extensions-common'
 import {
     parseUpdatedManga,
-    isLastPage,
-    //parseTags,
     parseChapters,
     parseMangaDetails,
-    parseSearch,
     parseViewMore,
     UpdatedManga,
-    parseHomeSections
+    parseHomeSections,
+    parseSearch
 } from './MangahubParser'
 
 const MH_DOMAIN = 'https://mangahub.io'
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql'
-//const MH_CDN_DOMAIN = 'https://img.mghubcdn.com'
+const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/'
 
 
 export const MangahubInfo: SourceInfo = {
-    version: '2.0.0',
+    version: '2.0.2',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -49,7 +48,7 @@ export const MangahubInfo: SourceInfo = {
 
 export class Mangahub extends Source {
     requestManager = createRequestManager({
-        requestsPerSecond: 2,
+        requestsPerSecond: 3,
         requestTimeout: 15000,
     })
 
@@ -62,76 +61,112 @@ export class Mangahub extends Source {
             headers: {
                 'content-type': 'application/json',
             },
-            data: `query {
-                manga(x: m01, slug: "sweet-guy_132") {
-                    author
-                    image
-                    artist
-                    genres
-                    status
-                    description
-                    title
-                    alternativeTitle
-                }
-             }`
+            data: {
+                query: `query {
+                    manga(x: m01, slug: "${mangaId}") {
+                        title
+                        alternativeTitle
+                        author
+                        artist
+                        image
+                        status
+                        genres
+                        description
+                        isPorn
+                        isSoftPorn                    
+                    }
+                 }`,
+            }
         })
 
-
-
-
-
         const response = await this.requestManager.schedule(request, 1)
-        console.log('REQ')
-        console.log(JSON.stringify(request.url))
-        console.log(JSON.stringify(request.method))
-        console.log(JSON.stringify(request.headers))
-        console.log(JSON.stringify(request.data))
-        console.log('RES')
-        console.log(JSON.stringify(response.data))
 
         let data
         try {
             data = JSON.parse(response.data)
         } catch (e) {
-            console.log(e)
+            throw new Error(`${e}`)
         }
-        if (!data?.manga) throw new Error(`Failed to parse manga property from data object mangaId:${mangaId}`)
-        return parseMangaDetails(data, mangaId)
+        if (!data.data?.manga) throw new Error(`Failed to parse manga property from data object mangaId:${mangaId}`)
+        return parseMangaDetails(data.data.manga, mangaId)
     }
 
-    //TODO
     async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = createRequestObject({
-            url: `${MH_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId,
+            url: MH_API_DOMAIN,
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+            },
+            data: {
+                query: `query {
+                    manga(x: m01, slug: "${mangaId}") {
+                        title
+                        chapters {
+                          number
+                          title
+                          slug
+                          date
+                        }                  
+                    }
+                 }`,
+            }
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
-        return parseChapters($, mangaId)
+
+        let data
+        try {
+            data = JSON.parse(response.data)
+        } catch (e) {
+            throw new Error(`${e}`)
+        }
+
+        if (!data.data?.manga) throw new Error(`Failed to parse manga property from data object mangaId:${mangaId}`)
+        if (data.data.manga.chapters?.length == 0) throw new Error(`Failed to parse chapters property from manga object mangaId:${mangaId}`)
+        return parseChapters(data.data.manga.chapters, mangaId)
     }
 
-    //TODO
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
-
         const request = createRequestObject({
-            url: 'https://api.mghubcdn.com/graphql',
+            url: MH_API_DOMAIN,
             method: 'POST',
-            /// data: `{\"query\":\"{chapter(x:m01,slug:\\\"${mangaId}\\\",number:${chapterNumber}){id,title,mangaID,number,slug,date,pages,noAd,manga{id,title,slug,mainSlug,author,isWebtoon,isYaoi,isPorn,isSoftPorn,unauthFile,isLicensed}}}\"}`
+            headers: {
+                'content-type': 'application/json',
+            },
+            data: {
+                query: `query {
+                    chapter(x: m01, slug: "${mangaId}", number: ${Number(chapterId)}) {
+                      pages
+                      title
+                      slug
+                    }
+                  }
+                  `,
+            }
         })
 
-        let response = await this.requestManager.schedule(request, 1)
-        response = typeof response.data === 'string' ? JSON.parse(response.data) : response.data
-        const data = Object(response.data)
-        if (!data?.chapter) throw new Error('Missing "chapter" property!')
-        if (!data.chapter?.pages) throw new Error('Missing "pages" property!')
-        const rawPages = JSON.parse(data.chapter.pages)
+        const response = await this.requestManager.schedule(request, 1)
 
-        const pages: string[] = []
-        for (const i in rawPages) {
-            pages.push('https://img.mghubcdn.com/file/imghub/' + rawPages[i])
+        let data
+        try {
+            data = JSON.parse(response.data)
+        } catch (e) {
+            throw new Error(`${e}`)
         }
+
+        if (!data.data?.chapter?.pages) throw new Error(`Failed to parse chapter or pages property from data object mangaId:${mangaId} chapterId:${chapterId}`)
+
+        const pages = []
+        try {
+            const parsedPages = JSON.parse(data.data.chapter.pages)
+            for (const i in parsedPages) {
+                pages.push(MH_CDN_DOMAIN + parsedPages[i])
+            }
+        } catch (e) {
+            throw new Error(`${e}`)
+        }
+
         return createChapterDetails({
             id: chapterId,
             mangaId: mangaId,
@@ -139,38 +174,87 @@ export class Mangahub extends Source {
             longStrip: false
         })
     }
-    /*
-        override async getTags(): Promise<TagSection[]> {
-            const request = createRequestObject({
-                url: `${MH_DOMAIN}/search`,
-                method: 'GET',
-            })
-    
-            const response = await this.requestManager.schedule(request, 1)
-            const $ = this.cheerio.load(response.data)
-            return //parseTags($)
-        }
-        */
 
-    //TODO
-    override async filterUpdatedManga(mangaUpdatesFoundCallback: (updates: MangaUpdates) => void, time: Date, ids: string[]): Promise<void> {
-        let updatedManga: UpdatedManga = {
-            ids: [],
-        }
-
+    override async getTags(): Promise<TagSection[]> {
         const request = createRequestObject({
-            url: MH_DOMAIN,
-            method: 'GET',
+            url: MH_API_DOMAIN,
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+            },
+            data: {
+                query: `query {
+                    genres {
+                      id
+                      slug
+                      title
+                    }
+                }`,
+            }
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
 
-        updatedManga = parseUpdatedManga($, time, ids)
-        if (updatedManga.ids.length > 0) {
-            mangaUpdatesFoundCallback(createMangaUpdates({
-                ids: updatedManga.ids
-            }))
+        let data
+        try {
+            data = JSON.parse(response.data)
+        } catch (e) {
+            throw new Error(`${e}`)
+        }
+
+        if (data.data.genres?.length == 0) throw new Error('Failed to parse genres property from data object!')
+
+        const arrayTags: Tag[] = []
+        for (const genre of data.data.genres) {
+            arrayTags.push({ id: genre.slug, label: genre.title })
+        }
+        return [createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => createTag(x)) })]
+    }
+
+    override async filterUpdatedManga(mangaUpdatesFoundCallback: (updates: MangaUpdates) => void, time: Date, ids: string[]): Promise<void> {
+        let updatedManga: UpdatedManga = {
+            ids: [],
+            loadMore: true
+        }
+
+        let offset = 0
+        while (updatedManga.loadMore) {
+            const request = createRequestObject({
+                url: MH_API_DOMAIN,
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                },
+                data: {
+                    query: `query {
+                        search (x: m01, mod: LATEST, offset: ${offset}, limit: 100){
+                          rows {
+                            id
+                            title
+                            slug
+                            latestChapter
+                            updatedDate
+                          }
+                        }
+                      }`,
+                }
+            })
+
+            const response = await this.requestManager.schedule(request, 1)
+
+            let data
+            try {
+                data = JSON.parse(response.data)
+            } catch (e) {
+                throw new Error(`${e}`)
+            }
+            offset = offset + 100
+            updatedManga = parseUpdatedManga(data, time, ids)
+            if (updatedManga.ids.length > 0) {
+                mangaUpdatesFoundCallback(createMangaUpdates({
+                    ids: updatedManga.ids
+                }))
+            }
         }
     }
 
@@ -181,7 +265,33 @@ export class Mangahub extends Source {
             headers: {
                 'content-type': 'application/json',
             },
-            data: '{"query": "{ latestPopular(x: m01) {id title slug image latestChapter } latest(x: m01, limit: 30) { id title slug image latestChapter } search(x: m01, mod: POPULAR, limit: 30) { rows { id title slug image latestChapter }}}"}'
+            data: {
+                query: `query {
+                    latestPopular(x: m01) {
+                        id
+                        title
+                        slug
+                        image
+                        latestChapter
+                      }
+                      latest(x: m01, limit: 30) {
+                        id
+                        title
+                        slug
+                        image
+                        latestChapter
+                      }
+                      search(x: m01, mod: POPULAR, limit: 30) {
+                        rows {
+                          id
+                          title
+                          slug
+                          image
+                          latestChapter
+                        }
+                      }
+                    }`,
+            }
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -189,20 +299,20 @@ export class Mangahub extends Source {
             const data = JSON.parse(response.data)
             parseHomeSections(data, sectionCallback)
         } catch (e) {
-            console.log(e)
+            throw new Error(`${e}`)
         }
 
     }
 
     override async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
         const offset: number = metadata?.offset ?? 0
-        let query = ''
+        let mod = ''
         switch (homepageSectionId) {
-            case 'hot_manga':
-                query = `{"query": "{search(x:m01,mod:LATEST,count:true,offset:${offset}){rows{id,rank,title,slug,status,author,genres,image,latestChapter,unauthFile,createdDate},count}}"}`
+            case 'popular_manga':
+                mod = 'POPULAR'
                 break
             case 'latest_updates':
-                query = `{"query": "{search(x:m01,mod:POPULAR,count:true,offset:${offset}){rows{id,rank,title,slug,status,author,genres,image,latestChapter,unauthFile,createdDate},count}}"}`
+                mod = 'LATEST'
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
@@ -214,7 +324,22 @@ export class Mangahub extends Source {
             headers: {
                 'content-type': 'application/json',
             },
-            data: query,
+            data: {
+                query: `query {
+                    search(x:m01,mod:${mod},offset:${offset}){
+                    rows
+                    {
+                      id    
+                      rank
+                      title
+                      slug
+                      author
+                      image
+                      latestChapter
+                    },
+                  }
+                }`,
+            }
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -223,7 +348,7 @@ export class Mangahub extends Source {
         try {
             data = JSON.parse(response.data)
         } catch (e) {
-            console.log(e)
+            throw new Error(`${e}`)
         }
 
         const manga = parseViewMore(data)
@@ -235,24 +360,100 @@ export class Mangahub extends Source {
         })
 
     }
-    
-    //TODO
+
     override async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
-        const page: number = metadata?.page ?? 1
-        const search = encodeURI(query?.title ?? '')
-        const request = createRequestObject({
-            url: MH_DOMAIN,
-            method: 'GET',
-            param: `/search/page/${page}?q=${search}&order=POPULAR&genre=all`
+        const offset: number = metadata?.offset ?? 0
+
+        const searchTag: any = query?.includedTags?.map((x: any) => x.id)
+
+        const requests = [
+            //No Alt Titles
+            {
+                request: createRequestObject({
+                    url: MH_API_DOMAIN,
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json',
+                    },
+                    data: {
+                        query: `query {
+                            search(x: m01, alt: false, q: "${query?.title ? query.title : ''}", genre: "${searchTag[0] ? searchTag[0] : ''}", offset:${offset}) {
+                              rows {
+                                id
+                                title
+                                slug
+                                image
+                                latestChapter
+                                genres
+                              }
+                            }
+                          }
+                          `,
+
+                    }
+                })
+            },
+            {
+                request: createRequestObject({
+                    url: MH_API_DOMAIN,
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json',
+                    },
+                    data: {
+                        query: `query {
+                            search(x: m01, alt: true, q: "${query?.title ? query.title : ''}", genre: "${searchTag[0] ? searchTag[0] : ''}", offset:${offset}) {
+                              rows {
+                                id
+                                title
+                                slug
+                                image
+                                latestChapter
+                                genres
+                              }
+                            }
+                          }
+                          `,
+
+                    }
+                })
+            }
+        ]
+
+        const promises: Promise<void>[] = []
+        let manga: MangaTile[] = []
+
+        for (const req of requests) {
+            promises.push(
+                this.requestManager.schedule(req.request, 1).then(response => {
+                    let data
+                    try {
+                        data = JSON.parse(response.data)
+                    } catch (e) {
+                        throw new Error(`${e}`)
+                    }
+                    manga = manga.concat(parseSearch(data))
+
+                }),
+            )
+        }
+        await Promise.all(promises)
+
+        const seen = new Set()
+        manga = manga.filter(el => {
+            // @ts-ignore
+            const duplicate = seen.has(el.mangaId)
+            // @ts-ignore
+            seen.add(el.mangaId)
+            return !duplicate
         })
 
-        const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
-        const manga = parseSearch($)
-        metadata = !isLastPage($) ? { page: page + 1 } : undefined
+        metadata = { offset: offset + 30 }
+
         return createPagedResults({
             results: manga,
             metadata
         })
+
     }
 }

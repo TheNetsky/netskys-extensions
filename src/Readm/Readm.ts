@@ -29,7 +29,7 @@ import {
 const RM_DOMAIN = 'https://readm.org'
 
 export const ReadmInfo: SourceInfo = {
-    version: '2.0.1',
+    version: '2.0.2',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -231,7 +231,7 @@ export class Readm extends Source {
 
             const response = await this.requestManager.schedule(request, 1)
             const $ = this.cheerio.load(response.data)
-            const manga = parseViewMore($, 'hot_manga')
+            const manga = parseViewMore($, 'popular_manga')
             metadata = !isLastPage($) ? { page: page + 1 } : undefined
             return createPagedResults({
                 results: manga,

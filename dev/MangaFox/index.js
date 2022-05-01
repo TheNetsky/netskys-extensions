@@ -382,7 +382,7 @@ const headers = {
     'content-type': 'application/x-www-form-urlencoded'
 };
 exports.MangaFoxInfo = {
-    version: '2.0.1',
+    version: '2.0.7',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -400,10 +400,22 @@ exports.MangaFoxInfo = {
 class MangaFox extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
-        this.cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })];
+        this.cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'fanfox.net' })];
         this.requestManager = createRequestManager({
             requestsPerSecond: 5,
             requestTimeout: 20000,
+            interceptor: {
+                interceptRequest: (request) => __awaiter(this, void 0, void 0, function* () {
+                    var _a;
+                    request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), ({
+                        'referer': FF_DOMAIN,
+                    }));
+                    return request;
+                }),
+                interceptResponse: (response) => __awaiter(this, void 0, void 0, function* () {
+                    return response;
+                })
+            }
         });
     }
     getMangaShareUrl(mangaId) { return `${FF_DOMAIN}/manga/${mangaId}`; }
@@ -412,8 +424,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${FF_DOMAIN}/manga/`,
                 method: 'GET',
-                param: mangaId,
-                cookies: this.cookies
+                param: mangaId
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -454,9 +465,8 @@ class MangaFox extends paperback_extensions_common_1.Source {
             };
             while (updatedManga.loadMore) {
                 const request = createRequestObject({
-                    url: `${FF_DOMAIN}/releases/${page++}`,
-                    method: 'GET',
-                    cookies: this.cookies
+                    url: `${FF_DOMAIN}/releases/${page++}.html`,
+                    method: 'GET'
                 });
                 const response = yield this.requestManager.schedule(request, 1);
                 const $ = this.cheerio.load(response.data);
@@ -473,8 +483,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: FF_DOMAIN,
-                method: 'GET',
-                cookies: this.cookies
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -491,10 +500,10 @@ class MangaFox extends paperback_extensions_common_1.Source {
                     param = '/hot/';
                     break;
                 case 'new_manga':
-                    param = `/directory/${page}.htm?news`;
+                    param = `/directory/${page}.html?news`;
                     break;
                 case 'latest_updates':
-                    param = `/releases/${page}`;
+                    param = `/releases/${page}.html`;
                     break;
                 default:
                     throw new Error(`Invalid homeSectionId | ${homepageSectionId}`);
@@ -502,8 +511,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${FF_DOMAIN}/`,
                 method: 'GET',
-                param,
-                cookies: this.cookies
+                param
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -528,8 +536,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: url,
                 method: 'GET',
-                headers,
-                cookies: this.cookies,
+                headers
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -545,8 +552,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: `${FF_DOMAIN}/search?`,
-                method: 'GET',
-                cookies: this.cookies,
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -670,12 +676,17 @@ const parseChapters = ($, mangaId) => {
         let chapNum = 0;
         if (chapRegex && chapRegex[1])
             chapNum = Number(chapRegex[1]);
+        const volRegex = chapterId === null || chapterId === void 0 ? void 0 : chapterId.match(/v([0-9.]+)/);
+        let volNum = 0;
+        if (volRegex && volRegex[1])
+            volNum = Number(volRegex[1]);
         chapters.push(createChapter({
             id: chapterId,
             mangaId,
             name: title,
             langCode: paperback_extensions_common_1.LanguageCode.ENGLISH,
             chapNum: isNaN(chapNum) ? 0 : chapNum,
+            volume: isNaN(volNum) ? 0 : volNum,
             time: date,
         }));
     }
@@ -707,7 +718,7 @@ const parseUpdatedManga = ($, time, ids) => {
     var _a, _b;
     let loadMore = true;
     const updatedManga = [];
-    for (const manga of $('li', 'div.manga-list-4 ').toArray()) {
+    for (const manga of $('li', 'div.manga-list-4 ').first().toArray()) {
         const id = (_b = (_a = $('a', manga).attr('href')) === null || _a === void 0 ? void 0 : _a.split('/manga/')[1]) === null || _b === void 0 ? void 0 : _b.replace(/\//g, '');
         if (!id)
             continue;

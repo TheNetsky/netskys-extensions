@@ -7,6 +7,7 @@
 | ---        |    ----   |         --- |
 | Stable  (0.5)    | Stable versions of the sources. (Deprecated)     | [Click me!](https://thenetsky.github.io/netskys-extensions/main/)    |
 | Stable (0.6)   | Stable versions of the sources (Recommended)        |  [Click me!](https://thenetsky.github.io/netskys-extensions/0.6/)    |
+| Stable (0.6-nsfw)   | Stable versions of the NSFW sources (Recommended)        |  [Click me!](https://thenetsky.github.io/netskys-extensions/0.6-nsfw/)    |
 | Development   | Development versions of the sources. (Unstable)        |  [Click me!](https://thenetsky.github.io/netskys-extensions/dev/)    |
 
 ___

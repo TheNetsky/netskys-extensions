@@ -1,5 +1,7 @@
 # Netsky's Repo Index
 [Github Repo](https://github.com/TheNetsky/netskys-extensions)
+<br>
+Join the [Discord](https://discord.gg/rmf6jQpMU9) for support and more sources!
 
 ## Current Repo
 

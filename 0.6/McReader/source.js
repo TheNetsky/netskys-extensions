@@ -688,7 +688,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const McReaderParser_1 = require("./McReaderParser");
 const MCR_DOMAIN = 'https://www.mcreader.net';
 exports.McReaderInfo = {
-    version: '1.0.1',
+    version: '1.0.2',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -703,6 +703,7 @@ exports.McReaderInfo = {
         }
     ]
 };
+const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.124 Safari/537.36 Edg/102.0.1245.44';
 class McReader extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
@@ -713,7 +714,8 @@ class McReader extends paperback_extensions_common_1.Source {
                 interceptRequest: (request) => __awaiter(this, void 0, void 0, function* () {
                     var _a;
                     request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), {
-                        'referer': `${MCR_DOMAIN}/`
+                        'referer': `${MCR_DOMAIN}/`,
+                        'user-agent': userAgent
                     });
                     return request;
                 }),
@@ -880,7 +882,10 @@ class McReader extends paperback_extensions_common_1.Source {
     getCloudflareBypassRequest() {
         return createRequestObject({
             url: MCR_DOMAIN,
-            method: 'GET'
+            method: 'GET',
+            headers: {
+                'user-agent': userAgent
+            }
         });
     }
 }

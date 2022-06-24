@@ -688,7 +688,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const McReaderParser_1 = require("./McReaderParser");
 const MCR_DOMAIN = 'https://www.mcreader.net';
 exports.McReaderInfo = {
-    version: '1.0.0',
+    version: '1.0.1',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -893,7 +893,7 @@ exports.isLastPage = exports.parseSearch = exports.parseTags = exports.parseView
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const entities = require("entities");
 const parseMangaDetails = ($, mangaId) => {
-    var _a, _b, _c;
+    var _a, _b, _c, _d, _e;
     const titles = [];
     titles.push(decodeHTMLEntity((_b = (_a = $('img', 'div.fixed-img').attr('alt')) === null || _a === void 0 ? void 0 : _a.trim()) !== null && _b !== void 0 ? _b : ''));
     const altTitles = $('h2.alternative-title.text1row', 'div.main-head').text().trim().split(',');
@@ -911,7 +911,7 @@ const parseMangaDetails = ($, mangaId) => {
         arrayTags.push({ id: id, label: label });
     }
     const tagSections = [createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => createTag(x)) })];
-    const description = decodeHTMLEntity($('p.description').text().trim());
+    const description = decodeHTMLEntity((_e = (_d = $('p.description > br')[1]) === null || _d === void 0 ? void 0 : _d.nextSibling.nodeValue.trim()) !== null && _e !== void 0 ? _e : '');
     const rawStatus = $('small:contains(Status)', 'div.header-stats').prev().text().trim();
     let status = paperback_extensions_common_1.MangaStatus.ONGOING;
     switch (rawStatus.toUpperCase()) {

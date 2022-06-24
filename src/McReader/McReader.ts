@@ -32,7 +32,7 @@ import {
 const MCR_DOMAIN = 'https://www.mcreader.net'
 
 export const McReaderInfo: SourceInfo = {
-    version: '1.0.1',
+    version: '1.0.2',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -48,6 +48,8 @@ export const McReaderInfo: SourceInfo = {
     ]
 }
 
+const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.124 Safari/537.36 Edg/102.0.1245.44'
+
 export class McReader extends Source {
     requestManager = createRequestManager({
         requestsPerSecond: 4,
@@ -58,7 +60,8 @@ export class McReader extends Source {
                 request.headers = {
                     ...(request.headers ?? {}),
                     ...{
-                        'referer': `${MCR_DOMAIN}/`
+                        'referer': `${MCR_DOMAIN}/`,
+                        'user-agent': userAgent
                     }
 
                 }
@@ -237,7 +240,10 @@ export class McReader extends Source {
     override getCloudflareBypassRequest(): Request {
         return createRequestObject({
             url: MCR_DOMAIN,
-            method: 'GET'
+            method: 'GET',
+            headers: {
+                'user-agent': userAgent
+            }
         })
     }
 }

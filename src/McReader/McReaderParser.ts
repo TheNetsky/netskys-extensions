@@ -36,7 +36,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): Manga => {
     }
     const tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => createTag(x)) })]
 
-    const description = decodeHTMLEntity($('p.description').text().trim())
+    const description = decodeHTMLEntity($('p.description > br')[1]?.nextSibling.nodeValue.trim() ?? '')
 
     const rawStatus = $('small:contains(Status)', 'div.header-stats').prev().text().trim()
     let status = MangaStatus.ONGOING

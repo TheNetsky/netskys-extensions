@@ -79,7 +79,7 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
         const title: string = $('h6.truncate', chapter).first().text().trim() ?? ''
         const rawChapterId: string = $('a', chapter).attr('href') ?? ''
 
-        const chapRegex = rawChapterId.match(/\/manga\/[A-z0-9]+\/(.*?)\//)
+        const chapRegex = rawChapterId.match(/\/manga\/(?:.*)\/(.+)\//)
         let chapterId = null
         if (chapRegex && chapRegex[1]) chapterId = chapRegex[1]
         if (!chapterId) continue
@@ -201,7 +201,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     for (const manga of $('ul#latest_trailers li').toArray()) {
 
         const title: string = $('h6', manga).text().trim()
-        const id: string = $('a', manga).attr('href')?.replace('/manga/', '') ?? ''
+        const id: string = $('a', manga).attr('href')?.split('/').pop() ?? ''
         const parseImage = getImageSrc($('img', manga))
         const image: string = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png'
         const subtitle: string = $('small', manga).first().text().trim() ?? ''
@@ -222,7 +222,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     for (const manga of $('div.poster.poster-xs', $('ul.clearfix.latest-updates').first()).toArray()) {
 
         const title: string = $('h2', manga).first().text().trim()
-        const id: string = $('a', manga).attr('href')?.replace('/manga/', '') ?? ''
+        const id: string = $('a', manga).attr('href')?.split('/').pop() ?? ''
         const parseImage = getImageSrc($('img', manga))
         const image: string = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png'
         let subtitle: string = $('div.poster-subject > ul.chapters > li', manga).first().text().trim()
@@ -244,7 +244,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     for (const manga of $('li', 'ul.clearfix.mb-0').toArray()) {
 
         const title: string = $('h2', manga).first().text().trim()
-        const id: string = $('a', manga).attr('href')?.replace('/manga/', '') ?? ''
+        const id: string = $('a', manga).attr('href')?.split('/').pop()?? ''
         const parseImage = getImageSrc($('img', manga))
         const image: string = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png'
 
@@ -266,7 +266,7 @@ export const parseViewMore = ($: CheerioStatic, homepageSectionId: string): Mang
         for (const m of $('li.mb-lg', 'ul.filter-results').toArray()) {
 
             const title: string = $('h2', m).first().text().trim()
-            const id: string = $('a', m).attr('href')?.replace('/manga/', '') ?? ''
+            const id: string = $('a', m).attr('href')?.split('/').pop() ?? ''
             const parseImage = getImageSrc($('img', m))
             const image: string = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png'
 
@@ -281,7 +281,7 @@ export const parseViewMore = ($: CheerioStatic, homepageSectionId: string): Mang
     } else {
         for (const m of $('div.poster.poster-xs', $('ul.clearfix.latest-updates').first()).toArray()) {
             const title: string = $('h2', m).first().text().trim()
-            const id: string = $('a', m).attr('href')?.replace('/manga/', '') ?? ''
+            const id: string = $('a', m).attr('href')?.split('/').pop() ?? ''
             const parseImage = getImageSrc($('img', m))
             const image: string = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png'
 

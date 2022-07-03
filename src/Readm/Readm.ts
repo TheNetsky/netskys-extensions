@@ -12,7 +12,8 @@ import {
     TagSection,
     MangaTile,
     ContentRating,
-    Request
+    Request,
+    Response
 } from 'paperback-extensions-common'
 import {
     parseUpdatedManga,
@@ -29,7 +30,7 @@ import {
 const RM_DOMAIN = 'https://readm.org'
 
 export const ReadmInfo: SourceInfo = {
-    version: '2.0.2',
+    version: '2.0.3',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -49,10 +50,26 @@ export const ReadmInfo: SourceInfo = {
     ]
 }
 
+const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.124 Safari/537.36 Edg/102.0.1245.44'
+
 export class Readm extends Source {
     requestManager = createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15000,
+        interceptor: {
+            interceptRequest: async (request: Request): Promise<Request> => {
+                request.headers = {
+                    ...(request.headers ?? {}),
+                    'referer': `${RM_DOMAIN}/`,
+                    'user-agent': request.headers?.['user-agent'] ?? userAgent
+                }
+                return request
+            },
+
+            interceptResponse: async (response: Response): Promise<Response> => {
+                return response
+            }
+        }
     })
 
 
@@ -245,6 +262,9 @@ export class Readm extends Source {
         return createRequestObject({
             url: RM_DOMAIN,
             method: 'GET',
+            headers:{
+                'user-agent' : userAgent
+            }
         })
     }
 }

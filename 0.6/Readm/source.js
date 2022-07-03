@@ -688,7 +688,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ReadmParser_1 = require("./ReadmParser");
 const RM_DOMAIN = 'https://readm.org';
 exports.ReadmInfo = {
-    version: '2.0.2',
+    version: '2.0.3',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -707,12 +707,23 @@ exports.ReadmInfo = {
         }
     ]
 };
+const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.124 Safari/537.36 Edg/102.0.1245.44';
 class Readm extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
         this.requestManager = createRequestManager({
             requestsPerSecond: 4,
             requestTimeout: 15000,
+            interceptor: {
+                interceptRequest: (request) => __awaiter(this, void 0, void 0, function* () {
+                    var _a, _b, _c;
+                    request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), { 'referer': `${RM_DOMAIN}/`, 'user-agent': (_c = (_b = request.headers) === null || _b === void 0 ? void 0 : _b['user-agent']) !== null && _c !== void 0 ? _c : userAgent });
+                    return request;
+                }),
+                interceptResponse: (response) => __awaiter(this, void 0, void 0, function* () {
+                    return response;
+                })
+            }
         });
     }
     getMangaShareUrl(mangaId) { return `${RM_DOMAIN}/manga/${mangaId}`; }
@@ -893,6 +904,9 @@ class Readm extends paperback_extensions_common_1.Source {
         return createRequestObject({
             url: RM_DOMAIN,
             method: 'GET',
+            headers: {
+                'user-agent': userAgent
+            }
         });
     }
 }
@@ -963,7 +977,7 @@ const parseChapters = ($, mangaId) => {
     for (const chapter of $('div.season_start').toArray()) {
         const title = (_a = $('h6.truncate', chapter).first().text().trim()) !== null && _a !== void 0 ? _a : '';
         const rawChapterId = (_b = $('a', chapter).attr('href')) !== null && _b !== void 0 ? _b : '';
-        const chapRegex = rawChapterId.match(/\/manga\/[A-z0-9]+\/(.*?)\//);
+        const chapRegex = rawChapterId.match(/\/manga\/(?:.*)\/(.+)\//);
         let chapterId = null;
         if (chapRegex && chapRegex[1])
             chapterId = chapRegex[1];
@@ -1078,7 +1092,7 @@ const parseHomeSections = ($, sectionCallback) => {
     const popularManga = [];
     for (const manga of $('ul#latest_trailers li').toArray()) {
         const title = $('h6', manga).text().trim();
-        const id = (_c = (_b = $('a', manga).attr('href')) === null || _b === void 0 ? void 0 : _b.replace('/manga/', '')) !== null && _c !== void 0 ? _c : '';
+        const id = (_c = (_b = $('a', manga).attr('href')) === null || _b === void 0 ? void 0 : _b.split('/').pop()) !== null && _c !== void 0 ? _c : '';
         const parseImage = getImageSrc($('img', manga));
         const image = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png';
         const subtitle = (_d = $('small', manga).first().text().trim()) !== null && _d !== void 0 ? _d : '';
@@ -1097,7 +1111,7 @@ const parseHomeSections = ($, sectionCallback) => {
     const latestManga = [];
     for (const manga of $('div.poster.poster-xs', $('ul.clearfix.latest-updates').first()).toArray()) {
         const title = $('h2', manga).first().text().trim();
-        const id = (_f = (_e = $('a', manga).attr('href')) === null || _e === void 0 ? void 0 : _e.replace('/manga/', '')) !== null && _f !== void 0 ? _f : '';
+        const id = (_f = (_e = $('a', manga).attr('href')) === null || _e === void 0 ? void 0 : _e.split('/').pop()) !== null && _f !== void 0 ? _f : '';
         const parseImage = getImageSrc($('img', manga));
         const image = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png';
         let subtitle = $('div.poster-subject > ul.chapters > li', manga).first().text().trim();
@@ -1117,7 +1131,7 @@ const parseHomeSections = ($, sectionCallback) => {
     const newManga = [];
     for (const manga of $('li', 'ul.clearfix.mb-0').toArray()) {
         const title = $('h2', manga).first().text().trim();
-        const id = (_h = (_g = $('a', manga).attr('href')) === null || _g === void 0 ? void 0 : _g.replace('/manga/', '')) !== null && _h !== void 0 ? _h : '';
+        const id = (_h = (_g = $('a', manga).attr('href')) === null || _g === void 0 ? void 0 : _g.split('/').pop()) !== null && _h !== void 0 ? _h : '';
         const parseImage = getImageSrc($('img', manga));
         const image = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png';
         if (!id || !title)
@@ -1138,7 +1152,7 @@ const parseViewMore = ($, homepageSectionId) => {
     if (homepageSectionId === 'popular_manga') {
         for (const m of $('li.mb-lg', 'ul.filter-results').toArray()) {
             const title = $('h2', m).first().text().trim();
-            const id = (_b = (_a = $('a', m).attr('href')) === null || _a === void 0 ? void 0 : _a.replace('/manga/', '')) !== null && _b !== void 0 ? _b : '';
+            const id = (_b = (_a = $('a', m).attr('href')) === null || _a === void 0 ? void 0 : _a.split('/').pop()) !== null && _b !== void 0 ? _b : '';
             const parseImage = getImageSrc($('img', m));
             const image = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png';
             if (!id || !title)
@@ -1153,7 +1167,7 @@ const parseViewMore = ($, homepageSectionId) => {
     else {
         for (const m of $('div.poster.poster-xs', $('ul.clearfix.latest-updates').first()).toArray()) {
             const title = $('h2', m).first().text().trim();
-            const id = (_d = (_c = $('a', m).attr('href')) === null || _c === void 0 ? void 0 : _c.replace('/manga/', '')) !== null && _d !== void 0 ? _d : '';
+            const id = (_d = (_c = $('a', m).attr('href')) === null || _c === void 0 ? void 0 : _c.split('/').pop()) !== null && _d !== void 0 ? _d : '';
             const parseImage = getImageSrc($('img', m));
             const image = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png';
             if (!id || !title)

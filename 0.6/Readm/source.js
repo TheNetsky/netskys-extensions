@@ -688,7 +688,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ReadmParser_1 = require("./ReadmParser");
 const RM_DOMAIN = 'https://readm.org';
 exports.ReadmInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -859,8 +859,12 @@ class Readm extends paperback_extensions_common_1.Source {
                 let response = yield this.requestManager.schedule(request, 1);
                 response = (typeof response.data === 'string') ? JSON.parse(response.data) : response.data;
                 const data = Object(response);
-                if (!data.manga)
-                    throw new Error('API Error: Failed to create proper response object, missing manga property!');
+                if (!data.manga) {
+                    console.log('API Error: Failed to create proper response object, missing manga property!');
+                    return createPagedResults({
+                        results: []
+                    });
+                }
                 //Create the search results
                 const manga = [];
                 for (const m of data.manga) {
@@ -880,7 +884,7 @@ class Readm extends paperback_extensions_common_1.Source {
                     }));
                 }
                 return createPagedResults({
-                    results: manga,
+                    results: manga
                 });
                 //Genre search, no advanced search since it requires reCaptcha
             }

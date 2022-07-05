@@ -30,7 +30,7 @@ import {
 const RM_DOMAIN = 'https://readm.org'
 
 export const ReadmInfo: SourceInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -212,7 +212,12 @@ export class Readm extends Source {
             const data = Object(response)
 
 
-            if (!data.manga) throw new Error('API Error: Failed to create proper response object, missing manga property!')
+            if (!data.manga) {
+                console.log('API Error: Failed to create proper response object, missing manga property!')
+                return createPagedResults({
+                    results: []
+                })
+            }
 
             //Create the search results
             const manga: MangaTile[] = []
@@ -236,7 +241,7 @@ export class Readm extends Source {
             }
 
             return createPagedResults({
-                results: manga,
+                results: manga
             })
 
             //Genre search, no advanced search since it requires reCaptcha
@@ -262,8 +267,8 @@ export class Readm extends Source {
         return createRequestObject({
             url: RM_DOMAIN,
             method: 'GET',
-            headers:{
-                'user-agent' : userAgent
+            headers: {
+                'user-agent': userAgent
             }
         })
     }

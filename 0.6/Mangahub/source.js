@@ -690,7 +690,7 @@ const MH_DOMAIN = 'https://mangahub.io';
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/';
 exports.MangahubInfo = {
-    version: '2.0.2',
+    version: '2.0.3',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -721,7 +721,7 @@ class Mangahub extends paperback_extensions_common_1.Source {
                 url: MH_API_DOMAIN,
                 method: 'POST',
                 headers: {
-                    'content-type': 'application/json',
+                    'content-type': 'application/json'
                 },
                 data: {
                     query: `query {
@@ -931,21 +931,21 @@ class Mangahub extends paperback_extensions_common_1.Source {
                 },
                 data: {
                     query: `query {
-                    latestPopular(x: m01) {
+                    latest_popular: latestPopular(x: m01) {
                         id
                         title
                         slug
                         image
                         latestChapter
                       }
-                      latest(x: m01, limit: 30) {
+                      latest: latest(x: m01, limit: 30) {
                         id
                         title
                         slug
                         image
                         latestChapter
                       }
-                      search(x: m01, mod: POPULAR, limit: 30) {
+                      popular: search(x: m01, mod: POPULAR, limit: 30) {
                         rows {
                           id
                           title
@@ -954,7 +954,25 @@ class Mangahub extends paperback_extensions_common_1.Source {
                           latestChapter
                         }
                       }
-                    }`,
+                      new: search(x: m01, mod: NEW, limit: 30) {
+                        rows {
+                          id
+                          title
+                          slug
+                          image
+                          latestChapter
+                        }
+                      }
+                      completed: search(x: m01, mod: COMPLETED, limit: 30) {
+                        rows {
+                          id
+                          title
+                          slug
+                          image
+                          latestChapter
+                    }
+                }
+            }`
                 }
             });
             const response = yield this.requestManager.schedule(request, 1);
@@ -971,17 +989,6 @@ class Mangahub extends paperback_extensions_common_1.Source {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const offset = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.offset) !== null && _a !== void 0 ? _a : 0;
-            let mod = '';
-            switch (homepageSectionId) {
-                case 'popular_manga':
-                    mod = 'POPULAR';
-                    break;
-                case 'latest_updates':
-                    mod = 'LATEST';
-                    break;
-                default:
-                    throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
-            }
             const request = createRequestObject({
                 url: MH_API_DOMAIN,
                 method: 'POST',
@@ -990,19 +997,34 @@ class Mangahub extends paperback_extensions_common_1.Source {
                 },
                 data: {
                     query: `query {
-                    search(x:m01,mod:${mod},offset:${offset}){
-                    rows
-                    {
-                      id    
-                      rank
-                      title
-                      slug
-                      author
-                      image
-                      latestChapter
-                    },
-                  }
-                }`,
+                      popular: search(x: m01, mod: POPULAR, offset: ${offset}) {
+                        rows {
+                            id
+                            title
+                            slug
+                            image
+                            latestChapter
+                        }
+                      }
+                      new: search(x: m01, mod: NEW, offset: ${offset}) {
+                        rows {
+                            id
+                            title
+                            slug
+                            image
+                            latestChapter
+                        }
+                      }
+                      completed: search(x: m01, mod: COMPLETED, offset: ${offset}) {
+                        rows {
+                            id
+                            title
+                            slug
+                            image
+                            latestChapter
+                    }
+                }
+            }`
                 }
             });
             const response = yield this.requestManager.schedule(request, 1);
@@ -1013,7 +1035,7 @@ class Mangahub extends paperback_extensions_common_1.Source {
             catch (e) {
                 throw new Error(`${e}`);
             }
-            const manga = MangahubParser_1.parseViewMore(data);
+            const manga = MangahubParser_1.parseViewMore(homepageSectionId, data);
             metadata = { offset: offset + 30 };
             return createPagedResults({
                 results: manga,
@@ -1093,11 +1115,11 @@ class Mangahub extends paperback_extensions_common_1.Source {
             }
             yield Promise.all(promises);
             const seen = new Set();
-            manga = manga.filter(el => {
+            manga = manga.filter(x => {
                 // @ts-ignore
-                const duplicate = seen.has(el.mangaId);
+                const duplicate = seen.has(x.mangaId);
                 // @ts-ignore
-                seen.add(el.mangaId);
+                seen.add(x.mangaId);
                 return !duplicate;
             });
             metadata = { offset: offset + 30 };
@@ -1211,74 +1233,68 @@ const parseUpdatedManga = (data, time, ids) => {
 };
 exports.parseUpdatedManga = parseUpdatedManga;
 const parseHomeSections = (data, sectionCallback) => {
-    const hotMangaUpdateSection = createHomeSection({ id: 'popular_update', title: 'Popular Updates', view_more: false });
-    const hotMangaSection = createHomeSection({ id: 'popular_manga', title: 'Popular Manga', view_more: true });
-    const latestUpdateSection = createHomeSection({ id: 'latest_updates', title: 'Latest Updates', view_more: true });
+    const sections = [
+        {
+            data: data.data.popular.rows,
+            section: createHomeSection({ id: 'popular_manga', title: 'Popular Manga', view_more: true, type: paperback_extensions_common_1.HomeSectionType.singleRowLarge })
+        },
+        {
+            data: data.data.latest_popular,
+            section: createHomeSection({ id: 'popular_update', title: 'Popular Updates', view_more: false })
+        },
+        {
+            data: data.data.latest,
+            section: createHomeSection({ id: 'latest_update', title: 'Latest Updates', view_more: false })
+        },
+        {
+            data: data.data.new.rows,
+            section: createHomeSection({ id: 'new_manga', title: 'New Manga', view_more: true })
+        },
+        {
+            data: data.data.completed.rows,
+            section: createHomeSection({ id: 'completed_manga', title: 'Completed Manga', view_more: true })
+        }
+    ];
     const collectedIds = [];
-    //Popular Manga Updates
-    const hotMangaUpdate = [];
-    for (const manga of data.data.latestPopular) {
-        const title = manga.title;
-        const id = manga.slug;
-        const image = (manga === null || manga === void 0 ? void 0 : manga.image) ? `${MH_CDN_THUMBS_DOMAIN}/${manga.image}` : 'https://i.imgur.com/GYUxEX8.png';
-        const subtitle = (manga === null || manga === void 0 ? void 0 : manga.latestChapter) ? 'Chapter ' + manga.latestChapter : '';
-        if (!id || !title || collectedIds.includes(manga.id))
-            continue;
-        hotMangaUpdate.push(createMangaTile({
-            id: id,
-            image: image,
-            title: createIconText({ text: decodeHTMLEntity(title) }),
-            subtitleText: createIconText({ text: subtitle }),
-        }));
-        collectedIds.push(manga.id);
+    for (const section of sections) {
+        const mangaItemsArray = [];
+        for (const manga of section.data) {
+            const title = manga.title;
+            const id = manga.slug;
+            const image = (manga === null || manga === void 0 ? void 0 : manga.image) ? `${MH_CDN_THUMBS_DOMAIN}/${manga.image}` : 'https://i.imgur.com/GYUxEX8.png';
+            const subtitle = (manga === null || manga === void 0 ? void 0 : manga.latestChapter) ? 'Chapter ' + manga.latestChapter : '';
+            if (!id || !title || collectedIds.includes(manga.id))
+                continue;
+            mangaItemsArray.push(createMangaTile({
+                id: id,
+                image: image,
+                title: createIconText({ text: decodeHTMLEntity(title) }),
+                subtitleText: createIconText({ text: subtitle }),
+            }));
+            collectedIds.push(manga.id);
+        }
+        section.section.items = mangaItemsArray;
+        sectionCallback(section.section);
     }
-    hotMangaUpdateSection.items = hotMangaUpdate;
-    sectionCallback(hotMangaUpdateSection);
-    //Popular Manga
-    const hotManga = [];
-    for (const manga of data.data.search.rows) {
-        const title = manga.title;
-        const id = manga.slug;
-        const image = (manga === null || manga === void 0 ? void 0 : manga.image) ? `${MH_CDN_THUMBS_DOMAIN}/${manga.image}` : 'https://i.imgur.com/GYUxEX8.png';
-        const subtitle = (manga === null || manga === void 0 ? void 0 : manga.latestChapter) ? 'Chapter ' + manga.latestChapter : '';
-        if (!id || !title || collectedIds.includes(manga.id))
-            continue;
-        hotManga.push(createMangaTile({
-            id: id,
-            image: image,
-            title: createIconText({ text: decodeHTMLEntity(title) }),
-            subtitleText: createIconText({ text: subtitle }),
-        }));
-        collectedIds.push(manga.id);
-    }
-    hotMangaSection.items = hotManga;
-    sectionCallback(hotMangaSection);
-    //Latest Manga
-    const latestUpdate = [];
-    for (const manga of data.data.latest) {
-        const title = manga.title;
-        const id = manga.slug;
-        const image = (manga === null || manga === void 0 ? void 0 : manga.image) ? `${MH_CDN_THUMBS_DOMAIN}/${manga.image}` : 'https://i.imgur.com/GYUxEX8.png';
-        const subtitle = (manga === null || manga === void 0 ? void 0 : manga.latestChapter) ? 'Chapter ' + manga.latestChapter : '';
-        if (!id || !title || collectedIds.includes(manga.id))
-            continue;
-        latestUpdate.push(createMangaTile({
-            id: id,
-            image: image,
-            title: createIconText({ text: decodeHTMLEntity(title) }),
-            subtitleText: createIconText({ text: subtitle }),
-        }));
-        collectedIds.push(manga.id);
-    }
-    latestUpdateSection.items = latestUpdate;
-    sectionCallback(latestUpdateSection);
 };
 exports.parseHomeSections = parseHomeSections;
-const parseViewMore = (data) => {
+const parseViewMore = (homepageSectionId, data) => {
     var _a, _b;
     const collectedIds = [];
+    let mangaData;
+    switch (homepageSectionId) {
+        case 'popular_manga':
+            mangaData = data.data.popular.rows;
+            break;
+        case 'new_manga':
+            mangaData = data.data.new.rows;
+            break;
+        case 'completed_manga':
+            mangaData = data.data.completed.rows;
+            break;
+    }
     const moreManga = [];
-    for (const manga of data.data.search.rows) {
+    for (const manga of mangaData) {
         const title = (_a = manga.title) !== null && _a !== void 0 ? _a : '';
         const id = (_b = manga.slug) !== null && _b !== void 0 ? _b : '';
         const image = (manga === null || manga === void 0 ? void 0 : manga.image) ? `${MH_CDN_THUMBS_DOMAIN}/${manga.image}` : 'https://i.imgur.com/GYUxEX8.png';

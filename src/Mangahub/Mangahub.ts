@@ -30,7 +30,7 @@ const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/'
 
 
 export const MangahubInfo: SourceInfo = {
-    version: '2.0.2',
+    version: '2.0.3',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -59,7 +59,7 @@ export class Mangahub extends Source {
             url: MH_API_DOMAIN,
             method: 'POST',
             headers: {
-                'content-type': 'application/json',
+                'content-type': 'application/json'
             },
             data: {
                 query: `query {
@@ -267,21 +267,21 @@ export class Mangahub extends Source {
             },
             data: {
                 query: `query {
-                    latestPopular(x: m01) {
+                    latest_popular: latestPopular(x: m01) {
                         id
                         title
                         slug
                         image
                         latestChapter
                       }
-                      latest(x: m01, limit: 30) {
+                      latest: latest(x: m01, limit: 30) {
                         id
                         title
                         slug
                         image
                         latestChapter
                       }
-                      search(x: m01, mod: POPULAR, limit: 30) {
+                      popular: search(x: m01, mod: POPULAR, limit: 30) {
                         rows {
                           id
                           title
@@ -290,7 +290,25 @@ export class Mangahub extends Source {
                           latestChapter
                         }
                       }
-                    }`,
+                      new: search(x: m01, mod: NEW, limit: 30) {
+                        rows {
+                          id
+                          title
+                          slug
+                          image
+                          latestChapter
+                        }
+                      }
+                      completed: search(x: m01, mod: COMPLETED, limit: 30) {
+                        rows {
+                          id
+                          title
+                          slug
+                          image
+                          latestChapter
+                    }
+                }
+            }`
             }
         })
 
@@ -306,17 +324,6 @@ export class Mangahub extends Source {
 
     override async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
         const offset: number = metadata?.offset ?? 0
-        let mod = ''
-        switch (homepageSectionId) {
-            case 'popular_manga':
-                mod = 'POPULAR'
-                break
-            case 'latest_updates':
-                mod = 'LATEST'
-                break
-            default:
-                throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
-        }
 
         const request = createRequestObject({
             url: MH_API_DOMAIN,
@@ -326,19 +333,34 @@ export class Mangahub extends Source {
             },
             data: {
                 query: `query {
-                    search(x:m01,mod:${mod},offset:${offset}){
-                    rows
-                    {
-                      id    
-                      rank
-                      title
-                      slug
-                      author
-                      image
-                      latestChapter
-                    },
-                  }
-                }`,
+                      popular: search(x: m01, mod: POPULAR, offset: ${offset}) {
+                        rows {
+                            id
+                            title
+                            slug
+                            image
+                            latestChapter
+                        }
+                      }
+                      new: search(x: m01, mod: NEW, offset: ${offset}) {
+                        rows {
+                            id
+                            title
+                            slug
+                            image
+                            latestChapter
+                        }
+                      }
+                      completed: search(x: m01, mod: COMPLETED, offset: ${offset}) {
+                        rows {
+                            id
+                            title
+                            slug
+                            image
+                            latestChapter
+                    }
+                }
+            }`
             }
         })
 
@@ -351,7 +373,7 @@ export class Mangahub extends Source {
             throw new Error(`${e}`)
         }
 
-        const manga = parseViewMore(data)
+        const manga = parseViewMore(homepageSectionId, data)
         metadata = { offset: offset + 30 }
 
         return createPagedResults({
@@ -440,11 +462,11 @@ export class Mangahub extends Source {
         await Promise.all(promises)
 
         const seen = new Set()
-        manga = manga.filter(el => {
+        manga = manga.filter(x => {
             // @ts-ignore
-            const duplicate = seen.has(el.mangaId)
+            const duplicate = seen.has(x.mangaId)
             // @ts-ignore
-            seen.add(el.mangaId)
+            seen.add(x.mangaId)
             return !duplicate
         })
 

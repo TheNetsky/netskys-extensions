@@ -6,7 +6,8 @@ import {
     Manga,
     MangaStatus,
     MangaTile,
-    TagSection
+    TagSection,
+    HomeSectionType
 } from 'paperback-extensions-common'
 
 import entities = require('entities')
@@ -115,82 +116,85 @@ export const parseUpdatedManga = (data: any, time: Date, ids: string[]): Updated
 }
 
 export const parseHomeSections = (data: any, sectionCallback: (section: HomeSection) => void): void => {
-    const hotMangaUpdateSection = createHomeSection({ id: 'popular_update', title: 'Popular Updates', view_more: false })
-    const hotMangaSection = createHomeSection({ id: 'popular_manga', title: 'Popular Manga', view_more: true })
-    const latestUpdateSection = createHomeSection({ id: 'latest_updates', title: 'Latest Updates', view_more: true })
+
+    const sections = [
+        {
+            data: data.data.popular.rows,
+            section: createHomeSection({ id: 'popular_manga', title: 'Popular Manga', view_more: true, type: HomeSectionType.singleRowLarge })
+        },
+        {
+            data: data.data.latest_popular,
+            section: createHomeSection({ id: 'popular_update', title: 'Popular Updates', view_more: false })
+        },
+        {
+            data: data.data.latest,
+            section: createHomeSection({ id: 'latest_update', title: 'Latest Updates', view_more: false })
+        },
+        {
+            data: data.data.new.rows,
+            section: createHomeSection({ id: 'new_manga', title: 'New Manga', view_more: true })
+        },
+        {
+            data: data.data.completed.rows,
+            section: createHomeSection({ id: 'completed_manga', title: 'Completed Manga', view_more: true })
+        }
+    ]
+
 
     const collectedIds: string[] = []
 
-    //Popular Manga Updates
-    const hotMangaUpdate: MangaTile[] = []
-    for (const manga of data.data.latestPopular) {
-        const title = manga.title
-        const id = manga.slug
-        const image = manga?.image ? `${MH_CDN_THUMBS_DOMAIN}/${manga.image}` : 'https://i.imgur.com/GYUxEX8.png'
-        const subtitle = manga?.latestChapter ? 'Chapter ' + manga.latestChapter : ''
-        if (!id || !title || collectedIds.includes(manga.id)) continue
-        hotMangaUpdate.push(createMangaTile({
-            id: id,
-            image: image,
-            title: createIconText({ text: decodeHTMLEntity(title) }),
-            subtitleText: createIconText({ text: subtitle }),
-        }))
-        collectedIds.push(manga.id)
+    for (const section of sections) {
+        const mangaItemsArray: MangaTile[] = []
 
+        for (const manga of section.data) {
+            const title = manga.title
+            const id = manga.slug
+            const image = manga?.image ? `${MH_CDN_THUMBS_DOMAIN}/${manga.image}` : 'https://i.imgur.com/GYUxEX8.png'
+            const subtitle = manga?.latestChapter ? 'Chapter ' + manga.latestChapter : ''
+            if (!id || !title || collectedIds.includes(manga.id)) continue
+            mangaItemsArray.push(createMangaTile({
+                id: id,
+                image: image,
+                title: createIconText({ text: decodeHTMLEntity(title) }),
+                subtitleText: createIconText({ text: subtitle }),
+            }))
+            collectedIds.push(manga.id)
+
+        }
+        section.section.items = mangaItemsArray
+        sectionCallback(section.section)
     }
-    hotMangaUpdateSection.items = hotMangaUpdate
-    sectionCallback(hotMangaUpdateSection)
-
-    //Popular Manga
-    const hotManga: MangaTile[] = []
-    for (const manga of data.data.search.rows) {
-        const title = manga.title
-        const id = manga.slug
-        const image = manga?.image ? `${MH_CDN_THUMBS_DOMAIN}/${manga.image}` : 'https://i.imgur.com/GYUxEX8.png'
-        const subtitle = manga?.latestChapter ? 'Chapter ' + manga.latestChapter : ''
-        if (!id || !title || collectedIds.includes(manga.id)) continue
-        hotManga.push(createMangaTile({
-            id: id,
-            image: image,
-            title: createIconText({ text: decodeHTMLEntity(title) }),
-            subtitleText: createIconText({ text: subtitle }),
-        }))
-        collectedIds.push(manga.id)
-    }
-    hotMangaSection.items = hotManga
-    sectionCallback(hotMangaSection)
-
-    //Latest Manga
-    const latestUpdate: MangaTile[] = []
-    for (const manga of data.data.latest) {
-        const title = manga.title
-        const id = manga.slug
-        const image = manga?.image ? `${MH_CDN_THUMBS_DOMAIN}/${manga.image}` : 'https://i.imgur.com/GYUxEX8.png'
-        const subtitle = manga?.latestChapter ? 'Chapter ' + manga.latestChapter : ''
-        if (!id || !title || collectedIds.includes(manga.id)) continue
-        latestUpdate.push(createMangaTile({
-            id: id,
-            image: image,
-            title: createIconText({ text: decodeHTMLEntity(title) }),
-            subtitleText: createIconText({ text: subtitle }),
-        }))
-        collectedIds.push(manga.id)
-
-    }
-    latestUpdateSection.items = latestUpdate
-    sectionCallback(latestUpdateSection)
 }
 
-export const parseViewMore = (data: any): MangaTile[] => {
+export const parseViewMore = (homepageSectionId: string, data: any,): MangaTile[] => {
 
     const collectedIds: string[] = []
+    let mangaData
+
+    switch (homepageSectionId) {
+        case 'popular_manga':
+            mangaData = data.data.popular.rows
+            break
+        case 'new_manga':
+            mangaData = data.data.new.rows
+            break
+        case 'completed_manga':
+            mangaData = data.data.completed.rows
+            break
+    }
+
+
+
     const moreManga: MangaTile[] = []
-    for (const manga of data.data.search.rows) {
+
+    for (const manga of mangaData) {
         const title = manga.title ?? ''
         const id = manga.slug ?? ''
         const image = manga?.image ? `${MH_CDN_THUMBS_DOMAIN}/${manga.image}` : 'https://i.imgur.com/GYUxEX8.png'
         const subtitle = manga?.latestChapter ? 'Chapter ' + manga.latestChapter : ''
+
         if (!id || !title || collectedIds.includes(manga.id)) continue
+
         moreManga.push(createMangaTile({
             id: id,
             image: image,

@@ -690,7 +690,7 @@ const MH_DOMAIN = 'https://mangahub.io';
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/';
 exports.MangahubInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -997,6 +997,15 @@ class Mangahub extends paperback_extensions_common_1.Source {
                 },
                 data: {
                     query: `query {
+                    latest: search(x: m01, mod: LATEST, offset: ${offset}) {
+                        rows {
+                            id
+                            title
+                            slug
+                            image
+                            latestChapter
+                        }
+                      }
                       popular: search(x: m01, mod: POPULAR, offset: ${offset}) {
                         rows {
                             id
@@ -1244,7 +1253,7 @@ const parseHomeSections = (data, sectionCallback) => {
         },
         {
             data: data.data.latest,
-            section: createHomeSection({ id: 'latest_update', title: 'Latest Updates', view_more: false })
+            section: createHomeSection({ id: 'latest_update', title: 'Latest Updates', view_more: true })
         },
         {
             data: data.data.new.rows,
@@ -1283,6 +1292,9 @@ const parseViewMore = (homepageSectionId, data) => {
     const collectedIds = [];
     let mangaData;
     switch (homepageSectionId) {
+        case 'latest_update':
+            mangaData = data.data.latest.rows;
+            break;
         case 'popular_manga':
             mangaData = data.data.popular.rows;
             break;

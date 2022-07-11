@@ -30,7 +30,7 @@ const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/'
 
 
 export const MangahubInfo: SourceInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -333,6 +333,15 @@ export class Mangahub extends Source {
             },
             data: {
                 query: `query {
+                    latest: search(x: m01, mod: LATEST, offset: ${offset}) {
+                        rows {
+                            id
+                            title
+                            slug
+                            image
+                            latestChapter
+                        }
+                      }
                       popular: search(x: m01, mod: POPULAR, offset: ${offset}) {
                         rows {
                             id

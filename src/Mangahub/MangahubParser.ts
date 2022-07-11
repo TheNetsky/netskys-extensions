@@ -128,7 +128,7 @@ export const parseHomeSections = (data: any, sectionCallback: (section: HomeSect
         },
         {
             data: data.data.latest,
-            section: createHomeSection({ id: 'latest_update', title: 'Latest Updates', view_more: false })
+            section: createHomeSection({ id: 'latest_update', title: 'Latest Updates', view_more: true })
         },
         {
             data: data.data.new.rows,
@@ -172,6 +172,9 @@ export const parseViewMore = (homepageSectionId: string, data: any,): MangaTile[
     let mangaData
 
     switch (homepageSectionId) {
+        case 'latest_update':
+            mangaData = data.data.latest.rows
+            break
         case 'popular_manga':
             mangaData = data.data.popular.rows
             break

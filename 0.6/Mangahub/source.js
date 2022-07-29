@@ -689,8 +689,9 @@ const MangahubParser_1 = require("./MangahubParser");
 const MH_DOMAIN = 'https://mangahub.io';
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/';
+const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/83.0';
 exports.MangahubInfo = {
-    version: '2.0.4',
+    version: '2.0.5',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -702,6 +703,10 @@ exports.MangahubInfo = {
         {
             text: 'Notifications',
             type: paperback_extensions_common_1.TagType.GREEN
+        },
+        {
+            text: 'Cloudlare',
+            type: paperback_extensions_common_1.TagType.RED
         }
     ]
 };
@@ -711,6 +716,19 @@ class Mangahub extends paperback_extensions_common_1.Source {
         this.requestManager = createRequestManager({
             requestsPerSecond: 3,
             requestTimeout: 15000,
+            interceptor: {
+                interceptRequest: (request) => __awaiter(this, void 0, void 0, function* () {
+                    var _a;
+                    request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), {
+                        'referer': `${MH_DOMAIN}/`,
+                        'user-agent': userAgent,
+                    });
+                    return request;
+                }),
+                interceptResponse: (response) => __awaiter(this, void 0, void 0, function* () {
+                    return response;
+                })
+            }
         });
     }
     getMangaShareUrl(mangaId) { return `${MH_DOMAIN}/manga/${mangaId}`; }
@@ -1136,6 +1154,16 @@ class Mangahub extends paperback_extensions_common_1.Source {
                 results: manga,
                 metadata
             });
+        });
+    }
+    getCloudflareBypassRequest() {
+        return createRequestObject({
+            url: 'https://img.mghubcdn.com/file/imghub/sweet-guy/74/1.jpg',
+            method: 'GET',
+            headers: {
+                'user-agent': userAgent,
+                'referer': `${MH_DOMAIN}/`
+            }
         });
     }
 }

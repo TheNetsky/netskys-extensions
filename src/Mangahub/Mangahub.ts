@@ -13,6 +13,8 @@ import {
     Tag,
     ContentRating,
     MangaTile,
+    Request,
+    Response
 } from 'paperback-extensions-common'
 import {
     parseUpdatedManga,
@@ -28,9 +30,10 @@ const MH_DOMAIN = 'https://mangahub.io'
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql'
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/'
 
+const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/83.0'
 
 export const MangahubInfo: SourceInfo = {
-    version: '2.0.4',
+    version: '2.0.5',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -42,6 +45,10 @@ export const MangahubInfo: SourceInfo = {
         {
             text: 'Notifications',
             type: TagType.GREEN
+        },
+        {
+            text: 'Cloudlare',
+            type: TagType.RED
         }
     ]
 }
@@ -50,6 +57,24 @@ export class Mangahub extends Source {
     requestManager = createRequestManager({
         requestsPerSecond: 3,
         requestTimeout: 15000,
+        interceptor: {
+            interceptRequest: async (request: Request): Promise<Request> => {
+
+                request.headers = {
+                    ...(request.headers ?? {}),
+                    ...{
+                        'referer': `${MH_DOMAIN}/`,
+                        'user-agent': userAgent,
+                    }
+
+                }
+                return request
+            },
+
+            interceptResponse: async (response: Response): Promise<Response> => {
+                return response
+            }
+        }
     })
 
     override getMangaShareUrl(mangaId: string): string { return `${MH_DOMAIN}/manga/${mangaId}` }
@@ -486,5 +511,16 @@ export class Mangahub extends Source {
             metadata
         })
 
+    }
+
+    override getCloudflareBypassRequest(): Request {
+        return createRequestObject({
+            url: 'https://img.mghubcdn.com/file/imghub/sweet-guy/74/1.jpg',
+            method: 'GET',
+            headers: {
+                'user-agent': userAgent,
+                'referer': `${MH_DOMAIN}/`
+            }
+        })
     }
 }

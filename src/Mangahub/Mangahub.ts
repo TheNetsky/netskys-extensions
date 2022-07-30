@@ -33,7 +33,7 @@ const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/'
 const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/83.0'
 
 export const MangahubInfo: SourceInfo = {
-    version: '2.0.5',
+    version: '2.0.6',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -65,6 +65,7 @@ export class Mangahub extends Source {
                     ...{
                         'referer': `${MH_DOMAIN}/`,
                         'user-agent': userAgent,
+                        'origin': `${MH_DOMAIN}/`
                     }
 
                 }

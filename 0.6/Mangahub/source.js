@@ -691,7 +691,7 @@ const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/';
 const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/83.0';
 exports.MangahubInfo = {
-    version: '2.0.5',
+    version: '2.0.6',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -722,6 +722,7 @@ class Mangahub extends paperback_extensions_common_1.Source {
                     request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), {
                         'referer': `${MH_DOMAIN}/`,
                         'user-agent': userAgent,
+                        'origin': `${MH_DOMAIN}/`
                     });
                     return request;
                 }),

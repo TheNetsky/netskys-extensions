@@ -11,7 +11,9 @@ import {
     MangaUpdates,
     TagType,
     TagSection,
-    ContentRating
+    ContentRating,
+    Request,
+    Response
 } from 'paperback-extensions-common'
 
 import {
@@ -28,10 +30,9 @@ import {
 } from './MangaKatanaParser'
 
 const MK_DOMAIN = 'https://mangakatana.com'
-const method = 'GET'
 
 export const MangaKatanaInfo: SourceInfo = {
-    version: '2.0.1',
+    version: '2.0.2',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
@@ -52,6 +53,23 @@ export class MangaKatana extends Source {
     requestManager = createRequestManager({
         requestsPerSecond: 5,
         requestTimeout: 20000,
+        interceptor: {
+            interceptRequest: async (request: Request): Promise<Request> => {
+
+                request.headers = {
+                    ...(request.headers ?? {}),
+                    ...{
+                        'referer': `${MK_DOMAIN}/`,
+                    }
+                }
+
+                return request
+            },
+
+            interceptResponse: async (response: Response): Promise<Response> => {
+                return response
+            }
+        }
     })
 
     override getMangaShareUrl(mangaId: string): string { return `${MK_DOMAIN}/manga/${mangaId}` }
@@ -60,7 +78,7 @@ export class MangaKatana extends Source {
         const request = createRequestObject({
             url: `${MK_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId,
+            param: mangaId
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -72,7 +90,7 @@ export class MangaKatana extends Source {
         const request = createRequestObject({
             url: `${MK_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId,
+            param: mangaId
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -83,7 +101,7 @@ export class MangaKatana extends Source {
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = createRequestObject({
             url: `${MK_DOMAIN}/manga/${mangaId}/${chapterId}`,
-            method: 'GET',
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -93,7 +111,7 @@ export class MangaKatana extends Source {
     override async getTags(): Promise<TagSection[]> {
         const request = createRequestObject({
             url: `${MK_DOMAIN}/genres`,
-            method: 'GET',
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -111,7 +129,7 @@ export class MangaKatana extends Source {
         while (updatedManga.loadMore) {
             const request = createRequestObject({
                 url: `${MK_DOMAIN}/latest/page/${page++}`,
-                method: 'GET',
+                method: 'GET'
             })
 
             const response = await this.requestManager.schedule(request, 1)
@@ -130,7 +148,7 @@ export class MangaKatana extends Source {
     override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
         const request = createRequestObject({
             url: MK_DOMAIN,
-            method,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -155,7 +173,7 @@ export class MangaKatana extends Source {
         const request = createRequestObject({
             url: MK_DOMAIN,
             method: 'GET',
-            param,
+            param
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -176,13 +194,13 @@ export class MangaKatana extends Source {
         if (query.title) {
             request = createRequestObject({
                 url: MK_DOMAIN,
-                method,
+                method: 'GET',
                 param: `/page/${page}?search=${encodeURI(query.title)}&search_by=book_name`
             })
         } else {
             request = createRequestObject({
                 url: MK_DOMAIN,
-                method,
+                method: 'GET',
                 param: `/genre/${query?.includedTags?.map((x: any) => x.id)[0]}/page/${page}`
             })
         }

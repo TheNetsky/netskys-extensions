@@ -94,7 +94,7 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
 export const parseChapterDetails = (data: string, mangaId: string, chapterId: string): ChapterDetails => {
     const pages: string[] = []
 
-    const imageArray = data.match(/var ytaw=\[(.*?)\]/)
+    const imageArray = data.match(/var htnc=\[(.*?)\]/)
 
     let images: string[] = []
     if (imageArray && imageArray[1]) images = imageArray[1]?.replace(/'/g, '')?.split(',')

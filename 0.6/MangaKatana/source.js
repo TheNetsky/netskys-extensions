@@ -688,9 +688,8 @@ exports.MangaKatana = exports.MangaKatanaInfo = void 0;
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const MangaKatanaParser_1 = require("./MangaKatanaParser");
 const MK_DOMAIN = 'https://mangakatana.com';
-const method = 'GET';
 exports.MangaKatanaInfo = {
-    version: '2.0.1',
+    version: '2.0.2',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
@@ -711,6 +710,18 @@ class MangaKatana extends paperback_extensions_common_1.Source {
         this.requestManager = createRequestManager({
             requestsPerSecond: 5,
             requestTimeout: 20000,
+            interceptor: {
+                interceptRequest: (request) => __awaiter(this, void 0, void 0, function* () {
+                    var _a;
+                    request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), {
+                        'referer': `${MK_DOMAIN}/`,
+                    });
+                    return request;
+                }),
+                interceptResponse: (response) => __awaiter(this, void 0, void 0, function* () {
+                    return response;
+                })
+            }
         });
     }
     getMangaShareUrl(mangaId) { return `${MK_DOMAIN}/manga/${mangaId}`; }
@@ -719,7 +730,7 @@ class MangaKatana extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${MK_DOMAIN}/manga/`,
                 method: 'GET',
-                param: mangaId,
+                param: mangaId
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -731,7 +742,7 @@ class MangaKatana extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: `${MK_DOMAIN}/manga/`,
                 method: 'GET',
-                param: mangaId,
+                param: mangaId
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -742,7 +753,7 @@ class MangaKatana extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: `${MK_DOMAIN}/manga/${mangaId}/${chapterId}`,
-                method: 'GET',
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             return MangaKatanaParser_1.parseChapterDetails(response.data, mangaId, chapterId);
@@ -752,7 +763,7 @@ class MangaKatana extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: `${MK_DOMAIN}/genres`,
-                method: 'GET',
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -769,7 +780,7 @@ class MangaKatana extends paperback_extensions_common_1.Source {
             while (updatedManga.loadMore) {
                 const request = createRequestObject({
                     url: `${MK_DOMAIN}/latest/page/${page++}`,
-                    method: 'GET',
+                    method: 'GET'
                 });
                 const response = yield this.requestManager.schedule(request, 1);
                 const $ = this.cheerio.load(response.data);
@@ -786,7 +797,7 @@ class MangaKatana extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const request = createRequestObject({
                 url: MK_DOMAIN,
-                method,
+                method: 'GET'
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -811,7 +822,7 @@ class MangaKatana extends paperback_extensions_common_1.Source {
             const request = createRequestObject({
                 url: MK_DOMAIN,
                 method: 'GET',
-                param,
+                param
             });
             const response = yield this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -831,14 +842,14 @@ class MangaKatana extends paperback_extensions_common_1.Source {
             if (query.title) {
                 request = createRequestObject({
                     url: MK_DOMAIN,
-                    method,
+                    method: 'GET',
                     param: `/page/${page}?search=${encodeURI(query.title)}&search_by=book_name`
                 });
             }
             else {
                 request = createRequestObject({
                     url: MK_DOMAIN,
-                    method,
+                    method: 'GET',
                     param: `/genre/${(_b = query === null || query === void 0 ? void 0 : query.includedTags) === null || _b === void 0 ? void 0 : _b.map((x) => x.id)[0]}/page/${page}`
                 });
             }
@@ -938,7 +949,7 @@ exports.parseChapters = parseChapters;
 const parseChapterDetails = (data, mangaId, chapterId) => {
     var _a, _b;
     const pages = [];
-    const imageArray = data.match(/var ytaw=\[(.*?)\]/);
+    const imageArray = data.match(/var htnc=\[(.*?)\]/);
     let images = [];
     if (imageArray && imageArray[1])
         images = (_b = (_a = imageArray[1]) === null || _a === void 0 ? void 0 : _a.replace(/'/g, '')) === null || _b === void 0 ? void 0 : _b.split(',');

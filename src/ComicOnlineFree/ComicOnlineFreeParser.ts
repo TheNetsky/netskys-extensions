@@ -166,14 +166,8 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     //Popular
     const popularSection_Array: MangaTile[] = []
     for (const manga of $('li.list-top-movie-item', 'div.right-box-content').toArray()) {
+        const image: string = $('img', manga).attr('src') ?? ''
 
-        let image = 'https://i.imgur.com/GYUxEX8.png'
-
-        const imgProp = $('div.list-top-movie-item-thumb', manga)
-        if (imgProp && imgProp[0]?.attribs?.style) {
-            const imgURLRegex = String(imgProp[0].attribs.style).match(/url\('(.+)'\)/)
-            if (imgURLRegex && imgURLRegex[1]) image = imgURLRegex[1]
-        }
 
         const title: string = $('span.list-top-movie-item-vn', manga).text().trim() ?? ''
         const id = $('a', manga).attr('href')?.split('/').pop()?.trim()

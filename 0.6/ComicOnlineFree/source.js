@@ -689,7 +689,7 @@ const ComicOnlineFreeParser_1 = require("./ComicOnlineFreeParser");
 const ComicOnlineFreeHelper_1 = require("./ComicOnlineFreeHelper");
 const COF_DOMAIN = 'https://comiconlinefree.net';
 exports.ComicOnlineFreeInfo = {
-    version: '1.0.0',
+    version: '1.0.1',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1056,24 +1056,18 @@ const parseUpdatedManga = ($, time, ids) => {
 };
 exports.parseUpdatedManga = parseUpdatedManga;
 const parseHomeSections = ($, sectionCallback) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
     const popularSection = createHomeSection({ id: 'popular', title: 'Popular Comics', view_more: true, type: paperback_extensions_common_1.HomeSectionType.singleRowLarge });
     const hotSection = createHomeSection({ id: 'hot', title: 'Hot Comics', view_more: true });
     const updateSection = createHomeSection({ id: 'update', title: 'Latest Updates Comics', view_more: false });
     //Popular
     const popularSection_Array = [];
     for (const manga of $('li.list-top-movie-item', 'div.right-box-content').toArray()) {
-        let image = 'https://i.imgur.com/GYUxEX8.png';
-        const imgProp = $('div.list-top-movie-item-thumb', manga);
-        if (imgProp && ((_b = (_a = imgProp[0]) === null || _a === void 0 ? void 0 : _a.attribs) === null || _b === void 0 ? void 0 : _b.style)) {
-            const imgURLRegex = String(imgProp[0].attribs.style).match(/url\('(.+)'\)/);
-            if (imgURLRegex && imgURLRegex[1])
-                image = imgURLRegex[1];
-        }
-        const title = (_c = $('span.list-top-movie-item-vn', manga).text().trim()) !== null && _c !== void 0 ? _c : '';
-        const id = (_e = (_d = $('a', manga).attr('href')) === null || _d === void 0 ? void 0 : _d.split('/').pop()) === null || _e === void 0 ? void 0 : _e.trim();
-        let subtitle = (_f = $('a.chapter', manga).text()) !== null && _f !== void 0 ? _f : '';
-        subtitle = (_g = subtitle.substring(subtitle.indexOf('#'))) === null || _g === void 0 ? void 0 : _g.trim();
+        const image = (_a = $('img', manga).attr('src')) !== null && _a !== void 0 ? _a : '';
+        const title = (_b = $('span.list-top-movie-item-vn', manga).text().trim()) !== null && _b !== void 0 ? _b : '';
+        const id = (_d = (_c = $('a', manga).attr('href')) === null || _c === void 0 ? void 0 : _c.split('/').pop()) === null || _d === void 0 ? void 0 : _d.trim();
+        let subtitle = (_e = $('a.chapter', manga).text()) !== null && _e !== void 0 ? _e : '';
+        subtitle = (_f = subtitle.substring(subtitle.indexOf('#'))) === null || _f === void 0 ? void 0 : _f.trim();
         if (!id || !title)
             continue;
         popularSection_Array.push(createMangaTile({
@@ -1088,11 +1082,11 @@ const parseHomeSections = ($, sectionCallback) => {
     //Update
     const updateSection_Array = [];
     for (const manga of $('li.manga-box', 'ul.home-list').toArray()) {
-        const image = (_h = $('img', manga).attr('data-original')) !== null && _h !== void 0 ? _h : '';
-        const title = (_k = (_j = $('img', manga).attr('alt')) === null || _j === void 0 ? void 0 : _j.trim()) !== null && _k !== void 0 ? _k : '';
-        const id = (_m = (_l = $('a', manga).attr('href')) === null || _l === void 0 ? void 0 : _l.split('/').pop()) === null || _m === void 0 ? void 0 : _m.trim();
+        const image = (_g = $('img', manga).attr('data-original')) !== null && _g !== void 0 ? _g : '';
+        const title = (_j = (_h = $('img', manga).attr('alt')) === null || _h === void 0 ? void 0 : _h.trim()) !== null && _j !== void 0 ? _j : '';
+        const id = (_l = (_k = $('a', manga).attr('href')) === null || _k === void 0 ? void 0 : _k.split('/').pop()) === null || _l === void 0 ? void 0 : _l.trim();
         let subtitle = $('div.detail > a', manga).text().trim();
-        subtitle = (_o = subtitle.substring(subtitle.indexOf('#'))) === null || _o === void 0 ? void 0 : _o.trim();
+        subtitle = (_m = subtitle.substring(subtitle.indexOf('#'))) === null || _m === void 0 ? void 0 : _m.trim();
         if (!id || !title)
             continue;
         updateSection_Array.push(createMangaTile({
@@ -1107,11 +1101,11 @@ const parseHomeSections = ($, sectionCallback) => {
     //Hot
     const hotSection_Array = [];
     for (const manga of $('li.manga-box.hotbox', 'ul.home-list').toArray()) {
-        const image = (_p = $('img', manga).attr('data-original')) !== null && _p !== void 0 ? _p : '';
-        const title = (_r = (_q = $('img', manga).attr('alt')) === null || _q === void 0 ? void 0 : _q.trim()) !== null && _r !== void 0 ? _r : '';
-        const id = (_t = (_s = $('a', manga).attr('href')) === null || _s === void 0 ? void 0 : _s.split('/').pop()) === null || _t === void 0 ? void 0 : _t.trim();
+        const image = (_o = $('img', manga).attr('data-original')) !== null && _o !== void 0 ? _o : '';
+        const title = (_q = (_p = $('img', manga).attr('alt')) === null || _p === void 0 ? void 0 : _p.trim()) !== null && _q !== void 0 ? _q : '';
+        const id = (_s = (_r = $('a', manga).attr('href')) === null || _r === void 0 ? void 0 : _r.split('/').pop()) === null || _s === void 0 ? void 0 : _s.trim();
         let subtitle = $('div.detail > a', manga).text().trim();
-        subtitle = (_u = subtitle.substring(subtitle.indexOf('#'))) === null || _u === void 0 ? void 0 : _u.trim();
+        subtitle = (_t = subtitle.substring(subtitle.indexOf('#'))) === null || _t === void 0 ? void 0 : _t.trim();
         if (!id || !title)
             continue;
         hotSection_Array.push(createMangaTile({

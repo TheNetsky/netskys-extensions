@@ -689,7 +689,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const MangaKatanaParser_1 = require("./MangaKatanaParser");
 const MK_DOMAIN = 'https://mangakatana.com';
 exports.MangaKatanaInfo = {
-    version: '2.0.2',
+    version: '2.0.3',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
@@ -949,7 +949,7 @@ exports.parseChapters = parseChapters;
 const parseChapterDetails = (data, mangaId, chapterId) => {
     var _a, _b;
     const pages = [];
-    const imageArray = data.match(/var htnc=\[(.*?)\]/);
+    const imageArray = data.match(/var ytaw=\[(.*?)\]/);
     let images = [];
     if (imageArray && imageArray[1])
         images = (_b = (_a = imageArray[1]) === null || _a === void 0 ? void 0 : _a.replace(/'/g, '')) === null || _b === void 0 ? void 0 : _b.split(',');

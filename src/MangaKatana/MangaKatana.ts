@@ -32,7 +32,7 @@ import {
 const MK_DOMAIN = 'https://mangakatana.com'
 
 export const MangaKatanaInfo: SourceInfo = {
-    version: '2.0.2',
+    version: '2.0.3',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',

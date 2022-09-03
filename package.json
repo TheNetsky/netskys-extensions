@@ -1,8 +1,8 @@
 {
   "name": "netskys-extensions",
-  "version": "2.0.0",
-  "repositoryName": "Netsky's Extensions (0.6)",
-  "description": "Netsky's extensions for 0.6!",
+  "version": "0.0.0",
+  "repositoryName": "Netsky's Extensions (0.8)",
+  "description": "Netsky's extensions for 0.8!",
   "main": "index.js",
   "scripts": {
     "bundle": "paperback bundle",

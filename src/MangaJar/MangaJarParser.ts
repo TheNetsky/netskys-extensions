@@ -15,9 +15,9 @@ import entities = require('entities')
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): Manga => {
 
     const titles = []
-    titles.push(decodeHTMLEntity($('span.post-name', 'div.card-body').text().trim())) //Main English Title
-    titles.push(decodeHTMLEntity($('h2.post-name-jp.h5', 'div.row').text().trim())) //Japanese Title
-    titles.push(decodeHTMLEntity($('h2.h6', 'div.row').text().trim())) //Kanji Title
+    titles.push(decodeHTMLEntity($('span.post-name', 'div.card-body').text().trim())) // Main English Title
+    titles.push(decodeHTMLEntity($('h2.post-name-jp.h5', 'div.row').text().trim())) // Japanese Title
+    titles.push(decodeHTMLEntity($('h2.h6', 'div.row').text().trim())) // Kanji Title
 
     const image = getImageSrc($('img', 'div.col-md-5.col-lg-4.text-center'))
     const description = decodeHTMLEntity($('div.manga-description.entry').text().trim())
@@ -51,10 +51,9 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): Manga => {
     return createManga({
         id: mangaId,
         titles: titles,
-        image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+        image: image,
         rating: 0,
         status: status,
-        author: 'Unknown', //MangaJar doesn't display the author(s) on their website
         tags: tagSections,
         desc: description,
         hentai: hentai
@@ -89,8 +88,8 @@ export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId
     const pages: string[] = []
 
     for (const img of $('img', 'div.mt-1').toArray()) {
-        let image = getImageSrc($(img))
-        if (!image) image = 'https://i.imgur.com/GYUxEX8.png'
+        const image = getImageSrc($(img))
+        if (!image) continue
         pages.push(image)
     }
 
@@ -171,7 +170,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
 
             mangaArray.push(createMangaTile({
                 id: id,
-                image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+                image: image,
                 title: createIconText({ text: decodeHTMLEntity(title) }),
                 subtitleText: createIconText({ text: subtitle }),
             }))
@@ -196,7 +195,7 @@ export const parseSearch = ($: CheerioStatic, isGenre: boolean): MangaTile[] => 
             if (!id || !title) continue
             mangas.push(createMangaTile({
                 id,
-                image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+                image: image,
                 title: createIconText({ text: decodeHTMLEntity(title) }),
                 subtitleText: createIconText({ text: subtitle }),
             }))
@@ -212,7 +211,7 @@ export const parseSearch = ($: CheerioStatic, isGenre: boolean): MangaTile[] => 
             if (!id || !title) continue
             mangas.push(createMangaTile({
                 id,
-                image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+                image: image,
                 title: createIconText({ text: decodeHTMLEntity(title) }),
                 subtitleText: createIconText({ text: subtitle }),
             }))
@@ -233,7 +232,7 @@ export const parseViewMore = ($: CheerioStatic): MangaTile[] => {
         if (!id || !title) continue
         mangas.push(createMangaTile({
             id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }))
@@ -320,7 +319,7 @@ const getImageSrc = (imageObj: Cheerio | undefined): string => {
     } else if ((typeof dataSRCLazy != 'undefined') && !dataSRCLazy?.startsWith('data')) {
         image = imageObj?.attr('data-splide-lazy')
     } else {
-        image = 'https://i.imgur.com/GYUxEX8.png'
+        image = ''
     }
 
     return encodeURI(image ?? '')

@@ -20,7 +20,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): Manga => {
     titles.push(decodeHTMLEntity($('td:contains(Name:)').first().next().text().trim()))
     titles.push(decodeHTMLEntity($('td:contains(Alternate Name:)').next().text().trim()))
 
-    let image = $('img', 'div.manga-image').attr('src') ?? 'https://i.imgur.com/GYUxEX8.png'
+    let image = $('img', 'div.manga-image').attr('src') ?? ''
     image = image.startsWith('/') ? 'https:' + image : image
 
     const author = $('td:contains(Author:)').next().text().trim()

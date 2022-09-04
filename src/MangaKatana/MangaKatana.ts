@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 import {
     Source,
     Manga,
@@ -32,7 +31,7 @@ import {
 const MK_DOMAIN = 'https://mangakatana.com'
 
 export const MangaKatanaInfo: SourceInfo = {
-    version: '2.0.3',
+    version: '2.1.0',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
@@ -60,6 +59,8 @@ export class MangaKatana extends Source {
                     ...(request.headers ?? {}),
                     ...{
                         'referer': `${MK_DOMAIN}/`,
+                        //@ts-ignore
+                        'user-agent': await this.requestManager.getDefaultUserAgent()
                     }
                 }
 

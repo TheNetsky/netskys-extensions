@@ -24,9 +24,9 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): Manga => {
         titles.push(decodeHTMLEntity(t.trim()))
     }
 
-    //Check if the image extension could be parsed, if it can, complete it with the domain, else display failback image.
+    // Check if the image extension could be parsed, if it can, complete it with the domain, else display failback image.
     const parseImage = getImageSrc($('img.series-profile-thumb'))
-    const image: string = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png'
+    const image: string = parseImage ? (RM_DOMAIN + parseImage) : ''
 
     const author: string = $('small', 'span#first_episode').text().trim() ?? ''
     const artist: string = $('small', 'span#last_episode').text().trim() ?? ''
@@ -39,7 +39,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): Manga => {
         const label: string = $(tag).text().trim()
         const id: string = $(tag).attr('href')?.replace('/category/', '') ?? ''
         if (!id || !label) continue
-        if (['ADULT', 'SMUT', 'MATURE'].includes(label.toUpperCase())) hentai = true //These tags don't exist on Readm, but they may be added in the future!
+        if (['ADULT', 'SMUT', 'MATURE'].includes(label.toUpperCase())) hentai = true // These tags don't exist on Readm, but they may be added in the future!
         arrayTags.push({ id: id, label: label })
     }
     const tagSections: TagSection[] = [createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => createTag(x)) })]
@@ -168,7 +168,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     const latestUpdateSection = createHomeSection({ id: 'latest_updates', title: 'Latest Updates', view_more: true })
     const newMangaSection = createHomeSection({ id: 'new_manga', title: 'New Manga' })
 
-    //Hot Mango Update
+    // Hot Update
     const hotMangaUpdate: MangaTile[] = []
     for (const manga of $('div.item', 'div#manga-hot-updates').toArray()) {
 
@@ -180,7 +180,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         if (idRegex && idRegex[1]) id = idRegex[1]
 
         const parseImage = getImageSrc($('img', manga))
-        const image: string = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png'
+        const image: string = parseImage ? (RM_DOMAIN + parseImage) : ''
         let subtitle: string = $('a.caption > span', manga).text().trim()
         subtitle = subtitle ? ('Chapter ' + subtitle) : ''
 
@@ -196,14 +196,14 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     hotUpdateSection.items = hotMangaUpdate
     sectionCallback(hotUpdateSection)
 
-    //Popular Mango
+    // Popular
     const popularManga: MangaTile[] = []
     for (const manga of $('ul#latest_trailers li').toArray()) {
 
         const title: string = $('h6', manga).text().trim()
         const id: string = $('a', manga).attr('href')?.split('/').pop() ?? ''
         const parseImage = getImageSrc($('img', manga))
-        const image: string = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png'
+        const image: string = parseImage ? (RM_DOMAIN + parseImage) : ''
         const subtitle: string = $('small', manga).first().text().trim() ?? ''
 
         if (!id || !title) continue
@@ -217,14 +217,14 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     popularMangaSection.items = popularManga
     sectionCallback(popularMangaSection)
 
-    //Latest Mango
+    // Latest
     const latestManga: MangaTile[] = []
     for (const manga of $('div.poster.poster-xs', $('ul.clearfix.latest-updates').first()).toArray()) {
 
         const title: string = $('h2', manga).first().text().trim()
         const id: string = $('a', manga).attr('href')?.split('/').pop() ?? ''
         const parseImage = getImageSrc($('img', manga))
-        const image: string = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png'
+        const image: string = parseImage ? (RM_DOMAIN + parseImage) : ''
         let subtitle: string = $('div.poster-subject > ul.chapters > li', manga).first().text().trim()
         subtitle = subtitle ? ('Chapter ' + subtitle) : ''
 
@@ -239,14 +239,14 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     latestUpdateSection.items = latestManga
     sectionCallback(latestUpdateSection)
 
-    //New Mango
+    // New
     const newManga: MangaTile[] = []
     for (const manga of $('li', 'ul.clearfix.mb-0').toArray()) {
 
         const title: string = $('h2', manga).first().text().trim()
         const id: string = $('a', manga).attr('href')?.split('/').pop()?? ''
         const parseImage = getImageSrc($('img', manga))
-        const image: string = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png'
+        const image: string = parseImage ? (RM_DOMAIN + parseImage) : ''
 
         if (!id || !title) continue
         newManga.push(createMangaTile({
@@ -268,7 +268,7 @@ export const parseViewMore = ($: CheerioStatic, homepageSectionId: string): Mang
             const title: string = $('h2', m).first().text().trim()
             const id: string = $('a', m).attr('href')?.split('/').pop() ?? ''
             const parseImage = getImageSrc($('img', m))
-            const image: string = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png'
+            const image: string = parseImage ? (RM_DOMAIN + parseImage) : ''
 
             if (!id || !title) continue
             manga.push(createMangaTile({
@@ -283,7 +283,7 @@ export const parseViewMore = ($: CheerioStatic, homepageSectionId: string): Mang
             const title: string = $('h2', m).first().text().trim()
             const id: string = $('a', m).attr('href')?.split('/').pop() ?? ''
             const parseImage = getImageSrc($('img', m))
-            const image: string = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png'
+            const image: string = parseImage ? (RM_DOMAIN + parseImage) : ''
 
             if (!id || !title) continue
             manga.push(createMangaTile({

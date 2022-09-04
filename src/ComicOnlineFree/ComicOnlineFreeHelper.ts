@@ -16,7 +16,7 @@ export class URLBuilder {
         return this
     }
 
-    buildUrl({addTrailingSlash, includeUndefinedParameters} = {addTrailingSlash: false, includeUndefinedParameters: false}): string {
+    buildUrl({ addTrailingSlash, includeUndefinedParameters } = { addTrailingSlash: false, includeUndefinedParameters: false }): string {
         let finalUrl = this.baseUrl + '/'
 
         finalUrl += this.pathComponents.join('/')

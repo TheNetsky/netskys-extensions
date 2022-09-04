@@ -1,5 +1,3 @@
-/* eslint-disable linebreak-style */
-
 export class URLBuilder {
     parameters: Record<string, any | any[]> = {}
     pathComponents: string[] = []

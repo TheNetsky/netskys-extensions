@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 import {
     Source,
     Manga,
@@ -34,7 +33,7 @@ const MH_DOMAIN = 'https://www.mangahere.cc'
 const MH_DOMAIN_MOBILE = 'http://m.mangahere.cc'
 
 export const MangaHereInfo: SourceInfo = {
-    version: '2.0.6',
+    version: '2.1.0',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -62,9 +61,11 @@ export class MangaHere extends Source {
 
                 request.headers = {
                     ...(request.headers ?? {}),
-                    ...({
-                        'referer': MH_DOMAIN,
-                    })
+                    ...{
+                        'referer': `${MH_DOMAIN}/`,
+                        //@ts-ignore
+                        'user-agent': await this.requestManager.getDefaultUserAgent()
+                    }
                 }
 
                 return request

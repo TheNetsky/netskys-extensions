@@ -33,7 +33,7 @@ import { URLBuilder } from './ComicOnlineFreeHelper'
 const COF_DOMAIN = 'https://comiconlinefree.net'
 
 export const ComicOnlineFreeInfo: SourceInfo = {
-    version: '1.0.1',
+    version: '1.1.0',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',
@@ -59,9 +59,10 @@ export class ComicOnlineFree extends Source {
                 request.headers = {
                     ...(request.headers ?? {}),
                     ...{
-                        'referer': `${COF_DOMAIN}/`
+                        'referer': `${COF_DOMAIN}/`,
+                        //@ts-ignore
+                        'user-agent': await this.requestManager.getDefaultUserAgent()
                     }
-
                 }
 
                 return request
@@ -221,16 +222,22 @@ export class ComicOnlineFree extends Source {
         })
     }
 
-    CloudFlareError(status: number) {
+    CloudFlareError(status: number): void {
         if (status == 503) {
             throw new Error('CLOUDFLARE BYPASS ERROR:\nPlease go to Settings > Sources > <The name of this source> and press Cloudflare Bypass')
         }
     }
 
-    override getCloudflareBypassRequest(): Request {
+    //@ts-ignore
+    override async getCloudflareBypassRequestAsync(): Promise<Request> {
         return createRequestObject({
             url: COF_DOMAIN,
-            method: 'GET'
+            method: 'GET',
+            headers: {
+                'referer': `${COF_DOMAIN}/`,
+                //@ts-ignore
+                'user-agent': await this.requestManager.getDefaultUserAgent()
+            }
         })
     }
 }

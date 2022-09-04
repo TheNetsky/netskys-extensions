@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 import {
     Source,
     Manga,
@@ -37,7 +36,7 @@ const headers = {
 }
 
 export const MangaFoxInfo: SourceInfo = {
-    version: '2.0.7',
+    version: '2.1.0',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -65,9 +64,11 @@ export class MangaFox extends Source {
 
                 request.headers = {
                     ...(request.headers ?? {}),
-                    ...({
-                        'referer': FF_DOMAIN,
-                    })
+                    ...{
+                        'referer': `${FF_DOMAIN}/`,
+                        //@ts-ignore
+                        'user-agent': await this.requestManager.getDefaultUserAgent()
+                    }
                 }
 
                 return request

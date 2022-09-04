@@ -17,7 +17,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): Manga => {
     const titles: string[] = []
     titles.push(decodeHTMLEntity($('h2.listmanga-header').first().text().trim()))
 
-    let image: string = $('img', 'div.boxed').attr('src') ?? 'https://i.imgur.com/GYUxEX8.png'
+    let image: string = $('img', 'div.boxed').attr('src') ?? ''
     if (image.startsWith('/')) image = 'https:' + image
 
     const author: string = $('dd', $('dt:contains(Type)').parent()).text().trim() ?? ''
@@ -142,7 +142,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     const latestSection = createHomeSection({ id: 'latest_comic', title: 'Latest Comics', view_more: true })
     const popularSection = createHomeSection({ id: 'popular_comic', title: 'Most Popular Comics', view_more: true })
 
-    //Hot Comics
+    // Hot
     const hotSection_Array: MangaTile[] = []
     for (const comic of $('li.schedule-item', 'div.carousel').toArray()) {
         let image: string = $('div.schedule-avatar > a > img', comic).first().attr('src') ?? ''
@@ -164,7 +164,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     hotSection.items = hotSection_Array
     sectionCallback(hotSection)
 
-    //Latest Comics
+    // Latest
     const latestSection_Array: MangaTile[] = []
     for (const comic of $('div.media', 'div.list-container > div.row').toArray()) {
         let image: string = $('div.media-left > a > img', comic).first().attr('src') ?? ''
@@ -186,7 +186,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     latestSection.items = latestSection_Array
     sectionCallback(latestSection)
 
-    //Popular Comics
+    // Popular
     const popularSection_Array: MangaTile[] = []
     for (const comic of $('div.media', 'div.widget-container > div.panel').toArray()) {
         let image: string = $('div.media-left > a > img', comic).first().attr('src') ?? ''
@@ -225,7 +225,7 @@ export const parseViewMore = ($: CheerioStatic): MangaTile[] => {
         if (collectedIds.includes(id)) continue
         comics.push(createMangaTile({
             id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }))

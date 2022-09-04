@@ -29,7 +29,7 @@ import {
 const MJ_DOMAIN = 'https://mangajar.com'
 
 export const MangaJarInfo: SourceInfo = {
-    version: '2.0.0',
+    version: '2.1.0',
     name: 'MangaJar',
     icon: 'icon.png',
     author: 'Netsky',

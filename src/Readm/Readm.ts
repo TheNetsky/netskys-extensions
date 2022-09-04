@@ -30,7 +30,7 @@ import {
 const RM_DOMAIN = 'https://readm.org'
 
 export const ReadmInfo: SourceInfo = {
-    version: '2.0.4',
+    version: '2.1.0',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -50,19 +50,22 @@ export const ReadmInfo: SourceInfo = {
     ]
 }
 
-const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.124 Safari/537.36 Edg/102.0.1245.44'
-
 export class Readm extends Source {
     requestManager = createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15000,
         interceptor: {
             interceptRequest: async (request: Request): Promise<Request> => {
+
                 request.headers = {
                     ...(request.headers ?? {}),
-                    'referer': `${RM_DOMAIN}/`,
-                    'user-agent': request.headers?.['user-agent'] ?? userAgent
+                    ...{
+                        'referer': `${RM_DOMAIN}/`,
+                        //@ts-ignore
+                        'user-agent': await this.requestManager.getDefaultUserAgent()
+                    }
                 }
+
                 return request
             },
 
@@ -195,7 +198,7 @@ export class Readm extends Source {
     override async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
         const page: number = metadata?.page ?? 1
 
-        //Regular search
+        // Regular search
         if (query.title) {
             const request = createRequestObject({
                 url: `${RM_DOMAIN}/service/search`,
@@ -219,7 +222,7 @@ export class Readm extends Source {
                 })
             }
 
-            //Create the search results
+            // Create the search results
             const manga: MangaTile[] = []
             for (const m of data.manga) {
                 if (!m.url || !m.title) {
@@ -244,7 +247,7 @@ export class Readm extends Source {
                 results: manga
             })
 
-            //Genre search, no advanced search since it requires reCaptcha
+            // Genre search, no advanced search since it requires reCaptcha
         } else {
             const request = createRequestObject({
                 url: `${RM_DOMAIN}/category/${query?.includedTags?.map((x: any) => x.id)[0]}/watch/${page}`,
@@ -263,12 +266,15 @@ export class Readm extends Source {
         }
     }
 
-    override getCloudflareBypassRequest(): Request {
+    //@ts-ignore
+    override async getCloudflareBypassRequestAsync(): Promise<Request> {
         return createRequestObject({
             url: RM_DOMAIN,
             method: 'GET',
             headers: {
-                'user-agent': userAgent
+                'referer': `${RM_DOMAIN}/`,
+                //@ts-ignore
+                'user-agent': await this.requestManager.getDefaultUserAgent()
             }
         })
     }

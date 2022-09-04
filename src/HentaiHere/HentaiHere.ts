@@ -8,10 +8,10 @@ import {
     PagedResults,
     SourceInfo,
     ContentRating,
-    MangaUpdates,
     TagType,
     Request,
-    Response
+    Response,
+    TagSection
 } from 'paperback-extensions-common'
 
 import {
@@ -22,30 +22,29 @@ import {
     parseMangaDetails,
     parseViewMore,
     parseSearch,
-    parseUpdatedManga,
-    UpdatedManga
-} from './ReadComicsOnlineParser'
+    parseTags
+} from './HentaiHereParser'
 
-const RCO_DOMAIN = 'https://readcomicsonline.ru'
+const HH_DOMAIN = 'https://hentaihere.com'
 
-export const ReadComicsOnlineInfo: SourceInfo = {
-    version: '1.1.0',
-    name: 'ReadComicsOnline',
+export const HentaiHereInfo: SourceInfo = {
+    version: '2.1.0',
+    name: 'HentaiHere',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls comics from ReadComicsOnline.ru.',
-    contentRating: ContentRating.MATURE,
-    websiteBaseURL: RCO_DOMAIN,
+    description: 'Extension that pulls manga from HentaiHere',
+    contentRating: ContentRating.ADULT,
+    websiteBaseURL: HH_DOMAIN,
     sourceTags: [
         {
-            text: 'Notifications',
-            type: TagType.GREEN
+            text: '18+',
+            type: TagType.YELLOW
         }
     ]
 }
 
-export class ReadComicsOnline extends Source {
+export class HentaiHere extends Source {
     requestManager = createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15000,
@@ -55,9 +54,10 @@ export class ReadComicsOnline extends Source {
                 request.headers = {
                     ...(request.headers ?? {}),
                     ...{
-                        'referer': RCO_DOMAIN
+                        'referer': `${HH_DOMAIN}/`,
+                        //@ts-ignore
+                        'user-agent': await this.requestManager.getDefaultUserAgent()
                     }
-
                 }
 
                 return request
@@ -70,14 +70,14 @@ export class ReadComicsOnline extends Source {
     })
 
 
-    override getMangaShareUrl(mangaId: string): string { return `${RCO_DOMAIN}/comic/${mangaId}` }
+    override getMangaShareUrl(mangaId: string): string { return `${HH_DOMAIN}/m/${mangaId}` }
 
     override async getMangaDetails(mangaId: string): Promise<Manga> {
         const request = createRequestObject({
-            url: `${RCO_DOMAIN}/comic/`,
-            method: 'GET',
-            param: mangaId
+            url: `${HH_DOMAIN}/m/${mangaId}`,
+            method: 'GET'
         })
+
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data)
@@ -86,9 +86,8 @@ export class ReadComicsOnline extends Source {
 
     override async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = createRequestObject({
-            url: `${RCO_DOMAIN}/comic/`,
-            method: 'GET',
-            param: mangaId,
+            url: `${HH_DOMAIN}/m/${mangaId}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -99,46 +98,19 @@ export class ReadComicsOnline extends Source {
 
     override async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = createRequestObject({
-            url: `${RCO_DOMAIN}/comic/${mangaId}/${chapterId}`,
-            method: 'GET',
+            url: `${HH_DOMAIN}/m/${mangaId}/${chapterId}/1`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
-        return parseChapterDetails($, mangaId, chapterId)
-    }
-
-    override async filterUpdatedManga(mangaUpdatesFoundCallback: (updates: MangaUpdates) => void, time: Date, ids: string[]): Promise<void> {
-        let page = 1
-        let updatedManga: UpdatedManga = {
-            ids: [],
-            loadMore: true
-        }
-
-        while (updatedManga.loadMore) {
-            const request = createRequestObject({
-                url: `${RCO_DOMAIN}/latest-release?page=${page++}`,
-                method: 'GET',
-            })
-
-            const response = await this.requestManager.schedule(request, 1)
-            const $ = this.cheerio.load(response.data)
-
-            updatedManga = parseUpdatedManga($, time, ids)
-            if (updatedManga.ids.length > 0) {
-                mangaUpdatesFoundCallback(createMangaUpdates({
-                    ids: updatedManga.ids
-                }))
-            }
-        }
-
+        return parseChapterDetails(response.data, mangaId, chapterId)
     }
 
     override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
         const request = createRequestObject({
-            url: RCO_DOMAIN,
-            method: 'GET',
+            url: HH_DOMAIN,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -151,18 +123,21 @@ export class ReadComicsOnline extends Source {
         const page: number = metadata?.page ?? 1
         let param = ''
         switch (homepageSectionId) {
-            case 'latest_comic':
-                param = `?page=${page}&sortBy=last_release&asc=false`
+            case 'newest':
+                param = `/directory/newest?page=${page}`
                 break
-            case 'popular_comic':
-                param = `?page=${page}&sortBy=views&asc=false`
+            case 'trending':
+                param = `/directory/trending?page=${page}`
+                break
+            case 'staff_pick':
+                param = `/directory/staff_pick?page=${page}`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
         }
 
         const request = createRequestObject({
-            url: `${RCO_DOMAIN}/filterList`,
+            url: HH_DOMAIN,
             method: 'GET',
             param
         })
@@ -179,20 +154,43 @@ export class ReadComicsOnline extends Source {
         })
     }
 
-    override async getSearchResults(query: SearchRequest): Promise<PagedResults> {
+    override async getSearchTags(): Promise<TagSection[]> {
         const request = createRequestObject({
-            url: `${RCO_DOMAIN}/search?query=${encodeURI(query.title ?? '')}`,
+            url: `${HH_DOMAIN}/tags/category`,
             method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        this.CloudFlareError(response.status)
-        const manga = parseSearch(response.data)
+        const $ = this.cheerio.load(response.data)
+        return parseTags($)
+    }
 
+    async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
+        const page: number = metadata?.page ?? 1
+        let request
+
+        if (query.title) {
+            request = createRequestObject({
+                url: `${HH_DOMAIN}/search?s=`,
+                method: 'GET',
+                param: `${encodeURI(query.title)}&page=${page}`
+            })
+        } else {
+            request = createRequestObject({
+                url: `${HH_DOMAIN}`,
+                method: 'GET',
+                param: `/search/${query?.includedTags?.map((x: any) => x.id)[0]}/most-popular?page=${page}`
+            })
+        }
+
+        const response = await this.requestManager.schedule(request, 1)
+        const $ = this.cheerio.load(response.data)
+        const manga = parseSearch($)
+        metadata = !isLastPage($) ? { page: page + 1 } : undefined
         return createPagedResults({
             results: manga,
+            metadata
         })
-
     }
 
     CloudFlareError(status: number): void {
@@ -204,10 +202,10 @@ export class ReadComicsOnline extends Source {
     //@ts-ignore
     override async getCloudflareBypassRequestAsync(): Promise<Request> {
         return createRequestObject({
-            url: RCO_DOMAIN,
+            url: HH_DOMAIN,
             method: 'GET',
             headers: {
-                'referer': `${RCO_DOMAIN}/`,
+                'referer': `${HH_DOMAIN}/`,
                 //@ts-ignore
                 'user-agent': await this.requestManager.getDefaultUserAgent()
             }

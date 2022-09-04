@@ -55,7 +55,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): Manga => {
     return createManga({
         id: mangaId,
         titles: titles,
-        image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+        image: image,
         status: status,
         author: author,
         artist: author,
@@ -75,7 +75,6 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
         if (!chapterId) continue
 
         const datePieces = $('time.chapter-update', chapter).attr('datetime')?.split(',') ?? []
-
         const date = new Date(String(`${datePieces[0]}, ${datePieces[1]}`))
 
         const chapNumRegex = title.match(/(\d+\.?\d?)+/)
@@ -130,7 +129,6 @@ export const parseUpdatedManga = ($: CheerioStatic, time: Date, ids: string[]): 
 
     for (const manga of $('li.novel-item', 'ul.novel-list.grid').toArray()) {
         const id = $('a', manga).attr('href')?.replace(/\/$/, '')?.split('/').pop() ?? ''
-        if (!id) continue
 
         const rawDate = $('div.novel-stats > span', manga).text().trim()
         const mangaDate = parseDate(rawDate)
@@ -148,7 +146,7 @@ export const parseUpdatedManga = ($: CheerioStatic, time: Date, ids: string[]): 
 
     return {
         ids: updatedManga,
-        loadMore,
+        loadMore
     }
 }
 
@@ -157,7 +155,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     const newSection = createHomeSection({ id: 'new', title: 'New', view_more: true })
     const updateSection = createHomeSection({ id: 'updated', title: 'Latest Updated', view_more: true })
 
-    //Most Viewed
+    // Most Viewed
     const mostViewedSection_Array: MangaTile[] = []
     for (const manga of $('li', 'div#recommend-novel-slider').toArray()) {
 
@@ -170,7 +168,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         if (!id || !title) continue
         mostViewedSection_Array.push(createMangaTile({
             id: id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: decodeHTMLEntity(subtitle) })
         }))
@@ -179,7 +177,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     mostViewedSection.items = mostViewedSection_Array
     sectionCallback(mostViewedSection)
 
-    //New
+    // New
     const newSection_Array: MangaTile[] = []
     for (const manga of $('li', 'div#updated-novel-slider').toArray()) {
 
@@ -188,11 +186,10 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
 
         const id = $('a', manga).attr('href')?.replace(/\/$/, '')?.split('/').pop() ?? ''
 
-
         if (!id || !title) continue
         newSection_Array.push(createMangaTile({
             id: id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) })
         }))
     }
@@ -200,7 +197,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     newSection.items = newSection_Array
     sectionCallback(newSection)
 
-    //Updated
+    // Updated
     const updateSection_Array: MangaTile[] = []
     for (const manga of $('li.novel-item', 'ul.novel-list').toArray()) {
 
@@ -213,7 +210,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         if (!id || !title) continue
         updateSection_Array.push(createMangaTile({
             id: id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: decodeHTMLEntity(subtitle + ' ago') })
         }))
@@ -245,7 +242,7 @@ export const parseViewMore = ($: CheerioStatic): MangaTile[] => {
         if (!collectedIds.includes(id)) {
             manga.push(createMangaTile({
                 id,
-                image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+                image: image,
                 title: createIconText({ text: decodeHTMLEntity(title) }),
                 subtitleText: createIconText({ text: decodeHTMLEntity(subtitle) })
             }))
@@ -297,6 +294,7 @@ export const parseSearch = ($: CheerioStatic): MangaTile[] => {
             subtitleText: createIconText({ text: decodeHTMLEntity(subtitle) })
         }))
     }
+    
     return mangas
 }
 

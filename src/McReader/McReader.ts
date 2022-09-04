@@ -32,7 +32,7 @@ import {
 const MCR_DOMAIN = 'https://www.mcreader.net'
 
 export const McReaderInfo: SourceInfo = {
-    version: '1.0.2',
+    version: '1.1.0',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -48,8 +48,6 @@ export const McReaderInfo: SourceInfo = {
     ]
 }
 
-const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.124 Safari/537.36 Edg/102.0.1245.44'
-
 export class McReader extends Source {
     requestManager = createRequestManager({
         requestsPerSecond: 4,
@@ -61,9 +59,9 @@ export class McReader extends Source {
                     ...(request.headers ?? {}),
                     ...{
                         'referer': `${MCR_DOMAIN}/`,
-                        'user-agent': userAgent
+                        //@ts-ignore
+                        'user-agent': await this.requestManager.getDefaultUserAgent()
                     }
-
                 }
 
                 return request
@@ -205,14 +203,14 @@ export class McReader extends Source {
         const page: number = metadata?.page ?? 1
         let request
 
-        //Regular search
+        // Regular search
         if (query.title) {
             request = createRequestObject({
                 url: `${MCR_DOMAIN}/search/?search=${encodeURI(query.title ?? '')}`,
                 method: 'GET'
             })
 
-            //Tag Search
+            // Tag Search
         } else {
             request = createRequestObject({
                 url: `${MCR_DOMAIN}/browse-comics/`,
@@ -231,18 +229,21 @@ export class McReader extends Source {
         })
     }
 
-    CloudFlareError(status: number) {
+    CloudFlareError(status: number): void {
         if (status == 503) {
             throw new Error('CLOUDFLARE BYPASS ERROR:\nPlease go to Settings > Sources > <The name of this source> and press Cloudflare Bypass')
         }
     }
 
-    override getCloudflareBypassRequest(): Request {
+    //@ts-ignore
+    override async getCloudflareBypassRequestAsync(): Promise<Request> {
         return createRequestObject({
             url: MCR_DOMAIN,
             method: 'GET',
             headers: {
-                'user-agent': userAgent
+                'referer': `${MCR_DOMAIN}/`,
+                //@ts-ignore
+                'user-agent': await this.requestManager.getDefaultUserAgent()
             }
         })
     }

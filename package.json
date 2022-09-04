@@ -30,12 +30,14 @@
     "chai-as-promised": "^7.1.1",
     "eslint": "^7.27.0",
     "eslint-plugin-modules-newline": "^0.0.6",
+    "install": "^0.13.0",
     "mocha": "^9.1.1",
+    "npm": "^8.19.1",
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "paperback-cli": "^1.4.0",
-    "paperback-extensions-common": "^4.3.5",
+    "paperback-cli": "^2.0.0-alpha.13",
+    "paperback-extensions-common": "^5.0.0-alpha.7",
     "ts-node": "^10.2.1"
   }
 }

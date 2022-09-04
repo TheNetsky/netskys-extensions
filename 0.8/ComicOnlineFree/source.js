@@ -983,7 +983,7 @@ const ComicOnlineFreeParser_1 = require("./ComicOnlineFreeParser");
 const ComicOnlineFreeHelper_1 = require("./ComicOnlineFreeHelper");
 const COF_DOMAIN = 'https://comiconlinefree.net';
 exports.ComicOnlineFreeInfo = {
-    version: '1.0.1',
+    version: '1.1.0',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1008,7 +1008,9 @@ class ComicOnlineFree extends paperback_extensions_common_1.Source {
                 interceptRequest: (request) => __awaiter(this, void 0, void 0, function* () {
                     var _a;
                     request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), {
-                        'referer': `${COF_DOMAIN}/`
+                        'referer': `${COF_DOMAIN}/`,
+                        //@ts-ignore
+                        'user-agent': yield this.requestManager.getDefaultUserAgent()
                     });
                     return request;
                 }),
@@ -1163,10 +1165,18 @@ class ComicOnlineFree extends paperback_extensions_common_1.Source {
             throw new Error('CLOUDFLARE BYPASS ERROR:\nPlease go to Settings > Sources > <The name of this source> and press Cloudflare Bypass');
         }
     }
-    getCloudflareBypassRequest() {
-        return createRequestObject({
-            url: COF_DOMAIN,
-            method: 'GET'
+    //@ts-ignore
+    getCloudflareBypassRequestAsync() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return createRequestObject({
+                url: COF_DOMAIN,
+                method: 'GET',
+                headers: {
+                    'referer': `${COF_DOMAIN}/`,
+                    //@ts-ignore
+                    'user-agent': yield this.requestManager.getDefaultUserAgent()
+                }
+            });
         });
     }
 }
@@ -1227,7 +1237,7 @@ const parseMangaDetails = ($, mangaId) => {
     const titles = [];
     titles.push(decodeHTMLEntity($('td:contains(Name:)').first().next().text().trim()));
     titles.push(decodeHTMLEntity($('td:contains(Alternate Name:)').next().text().trim()));
-    let image = (_a = $('img', 'div.manga-image').attr('src')) !== null && _a !== void 0 ? _a : 'https://i.imgur.com/GYUxEX8.png';
+    let image = (_a = $('img', 'div.manga-image').attr('src')) !== null && _a !== void 0 ? _a : '';
     image = image.startsWith('/') ? 'https:' + image : image;
     const author = $('td:contains(Author:)').next().text().trim();
     const arrayTags = [];

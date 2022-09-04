@@ -982,7 +982,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const MangaJarParser_1 = require("./MangaJarParser");
 const MJ_DOMAIN = 'https://mangajar.com';
 exports.MangaJarInfo = {
-    version: '2.0.0',
+    version: '2.1.0',
     name: 'MangaJar',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1194,9 +1194,9 @@ const entities = require("entities");
 const parseMangaDetails = ($, mangaId) => {
     var _a, _b, _c, _d, _e;
     const titles = [];
-    titles.push(decodeHTMLEntity($('span.post-name', 'div.card-body').text().trim())); //Main English Title
-    titles.push(decodeHTMLEntity($('h2.post-name-jp.h5', 'div.row').text().trim())); //Japanese Title
-    titles.push(decodeHTMLEntity($('h2.h6', 'div.row').text().trim())); //Kanji Title
+    titles.push(decodeHTMLEntity($('span.post-name', 'div.card-body').text().trim())); // Main English Title
+    titles.push(decodeHTMLEntity($('h2.post-name-jp.h5', 'div.row').text().trim())); // Japanese Title
+    titles.push(decodeHTMLEntity($('h2.h6', 'div.row').text().trim())); // Kanji Title
     const image = getImageSrc($('img', 'div.col-md-5.col-lg-4.text-center'));
     const description = decodeHTMLEntity($('div.manga-description.entry').text().trim());
     let hentai = false;
@@ -1227,10 +1227,9 @@ const parseMangaDetails = ($, mangaId) => {
     return createManga({
         id: mangaId,
         titles: titles,
-        image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+        image: image,
         rating: 0,
         status: status,
-        author: 'Unknown',
         tags: tagSections,
         desc: description,
         hentai: hentai
@@ -1262,9 +1261,9 @@ exports.parseChapters = parseChapters;
 const parseChapterDetails = ($, mangaId, chapterId) => {
     const pages = [];
     for (const img of $('img', 'div.mt-1').toArray()) {
-        let image = getImageSrc($(img));
+        const image = getImageSrc($(img));
         if (!image)
-            image = 'https://i.imgur.com/GYUxEX8.png';
+            continue;
         pages.push(image);
     }
     const chapterDetails = createChapterDetails({
@@ -1340,7 +1339,7 @@ const parseHomeSections = ($, sectionCallback) => {
                 continue;
             mangaArray.push(createMangaTile({
                 id: id,
-                image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+                image: image,
                 title: createIconText({ text: decodeHTMLEntity(title) }),
                 subtitleText: createIconText({ text: subtitle }),
             }));
@@ -1364,7 +1363,7 @@ const parseSearch = ($, isGenre) => {
                 continue;
             mangas.push(createMangaTile({
                 id,
-                image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+                image: image,
                 title: createIconText({ text: decodeHTMLEntity(title) }),
                 subtitleText: createIconText({ text: subtitle }),
             }));
@@ -1381,7 +1380,7 @@ const parseSearch = ($, isGenre) => {
                 continue;
             mangas.push(createMangaTile({
                 id,
-                image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+                image: image,
                 title: createIconText({ text: decodeHTMLEntity(title) }),
                 subtitleText: createIconText({ text: subtitle }),
             }));
@@ -1403,7 +1402,7 @@ const parseViewMore = ($) => {
             continue;
         mangas.push(createMangaTile({
             id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }));
@@ -1505,7 +1504,7 @@ const getImageSrc = (imageObj) => {
         image = imageObj === null || imageObj === void 0 ? void 0 : imageObj.attr('data-splide-lazy');
     }
     else {
-        image = 'https://i.imgur.com/GYUxEX8.png';
+        image = '';
     }
     return encodeURI(image !== null && image !== void 0 ? image : '');
 };

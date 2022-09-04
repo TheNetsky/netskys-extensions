@@ -982,7 +982,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ReadmParser_1 = require("./ReadmParser");
 const RM_DOMAIN = 'https://readm.org';
 exports.ReadmInfo = {
-    version: '2.0.4',
+    version: '2.1.0',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1001,7 +1001,6 @@ exports.ReadmInfo = {
         }
     ]
 };
-const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.124 Safari/537.36 Edg/102.0.1245.44';
 class Readm extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
@@ -1010,8 +1009,12 @@ class Readm extends paperback_extensions_common_1.Source {
             requestTimeout: 15000,
             interceptor: {
                 interceptRequest: (request) => __awaiter(this, void 0, void 0, function* () {
-                    var _a, _b, _c;
-                    request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), { 'referer': `${RM_DOMAIN}/`, 'user-agent': (_c = (_b = request.headers) === null || _b === void 0 ? void 0 : _b['user-agent']) !== null && _c !== void 0 ? _c : userAgent });
+                    var _a;
+                    request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), {
+                        'referer': `${RM_DOMAIN}/`,
+                        //@ts-ignore
+                        'user-agent': yield this.requestManager.getDefaultUserAgent()
+                    });
                     return request;
                 }),
                 interceptResponse: (response) => __awaiter(this, void 0, void 0, function* () {
@@ -1139,7 +1142,7 @@ class Readm extends paperback_extensions_common_1.Source {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const page = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.page) !== null && _a !== void 0 ? _a : 1;
-            //Regular search
+            // Regular search
             if (query.title) {
                 const request = createRequestObject({
                     url: `${RM_DOMAIN}/service/search`,
@@ -1159,7 +1162,7 @@ class Readm extends paperback_extensions_common_1.Source {
                         results: []
                     });
                 }
-                //Create the search results
+                // Create the search results
                 const manga = [];
                 for (const m of data.manga) {
                     if (!m.url || !m.title) {
@@ -1180,7 +1183,7 @@ class Readm extends paperback_extensions_common_1.Source {
                 return createPagedResults({
                     results: manga
                 });
-                //Genre search, no advanced search since it requires reCaptcha
+                // Genre search, no advanced search since it requires reCaptcha
             }
             else {
                 const request = createRequestObject({
@@ -1198,13 +1201,18 @@ class Readm extends paperback_extensions_common_1.Source {
             }
         });
     }
-    getCloudflareBypassRequest() {
-        return createRequestObject({
-            url: RM_DOMAIN,
-            method: 'GET',
-            headers: {
-                'user-agent': userAgent
-            }
+    //@ts-ignore
+    getCloudflareBypassRequestAsync() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return createRequestObject({
+                url: RM_DOMAIN,
+                method: 'GET',
+                headers: {
+                    'referer': `${RM_DOMAIN}/`,
+                    //@ts-ignore
+                    'user-agent': yield this.requestManager.getDefaultUserAgent()
+                }
+            });
         });
     }
 }
@@ -1225,9 +1233,9 @@ const parseMangaDetails = ($, mangaId) => {
     for (const t of altTitles) {
         titles.push(decodeHTMLEntity(t.trim()));
     }
-    //Check if the image extension could be parsed, if it can, complete it with the domain, else display failback image.
+    // Check if the image extension could be parsed, if it can, complete it with the domain, else display failback image.
     const parseImage = getImageSrc($('img.series-profile-thumb'));
-    const image = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png';
+    const image = parseImage ? (RM_DOMAIN + parseImage) : '';
     const author = (_a = $('small', 'span#first_episode').text().trim()) !== null && _a !== void 0 ? _a : '';
     const artist = (_b = $('small', 'span#last_episode').text().trim()) !== null && _b !== void 0 ? _b : '';
     const description = decodeHTMLEntity((_c = $('p', 'div.series-summary-wrapper').text().trim()) !== null && _c !== void 0 ? _c : 'No description available');
@@ -1239,7 +1247,7 @@ const parseMangaDetails = ($, mangaId) => {
         if (!id || !label)
             continue;
         if (['ADULT', 'SMUT', 'MATURE'].includes(label.toUpperCase()))
-            hentai = true; //These tags don't exist on Readm, but they may be added in the future!
+            hentai = true; // These tags don't exist on Readm, but they may be added in the future!
         arrayTags.push({ id: id, label: label });
     }
     const tagSections = [createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => createTag(x)) })];
@@ -1362,7 +1370,7 @@ const parseHomeSections = ($, sectionCallback) => {
     const popularMangaSection = createHomeSection({ id: 'popular_manga', title: 'Popular Manga', view_more: true });
     const latestUpdateSection = createHomeSection({ id: 'latest_updates', title: 'Latest Updates', view_more: true });
     const newMangaSection = createHomeSection({ id: 'new_manga', title: 'New Manga' });
-    //Hot Mango Update
+    // Hot Update
     const hotMangaUpdate = [];
     for (const manga of $('div.item', 'div#manga-hot-updates').toArray()) {
         const title = $('strong', manga).text().trim();
@@ -1372,7 +1380,7 @@ const parseHomeSections = ($, sectionCallback) => {
         if (idRegex && idRegex[1])
             id = idRegex[1];
         const parseImage = getImageSrc($('img', manga));
-        const image = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png';
+        const image = parseImage ? (RM_DOMAIN + parseImage) : '';
         let subtitle = $('a.caption > span', manga).text().trim();
         subtitle = subtitle ? ('Chapter ' + subtitle) : '';
         if (!id || !title)
@@ -1386,13 +1394,13 @@ const parseHomeSections = ($, sectionCallback) => {
     }
     hotUpdateSection.items = hotMangaUpdate;
     sectionCallback(hotUpdateSection);
-    //Popular Mango
+    // Popular
     const popularManga = [];
     for (const manga of $('ul#latest_trailers li').toArray()) {
         const title = $('h6', manga).text().trim();
         const id = (_c = (_b = $('a', manga).attr('href')) === null || _b === void 0 ? void 0 : _b.split('/').pop()) !== null && _c !== void 0 ? _c : '';
         const parseImage = getImageSrc($('img', manga));
-        const image = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png';
+        const image = parseImage ? (RM_DOMAIN + parseImage) : '';
         const subtitle = (_d = $('small', manga).first().text().trim()) !== null && _d !== void 0 ? _d : '';
         if (!id || !title)
             continue;
@@ -1405,13 +1413,13 @@ const parseHomeSections = ($, sectionCallback) => {
     }
     popularMangaSection.items = popularManga;
     sectionCallback(popularMangaSection);
-    //Latest Mango
+    // Latest
     const latestManga = [];
     for (const manga of $('div.poster.poster-xs', $('ul.clearfix.latest-updates').first()).toArray()) {
         const title = $('h2', manga).first().text().trim();
         const id = (_f = (_e = $('a', manga).attr('href')) === null || _e === void 0 ? void 0 : _e.split('/').pop()) !== null && _f !== void 0 ? _f : '';
         const parseImage = getImageSrc($('img', manga));
-        const image = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png';
+        const image = parseImage ? (RM_DOMAIN + parseImage) : '';
         let subtitle = $('div.poster-subject > ul.chapters > li', manga).first().text().trim();
         subtitle = subtitle ? ('Chapter ' + subtitle) : '';
         if (!id || !title)
@@ -1425,13 +1433,13 @@ const parseHomeSections = ($, sectionCallback) => {
     }
     latestUpdateSection.items = latestManga;
     sectionCallback(latestUpdateSection);
-    //New Mango
+    // New
     const newManga = [];
     for (const manga of $('li', 'ul.clearfix.mb-0').toArray()) {
         const title = $('h2', manga).first().text().trim();
         const id = (_h = (_g = $('a', manga).attr('href')) === null || _g === void 0 ? void 0 : _g.split('/').pop()) !== null && _h !== void 0 ? _h : '';
         const parseImage = getImageSrc($('img', manga));
-        const image = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png';
+        const image = parseImage ? (RM_DOMAIN + parseImage) : '';
         if (!id || !title)
             continue;
         newManga.push(createMangaTile({
@@ -1452,7 +1460,7 @@ const parseViewMore = ($, homepageSectionId) => {
             const title = $('h2', m).first().text().trim();
             const id = (_b = (_a = $('a', m).attr('href')) === null || _a === void 0 ? void 0 : _a.split('/').pop()) !== null && _b !== void 0 ? _b : '';
             const parseImage = getImageSrc($('img', m));
-            const image = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png';
+            const image = parseImage ? (RM_DOMAIN + parseImage) : '';
             if (!id || !title)
                 continue;
             manga.push(createMangaTile({
@@ -1467,7 +1475,7 @@ const parseViewMore = ($, homepageSectionId) => {
             const title = $('h2', m).first().text().trim();
             const id = (_d = (_c = $('a', m).attr('href')) === null || _c === void 0 ? void 0 : _c.split('/').pop()) !== null && _d !== void 0 ? _d : '';
             const parseImage = getImageSrc($('img', m));
-            const image = parseImage ? (RM_DOMAIN + parseImage) : 'https://i.imgur.com/GYUxEX8.png';
+            const image = parseImage ? (RM_DOMAIN + parseImage) : '';
             if (!id || !title)
                 continue;
             manga.push(createMangaTile({

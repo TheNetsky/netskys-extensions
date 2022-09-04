@@ -375,7 +375,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MangaFox = exports.MangaFoxInfo = void 0;
-/* eslint-disable linebreak-style */
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const MangaFoxParser_1 = require("./MangaFoxParser");
 const MangaFoxHelper_1 = require("./MangaFoxHelper");
@@ -385,7 +384,7 @@ const headers = {
     'content-type': 'application/x-www-form-urlencoded'
 };
 exports.MangaFoxInfo = {
-    version: '2.0.7',
+    version: '2.1.0',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -410,9 +409,11 @@ class MangaFox extends paperback_extensions_common_1.Source {
             interceptor: {
                 interceptRequest: (request) => __awaiter(this, void 0, void 0, function* () {
                     var _a;
-                    request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), ({
-                        'referer': FF_DOMAIN,
-                    }));
+                    request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), {
+                        'referer': `${FF_DOMAIN}/`,
+                        //@ts-ignore
+                        'user-agent': yield this.requestManager.getDefaultUserAgent()
+                    });
                     return request;
                 }),
                 interceptResponse: (response) => __awaiter(this, void 0, void 0, function* () {
@@ -567,7 +568,6 @@ exports.MangaFox = MangaFox;
 
 },{"./MangaFoxHelper":49,"./MangaFoxParser":50,"paperback-extensions-common":4}],49:[function(require,module,exports){
 "use strict";
-/* eslint-disable linebreak-style */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.URLBuilder = void 0;
 class URLBuilder {
@@ -612,9 +612,6 @@ exports.URLBuilder = URLBuilder;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isLastPage = exports.parseTags = exports.parseViewMore = exports.parseSearch = exports.parseHomeSections = exports.parseUpdatedManga = exports.parseChapterDetails = exports.parseChapters = exports.parseMangaDetails = void 0;
-/* eslint-disable linebreak-style */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable linebreak-style */
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const parseMangaDetails = ($, mangaId) => {
     var _a, _b, _c;
@@ -652,7 +649,7 @@ const parseMangaDetails = ($, mangaId) => {
     return createManga({
         id: mangaId,
         titles: [title],
-        image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+        image: image,
         rating: Number(rating),
         status: status,
         author: author,
@@ -699,7 +696,7 @@ exports.parseChapters = parseChapters;
 const parseChapterDetails = ($, mangaId, chapterId) => {
     const pages = [];
     if ($('div#viewer').length == 0)
-        pages.push('https://i.imgur.com/8WoVeWv.png'); //Fallback in case the manga is licensed
+        pages.push('https://i.imgur.com/8WoVeWv.png'); // Fallback in case the manga is licensed
     for (const page of $('div#viewer').children('img').toArray()) {
         let url = page.attribs['data-original'];
         if (!url)
@@ -764,9 +761,9 @@ const parseHomeSections = ($, sectionCallback) => {
             selector: $('div.manga-list-1').get(2)
         }
     ];
-    //Hot Release Manga
-    //New Manga
-    //Being Read Manga
+    // Hot Release Manga
+    // New Manga
+    // Being Read Manga
     const collectedIds = [];
     for (const section of sections) {
         const mangaArray = [];
@@ -781,7 +778,7 @@ const parseHomeSections = ($, sectionCallback) => {
                 continue;
             mangaArray.push(createMangaTile({
                 id: id,
-                image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+                image: image,
                 title: createIconText({ text: title }),
                 subtitleText: createIconText({ text: subtitle }),
             }));
@@ -789,7 +786,7 @@ const parseHomeSections = ($, sectionCallback) => {
         section.sectionID.items = mangaArray;
         sectionCallback(section.sectionID);
     }
-    //Latest Manga
+    // Latest Manga
     const latestSection = createHomeSection({ id: 'latest_updates', title: 'Latest Updates', view_more: true });
     const latestManga = [];
     for (const manga of $('li', 'div.manga-list-4 ').toArray()) {
@@ -803,7 +800,7 @@ const parseHomeSections = ($, sectionCallback) => {
             continue;
         latestManga.push(createMangaTile({
             id: id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: title }),
             subtitleText: createIconText({ text: subtitle }),
         }));
@@ -827,7 +824,7 @@ const parseSearch = ($) => {
             continue;
         mangaItems.push(createMangaTile({
             id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: title }),
             subtitleText: createIconText({ text: subtitle }),
         }));
@@ -852,7 +849,7 @@ const parseViewMore = ($, homepageSectionId) => {
                 continue;
             mangaItems.push(createMangaTile({
                 id,
-                image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+                image: image,
                 title: createIconText({ text: title }),
                 subtitleText: createIconText({ text: subtitle }),
             }));
@@ -871,7 +868,7 @@ const parseViewMore = ($, homepageSectionId) => {
             continue;
         mangaItems.push(createMangaTile({
             id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: title }),
             subtitleText: createIconText({ text: subtitle }),
         }));

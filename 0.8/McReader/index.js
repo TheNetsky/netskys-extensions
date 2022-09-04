@@ -982,7 +982,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const McReaderParser_1 = require("./McReaderParser");
 const MCR_DOMAIN = 'https://www.mcreader.net';
 exports.McReaderInfo = {
-    version: '1.0.2',
+    version: '1.1.0',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -997,7 +997,6 @@ exports.McReaderInfo = {
         }
     ]
 };
-const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.124 Safari/537.36 Edg/102.0.1245.44';
 class McReader extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
@@ -1009,7 +1008,8 @@ class McReader extends paperback_extensions_common_1.Source {
                     var _a;
                     request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), {
                         'referer': `${MCR_DOMAIN}/`,
-                        'user-agent': userAgent
+                        //@ts-ignore
+                        'user-agent': yield this.requestManager.getDefaultUserAgent()
                     });
                     return request;
                 }),
@@ -1143,13 +1143,13 @@ class McReader extends paperback_extensions_common_1.Source {
         return __awaiter(this, void 0, void 0, function* () {
             const page = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.page) !== null && _a !== void 0 ? _a : 1;
             let request;
-            //Regular search
+            // Regular search
             if (query.title) {
                 request = createRequestObject({
                     url: `${MCR_DOMAIN}/search/?search=${encodeURI((_b = query.title) !== null && _b !== void 0 ? _b : '')}`,
                     method: 'GET'
                 });
-                //Tag Search
+                // Tag Search
             }
             else {
                 request = createRequestObject({
@@ -1173,13 +1173,18 @@ class McReader extends paperback_extensions_common_1.Source {
             throw new Error('CLOUDFLARE BYPASS ERROR:\nPlease go to Settings > Sources > <The name of this source> and press Cloudflare Bypass');
         }
     }
-    getCloudflareBypassRequest() {
-        return createRequestObject({
-            url: MCR_DOMAIN,
-            method: 'GET',
-            headers: {
-                'user-agent': userAgent
-            }
+    //@ts-ignore
+    getCloudflareBypassRequestAsync() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return createRequestObject({
+                url: MCR_DOMAIN,
+                method: 'GET',
+                headers: {
+                    'referer': `${MCR_DOMAIN}/`,
+                    //@ts-ignore
+                    'user-agent': yield this.requestManager.getDefaultUserAgent()
+                }
+            });
         });
     }
 }
@@ -1227,7 +1232,7 @@ const parseMangaDetails = ($, mangaId) => {
     return createManga({
         id: mangaId,
         titles: titles,
-        image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+        image: image,
         status: status,
         author: author,
         artist: author,
@@ -1292,8 +1297,6 @@ const parseUpdatedManga = ($, time, ids) => {
     const updatedManga = [];
     for (const manga of $('li.novel-item', 'ul.novel-list.grid').toArray()) {
         const id = (_c = (_b = (_a = $('a', manga).attr('href')) === null || _a === void 0 ? void 0 : _a.replace(/\/$/, '')) === null || _b === void 0 ? void 0 : _b.split('/').pop()) !== null && _c !== void 0 ? _c : '';
-        if (!id)
-            continue;
         const rawDate = $('div.novel-stats > span', manga).text().trim();
         const mangaDate = parseDate(rawDate);
         if (!mangaDate || !id)
@@ -1309,7 +1312,7 @@ const parseUpdatedManga = ($, time, ids) => {
     }
     return {
         ids: updatedManga,
-        loadMore,
+        loadMore
     };
 };
 exports.parseUpdatedManga = parseUpdatedManga;
@@ -1318,7 +1321,7 @@ const parseHomeSections = ($, sectionCallback) => {
     const mostViewedSection = createHomeSection({ id: 'most_viewed', title: 'Most Viewed', view_more: true, type: paperback_extensions_common_1.HomeSectionType.singleRowLarge });
     const newSection = createHomeSection({ id: 'new', title: 'New', view_more: true });
     const updateSection = createHomeSection({ id: 'updated', title: 'Latest Updated', view_more: true });
-    //Most Viewed
+    // Most Viewed
     const mostViewedSection_Array = [];
     for (const manga of $('li', 'div#recommend-novel-slider').toArray()) {
         const image = (_a = $('img', manga).first().attr('data-src')) !== null && _a !== void 0 ? _a : '';
@@ -1329,14 +1332,14 @@ const parseHomeSections = ($, sectionCallback) => {
             continue;
         mostViewedSection_Array.push(createMangaTile({
             id: id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: decodeHTMLEntity(subtitle) })
         }));
     }
     mostViewedSection.items = mostViewedSection_Array;
     sectionCallback(mostViewedSection);
-    //New
+    // New
     const newSection_Array = [];
     for (const manga of $('li', 'div#updated-novel-slider').toArray()) {
         const image = (_g = $('img', manga).first().attr('data-src')) !== null && _g !== void 0 ? _g : '';
@@ -1346,13 +1349,13 @@ const parseHomeSections = ($, sectionCallback) => {
             continue;
         newSection_Array.push(createMangaTile({
             id: id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) })
         }));
     }
     newSection.items = newSection_Array;
     sectionCallback(newSection);
-    //Updated
+    // Updated
     const updateSection_Array = [];
     for (const manga of $('li.novel-item', 'ul.novel-list').toArray()) {
         const image = (_m = $('img', manga).first().attr('data-src')) !== null && _m !== void 0 ? _m : '';
@@ -1363,7 +1366,7 @@ const parseHomeSections = ($, sectionCallback) => {
             continue;
         updateSection_Array.push(createMangaTile({
             id: id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: decodeHTMLEntity(subtitle + ' ago') })
         }));
@@ -1391,7 +1394,7 @@ const parseViewMore = ($) => {
         if (!collectedIds.includes(id)) {
             manga.push(createMangaTile({
                 id,
-                image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+                image: image,
                 title: createIconText({ text: decodeHTMLEntity(title) }),
                 subtitleText: createIconText({ text: decodeHTMLEntity(subtitle) })
             }));

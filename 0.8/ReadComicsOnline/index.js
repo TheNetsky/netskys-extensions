@@ -982,7 +982,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ReadComicsOnlineParser_1 = require("./ReadComicsOnlineParser");
 const RCO_DOMAIN = 'https://readcomicsonline.ru';
 exports.ReadComicsOnlineInfo = {
-    version: '1.0.0',
+    version: '1.1.0',
     name: 'ReadComicsOnline',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1139,13 +1139,21 @@ class ReadComicsOnline extends paperback_extensions_common_1.Source {
     }
     CloudFlareError(status) {
         if (status == 503) {
-            throw new Error('CLOUDFLARE BYPASS ERROR:\nPlease go to Settings > Sources > \<\The name of this source\> and press Cloudflare Bypass');
+            throw new Error('CLOUDFLARE BYPASS ERROR:\nPlease go to Settings > Sources > <The name of this source> and press Cloudflare Bypass');
         }
     }
-    getCloudflareBypassRequest() {
-        return createRequestObject({
-            url: RCO_DOMAIN,
-            method: 'GET'
+    //@ts-ignore
+    getCloudflareBypassRequestAsync() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return createRequestObject({
+                url: RCO_DOMAIN,
+                method: 'GET',
+                headers: {
+                    'referer': `${RCO_DOMAIN}/`,
+                    //@ts-ignore
+                    'user-agent': yield this.requestManager.getDefaultUserAgent()
+                }
+            });
         });
     }
 }
@@ -1161,7 +1169,7 @@ const parseMangaDetails = ($, mangaId) => {
     var _a, _b, _c, _d, _e, _f;
     const titles = [];
     titles.push(decodeHTMLEntity($('h2.listmanga-header').first().text().trim()));
-    let image = (_a = $('img', 'div.boxed').attr('src')) !== null && _a !== void 0 ? _a : 'https://i.imgur.com/GYUxEX8.png';
+    let image = (_a = $('img', 'div.boxed').attr('src')) !== null && _a !== void 0 ? _a : '';
     if (image.startsWith('/'))
         image = 'https:' + image;
     const author = (_b = $('dd', $('dt:contains(Type)').parent()).text().trim()) !== null && _b !== void 0 ? _b : '';
@@ -1275,7 +1283,7 @@ const parseHomeSections = ($, sectionCallback) => {
     const hotSection = createHomeSection({ id: 'hot_comic', title: 'Hot Comics', view_more: false });
     const latestSection = createHomeSection({ id: 'latest_comic', title: 'Latest Comics', view_more: true });
     const popularSection = createHomeSection({ id: 'popular_comic', title: 'Most Popular Comics', view_more: true });
-    //Hot Comics
+    // Hot
     const hotSection_Array = [];
     for (const comic of $('li.schedule-item', 'div.carousel').toArray()) {
         let image = (_a = $('div.schedule-avatar > a > img', comic).first().attr('src')) !== null && _a !== void 0 ? _a : '';
@@ -1295,7 +1303,7 @@ const parseHomeSections = ($, sectionCallback) => {
     }
     hotSection.items = hotSection_Array;
     sectionCallback(hotSection);
-    //Latest Comics
+    // Latest
     const latestSection_Array = [];
     for (const comic of $('div.media', 'div.list-container > div.row').toArray()) {
         let image = (_f = $('div.media-left > a > img', comic).first().attr('src')) !== null && _f !== void 0 ? _f : '';
@@ -1315,7 +1323,7 @@ const parseHomeSections = ($, sectionCallback) => {
     }
     latestSection.items = latestSection_Array;
     sectionCallback(latestSection);
-    //Popular Comics
+    // Popular
     const popularSection_Array = [];
     for (const comic of $('div.media', 'div.widget-container > div.panel').toArray()) {
         let image = (_l = $('div.media-left > a > img', comic).first().attr('src')) !== null && _l !== void 0 ? _l : '';
@@ -1352,7 +1360,7 @@ const parseViewMore = ($) => {
             continue;
         comics.push(createMangaTile({
             id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }));

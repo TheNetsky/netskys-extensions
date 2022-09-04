@@ -978,12 +978,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MangaKatana = exports.MangaKatanaInfo = void 0;
-/* eslint-disable linebreak-style */
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const MangaKatanaParser_1 = require("./MangaKatanaParser");
 const MK_DOMAIN = 'https://mangakatana.com';
 exports.MangaKatanaInfo = {
-    version: '2.0.3',
+    version: '2.1.0',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1009,6 +1008,8 @@ class MangaKatana extends paperback_extensions_common_1.Source {
                     var _a;
                     request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), {
                         'referer': `${MK_DOMAIN}/`,
+                        //@ts-ignore
+                        'user-agent': yield this.requestManager.getDefaultUserAgent()
                     });
                     return request;
                 }),
@@ -1164,7 +1165,6 @@ exports.MangaKatana = MangaKatana;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isLastPage = exports.parseViewMore = exports.parseSearch = exports.parseHomeSections = exports.parseUpdatedManga = exports.parseTags = exports.parseChapterDetails = exports.parseChapters = exports.parseMangaDetails = void 0;
-/* eslint-disable linebreak-style */
 const paperback_extensions_common_1 = require("paperback-extensions-common");
 const entities = require("entities");
 const parseMangaDetails = ($, mangaId) => {
@@ -1206,7 +1206,7 @@ const parseMangaDetails = ($, mangaId) => {
     return createManga({
         id: mangaId,
         titles: titles,
-        image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+        image: image,
         status: status,
         author: author,
         tags: tagSections,
@@ -1304,7 +1304,7 @@ const parseHomeSections = ($, sectionCallback) => {
     const hotUpdateSection = createHomeSection({ id: 'hot_update', title: 'Hot Updates' });
     const hotSection = createHomeSection({ id: 'hot_manga', title: 'Hot Manga', view_more: true });
     const latestSection = createHomeSection({ id: 'latest_updates', title: 'Latest Updates', view_more: true });
-    //Hot Mango Update
+    // Hot Update
     const hotMangaUpdate = [];
     for (const manga of $('div.item', 'div#hot_update').toArray()) {
         const title = $('.title', manga).text().trim();
@@ -1315,14 +1315,14 @@ const parseHomeSections = ($, sectionCallback) => {
             continue;
         hotMangaUpdate.push(createMangaTile({
             id: id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }));
     }
     hotUpdateSection.items = hotMangaUpdate;
     sectionCallback(hotUpdateSection);
-    //Hot Mango
+    // Hot
     const hotManga = [];
     for (const manga of $('div.item', 'div#hot_book').toArray()) {
         const title = $('.title', manga).text().trim();
@@ -1333,14 +1333,14 @@ const parseHomeSections = ($, sectionCallback) => {
             continue;
         hotManga.push(createMangaTile({
             id: id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }));
     }
     hotSection.items = hotManga;
     sectionCallback(hotSection);
-    //Latest Mango
+    // Latest
     const latestManga = [];
     for (const manga of $('div.item', 'div#book_list').toArray()) {
         const title = $('.title', manga).text().trim();
@@ -1351,7 +1351,7 @@ const parseHomeSections = ($, sectionCallback) => {
             continue;
         latestManga.push(createMangaTile({
             id: id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }));
@@ -1409,7 +1409,7 @@ const parseViewMore = ($) => {
             continue;
         manga.push(createMangaTile({
             id,
-            image: image ? image : 'https://i.imgur.com/GYUxEX8.png',
+            image: image,
             title: createIconText({ text: decodeHTMLEntity(title) }),
             subtitleText: createIconText({ text: subtitle }),
         }));

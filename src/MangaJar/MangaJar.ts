@@ -237,6 +237,4 @@ export class MangaJar extends Source {
         return parseTags($)
     }
 
-
-
 }

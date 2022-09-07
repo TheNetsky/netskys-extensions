@@ -258,6 +258,7 @@ export const parseSearch = (data: any): MangaTile[] => {
 
     return comics
 }
+
 const decodeHTMLEntity = (str: string): string => {
     return entities.decodeHTML(str)
 }
@@ -265,13 +266,16 @@ const decodeHTMLEntity = (str: string): string => {
 export const isLastPage = ($: CheerioStatic): boolean => {
     let isLast = false
     const pages = []
+
     for (const page of $('li', 'ul.pagination').toArray()) {
         const p = Number($(page).text().trim())
         if (isNaN(p)) continue
         pages.push(p)
     }
+
     const lastPage = Math.max(...pages)
     const currentPage = Number($('li.active').text().trim())
     if (currentPage >= lastPage) isLast = true
+    
     return isLast
 }

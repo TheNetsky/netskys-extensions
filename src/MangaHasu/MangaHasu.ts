@@ -36,7 +36,7 @@ export const MangaHasuInfo: SourceInfo = {
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from mcreader.net (Manga-Raw.club)',
+    description: 'Extension that pulls manga from mangahasu.se',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: MH_DOMAIN,
     sourceTags: [

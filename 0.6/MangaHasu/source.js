@@ -693,7 +693,7 @@ exports.MangaHasuInfo = {
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from mcreader.net (Manga-Raw.club)',
+    description: 'Extension that pulls manga from mangahasu.se',
     contentRating: paperback_extensions_common_1.ContentRating.MATURE,
     websiteBaseURL: MH_DOMAIN,
     sourceTags: [

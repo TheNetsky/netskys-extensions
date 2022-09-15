@@ -1,6 +1,6 @@
 import {
     Source,
-    Manga,
+    SourceManga,
     Chapter,
     ChapterDetails,
     HomeSection,
@@ -9,10 +9,10 @@ import {
     SourceInfo,
     ContentRating,
     MangaUpdates,
-    TagType,
+    BadgeColor,
     Request,
     Response
-} from 'paperback-extensions-common'
+} from '@paperback/types'
 
 import {
     parseChapterDetails,
@@ -40,13 +40,14 @@ export const ReadComicsOnlineInfo: SourceInfo = {
     sourceTags: [
         {
             text: 'Notifications',
-            type: TagType.GREEN
+            type: BadgeColor.GREEN
+
         }
     ]
 }
 
 export class ReadComicsOnline extends Source {
-    requestManager = createRequestManager({
+    requestManager = App.createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15000,
         interceptor: {
@@ -72,8 +73,8 @@ export class ReadComicsOnline extends Source {
 
     override getMangaShareUrl(mangaId: string): string { return `${RCO_DOMAIN}/comic/${mangaId}` }
 
-    override async getMangaDetails(mangaId: string): Promise<Manga> {
-        const request = createRequestObject({
+    override async getMangaDetails(mangaId: string): Promise<SourceManga> {
+        const request = App.createRequest({
             url: `${RCO_DOMAIN}/comic/`,
             method: 'GET',
             param: mangaId
@@ -85,7 +86,7 @@ export class ReadComicsOnline extends Source {
     }
 
     override async getChapters(mangaId: string): Promise<Chapter[]> {
-        const request = createRequestObject({
+        const request = App.createRequest({
             url: `${RCO_DOMAIN}/comic/`,
             method: 'GET',
             param: mangaId,
@@ -94,11 +95,11 @@ export class ReadComicsOnline extends Source {
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data)
-        return parseChapters($, mangaId)
+        return parseChapters($)
     }
 
     override async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
-        const request = createRequestObject({
+        const request = App.createRequest({
             url: `${RCO_DOMAIN}/comic/${mangaId}/${chapterId}`,
             method: 'GET',
         })
@@ -117,7 +118,7 @@ export class ReadComicsOnline extends Source {
         }
 
         while (updatedManga.loadMore) {
-            const request = createRequestObject({
+            const request = App.createRequest({
                 url: `${RCO_DOMAIN}/latest-release?page=${page++}`,
                 method: 'GET',
             })
@@ -127,7 +128,7 @@ export class ReadComicsOnline extends Source {
 
             updatedManga = parseUpdatedManga($, time, ids)
             if (updatedManga.ids.length > 0) {
-                mangaUpdatesFoundCallback(createMangaUpdates({
+                mangaUpdatesFoundCallback(App.createMangaUpdates({
                     ids: updatedManga.ids
                 }))
             }
@@ -136,7 +137,7 @@ export class ReadComicsOnline extends Source {
     }
 
     override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
-        const request = createRequestObject({
+        const request = App.createRequest({
             url: RCO_DOMAIN,
             method: 'GET',
         })
@@ -161,7 +162,7 @@ export class ReadComicsOnline extends Source {
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
         }
 
-        const request = createRequestObject({
+        const request = App.createRequest({
             url: `${RCO_DOMAIN}/filterList`,
             method: 'GET',
             param
@@ -173,14 +174,14 @@ export class ReadComicsOnline extends Source {
 
         const manga = parseViewMore($)
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
-        return createPagedResults({
+        return App.createPagedResults({
             results: manga,
             metadata
         })
     }
 
     override async getSearchResults(query: SearchRequest): Promise<PagedResults> {
-        const request = createRequestObject({
+        const request = App.createRequest({
             url: `${RCO_DOMAIN}/search?query=${encodeURI(query.title ?? '')}`,
             method: 'GET'
         })
@@ -189,7 +190,7 @@ export class ReadComicsOnline extends Source {
         this.CloudFlareError(response.status)
         const manga = parseSearch(response.data)
 
-        return createPagedResults({
+        return App.createPagedResults({
             results: manga,
         })
 
@@ -203,12 +204,11 @@ export class ReadComicsOnline extends Source {
 
     //@ts-ignore
     override async getCloudflareBypassRequestAsync(): Promise<Request> {
-        return createRequestObject({
+        return App.createRequest({
             url: RCO_DOMAIN,
             method: 'GET',
             headers: {
                 'referer': `${RCO_DOMAIN}/`,
-                //@ts-ignore
                 'user-agent': await this.requestManager.getDefaultUserAgent()
             }
         })

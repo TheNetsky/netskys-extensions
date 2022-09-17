@@ -106,7 +106,7 @@ export const parseChapterDetails = (data: string, mangaId: string, chapterId: st
     let imagesThzq: string[] = []
     if (imageArrayThzq && imageArrayThzq[1]) imagesThzq = imageArrayThzq[1]?.replace(/'/g, '')?.split(',')
 
-    images = imagesYtaw.length > imagesYtaw?.length ? imagesYtaw : imagesThzq
+    images = imagesYtaw.length > imagesThzq.length ? imagesYtaw : imagesThzq
 
     for (const image of images) {
         if (image == '') continue

@@ -960,7 +960,7 @@ const parseChapterDetails = (data, mangaId, chapterId) => {
     let imagesThzq = [];
     if (imageArrayThzq && imageArrayThzq[1])
         imagesThzq = (_d = (_c = imageArrayThzq[1]) === null || _c === void 0 ? void 0 : _c.replace(/'/g, '')) === null || _d === void 0 ? void 0 : _d.split(',');
-    images = imagesYtaw.length > (imagesYtaw === null || imagesYtaw === void 0 ? void 0 : imagesYtaw.length) ? imagesYtaw : imagesThzq;
+    images = imagesYtaw.length > imagesThzq.length ? imagesYtaw : imagesThzq;
     for (const image of images) {
         if (image == '')
             continue;

@@ -689,7 +689,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const MangaKatanaParser_1 = require("./MangaKatanaParser");
 const MK_DOMAIN = 'https://mangakatana.com';
 exports.MangaKatanaInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
@@ -947,12 +947,20 @@ const parseChapters = ($, mangaId) => {
 };
 exports.parseChapters = parseChapters;
 const parseChapterDetails = (data, mangaId, chapterId) => {
-    var _a, _b;
+    var _a, _b, _c, _d;
     const pages = [];
-    const imageArray = data.match(/var ytaw=\[(.*?)\]/);
     let images = [];
-    if (imageArray && imageArray[1])
-        images = (_b = (_a = imageArray[1]) === null || _a === void 0 ? void 0 : _a.replace(/'/g, '')) === null || _b === void 0 ? void 0 : _b.split(',');
+    // Ytaw
+    const imageArrayYtaw = data.match(/var ytaw=\[(.*?)\]/);
+    let imagesYtaw = [];
+    if (imageArrayYtaw && imageArrayYtaw[1])
+        imagesYtaw = (_b = (_a = imageArrayYtaw[1]) === null || _a === void 0 ? void 0 : _a.replace(/'/g, '')) === null || _b === void 0 ? void 0 : _b.split(',');
+    // Thzq
+    const imageArrayThzq = data.match(/var thzq=\[(.*?)\]/);
+    let imagesThzq = [];
+    if (imageArrayThzq && imageArrayThzq[1])
+        imagesThzq = (_d = (_c = imageArrayThzq[1]) === null || _c === void 0 ? void 0 : _c.replace(/'/g, '')) === null || _d === void 0 ? void 0 : _d.split(',');
+    images = imagesYtaw.length > (imagesYtaw === null || imagesYtaw === void 0 ? void 0 : imagesYtaw.length) ? imagesYtaw : imagesThzq;
     for (const image of images) {
         if (image == '')
             continue;

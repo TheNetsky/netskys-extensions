@@ -94,10 +94,19 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
 export const parseChapterDetails = (data: string, mangaId: string, chapterId: string): ChapterDetails => {
     const pages: string[] = []
 
-    const imageArray = data.match(/var ytaw=\[(.*?)\]/)
-
     let images: string[] = []
-    if (imageArray && imageArray[1]) images = imageArray[1]?.replace(/'/g, '')?.split(',')
+
+    // Ytaw
+    const imageArrayYtaw = data.match(/var ytaw=\[(.*?)\]/)
+    let imagesYtaw: string[] = []
+    if (imageArrayYtaw && imageArrayYtaw[1]) imagesYtaw = imageArrayYtaw[1]?.replace(/'/g, '')?.split(',')
+
+    // Thzq
+    const imageArrayThzq = data.match(/var thzq=\[(.*?)\]/)
+    let imagesThzq: string[] = []
+    if (imageArrayThzq && imageArrayThzq[1]) imagesThzq = imageArrayThzq[1]?.replace(/'/g, '')?.split(',')
+
+    images = imagesYtaw.length > imagesYtaw?.length ? imagesYtaw : imagesThzq
 
     for (const image of images) {
         if (image == '') continue

@@ -4,7 +4,6 @@ on:
     branches:
       - '**'
       - '!main'
-      - '!0.8'
 jobs:
   build:
     name: Bundle and Publish Sources

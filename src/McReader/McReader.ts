@@ -28,7 +28,7 @@ import {
 const MCR_DOMAIN = 'https://www.mcreader.net'
 
 export const McReaderInfo: SourceInfo = {
-    version: '1.1.0',
+    version: '2.0.0',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -88,7 +88,7 @@ export class McReader extends Source {
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data)
-        return parseChapters($, mangaId)
+        return parseChapters($)
     }
 
     override async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
@@ -186,6 +186,7 @@ export class McReader extends Source {
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data)
         const manga = parseSearch($)
+        
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
         return App.createPagedResults({
             results: manga,

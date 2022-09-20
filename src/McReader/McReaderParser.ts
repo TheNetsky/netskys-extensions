@@ -12,18 +12,17 @@ import {
 import entities = require('entities')
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
-
     const titles: string[] = []
 
     titles.push(decodeHTMLEntity($('img', 'div.fixed-img').attr('alt')?.trim() ?? ''))
     const altTitles = $('h2.alternative-title.text1row', 'div.main-head').text().trim().split(',')
-
     for (const title of altTitles) {
         titles.push(decodeHTMLEntity(title))
     }
 
     const image = $('img', 'div.fixed-img').attr('data-src') ?? ''
     const author = $('span', 'div.author').next().text().trim()
+    const description = decodeHTMLEntity($('p.description > br')[1]?.nextSibling.nodeValue.trim() ?? '')
 
     const arrayTags: Tag[] = []
     for (const tag of $('li', 'div.categories').toArray()) {
@@ -33,9 +32,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
         if (!id || !label) continue
         arrayTags.push({ id: id, label: label })
     }
-
     const tagSections: TagSection[] = [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })]
-    const description = decodeHTMLEntity($('p.description > br')[1]?.nextSibling.nodeValue.trim() ?? '')
 
     const rawStatus = $('small:contains(Status)', 'div.header-stats').prev().text().trim()
     let status = 'ONGOING'
@@ -50,6 +47,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
             status = 'ONGOING'
             break
     }
+    
     return App.createSourceManga({
         id: mangaId,
         mangaInfo: App.createMangaInfo({
@@ -64,7 +62,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     })
 }
 
-export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
+export const parseChapters = ($: CheerioStatic): Chapter[] => {
     const chapters: Chapter[] = []
     let sortingIndex = 0
 

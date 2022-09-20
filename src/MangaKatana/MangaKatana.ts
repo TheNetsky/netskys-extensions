@@ -28,7 +28,7 @@ import {
 const MK_DOMAIN = 'https://mangakatana.com'
 
 export const MangaKatanaInfo: SourceInfo = {
-    version: '2.1.0',
+    version: '3.0.0',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
@@ -88,7 +88,7 @@ export class MangaKatana extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data)
-        return parseChapters($, mangaId)
+        return parseChapters($)
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
@@ -175,6 +175,7 @@ export class MangaKatana extends Source {
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data)
         const manga = parseSearch($)
+        
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
         return App.createPagedResults({
             results: manga,

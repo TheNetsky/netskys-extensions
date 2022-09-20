@@ -37,8 +37,8 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
         if (!id || !label) continue
         arrayTags.push({ id: id, label: label })
     }
-
     const tagSections: TagSection[] = [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })]
+
     const rawStatus: string = $('div.series-genres').text().trim()
     let status = 'ONGOING'
     switch (rawStatus.toLocaleUpperCase()) {
@@ -52,6 +52,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
             status = 'ONGOING'
             break
     }
+    
     return App.createSourceManga({
         id: mangaId,
         mangaInfo: App.createMangaInfo({
@@ -338,14 +339,14 @@ const getImageSrc = (imageObj: Cheerio | undefined): string => {
     return encodeURI(decodeURI(decodeHTMLEntity(image?.trim() ?? '')))
 }
 
-const decodeHTMLEntity = (str: string): string => {
-    return entities.decodeHTML(str)
-}
-
 export const isLastPage = ($: CheerioStatic): boolean => {
     let isLast = true
     const hasNext = Boolean($('a:contains(\u00BB)', 'div.ui.pagination.menu')[0])
 
     if (hasNext) isLast = false
     return isLast
+}
+
+const decodeHTMLEntity = (str: string): string => {
+    return entities.decodeHTML(str)
 }

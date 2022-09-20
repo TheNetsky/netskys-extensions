@@ -11,8 +11,8 @@ import {
 import entities = require('entities')
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
-
     const titles: string[] = []
+    
     titles.push(decodeHTMLEntity($('h2.listmanga-header').first().text().trim()))
 
     let image: string = $('img', 'div.boxed').attr('src') ?? ''
@@ -229,10 +229,6 @@ export const parseSearch = (data: any): PartialSourceManga[] => {
     return comics
 }
 
-const decodeHTMLEntity = (str: string): string => {
-    return entities.decodeHTML(str)
-}
-
 export const isLastPage = ($: CheerioStatic): boolean => {
     let isLast = false
     const pages = []
@@ -246,6 +242,9 @@ export const isLastPage = ($: CheerioStatic): boolean => {
     const lastPage = Math.max(...pages)
     const currentPage = Number($('li.active').text().trim())
     if (currentPage >= lastPage) isLast = true
-
     return isLast
+}
+
+const decodeHTMLEntity = (str: string): string => {
+    return entities.decodeHTML(str)
 }

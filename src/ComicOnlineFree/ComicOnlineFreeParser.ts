@@ -21,8 +21,9 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     image = image.startsWith('/') ? 'https:' + image : image
 
     const author = $('td:contains(Author:)').next().text().trim()
-    const arrayTags: Tag[] = []
+    const description = decodeHTMLEntity($('p.pdesc').text().trim())
 
+    const arrayTags: Tag[] = []
     for (const tag of $('a', $('td:contains(Genre)').next()).toArray()) {
         const label = $(tag).text().trim()
         const id = label.replace(/\s/g, '+')
@@ -30,9 +31,8 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
         if (!id || !label) continue
         arrayTags.push({ id: id, label: label })
     }
-
     const tagSections: TagSection[] = [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })]
-    const description = decodeHTMLEntity($('p.pdesc').text().trim())
+
     const rawStatus = $('td:contains(Status:)').next().text().trim()
     let status = 'ONGOING'
     switch (rawStatus.toUpperCase()) {
@@ -207,17 +207,15 @@ export const parseViewMore = ($: CheerioStatic): PartialSourceManga[] => {
 
         let subtitle: string = $('div.detail > a', obj).first().text().trim()
         subtitle = subtitle.substring(subtitle.indexOf('#'))?.trim()
-        if (!id || !title) continue
 
-        if (!collectedIds.includes(id)) {
-            manga.push(App.createPartialSourceManga({
-                image: image,
-                title: decodeHTMLEntity(title),
-                mangaId: id,
-                subtitle: decodeHTMLEntity(subtitle)
-            }))
-            collectedIds.push(id)
-        }
+        if (!id || !title || collectedIds.includes(id)) continue
+        manga.push(App.createPartialSourceManga({
+            image: image,
+            title: decodeHTMLEntity(title),
+            mangaId: id,
+            subtitle: decodeHTMLEntity(subtitle)
+        }))
+        collectedIds.push(id)
     }
     return manga
 }

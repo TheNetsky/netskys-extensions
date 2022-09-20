@@ -11,14 +11,15 @@ import {
 import entities = require('entities');
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
-
     const titles = []
+
     titles.push(decodeHTMLEntity($('h1.heading').first().text().trim()))
     const altTitles = $('div.alt_name').text().split(';')
     for (const title of altTitles) {
         titles.push(decodeHTMLEntity(title.trim()))
     }
-    const image = $('div.media div.cover img').attr('src')
+    
+    const image = $('div.media div.cover img').attr('src') ?? ''
     const author = $('.author').text().trim()
     const description = decodeHTMLEntity($('.summary > p').text().trim())
 
@@ -30,8 +31,8 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
         if (!id || !label) continue
         arrayTags.push({ id: id, label: label })
     }
-
     const tagSections: TagSection[] = [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })]
+
     const rawStatus = $('.value.status').text().trim()
     let status = 'ONGOING'
     switch (rawStatus.toUpperCase()) {
@@ -45,11 +46,12 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
             status = 'ONGOING'
             break
     }
+
     return App.createSourceManga({
         id: mangaId,
         mangaInfo: App.createMangaInfo({
             titles: titles,
-            image: image ?? '',
+            image: image,
             status: status,
             author: author,
             tags: tagSections,
@@ -58,7 +60,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     })
 }
 
-export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
+export const parseChapters = ($: CheerioStatic): Chapter[] => {
     const chapters: Chapter[] = []
     for (const elem of $('tr:has(.chapter)').toArray()) {
         const title = $('a', elem).text()
@@ -229,8 +231,8 @@ export const parseSearch = ($: CheerioStatic): PartialSourceManga[] => {
             const id = $('a', manga).attr('href')?.split('/').pop() ?? ''
             const image = $('img', manga).attr('src') ?? ''
             const subtitle: string = $('.chapter', manga).first().text().trim()
-            if (!id || !title || collectedIds.includes(id))
-                continue
+
+            if (!id || !title || collectedIds.includes(id)) continue
             mangas.push(App.createPartialSourceManga({
                 image: image,
                 title: decodeHTMLEntity(title),

@@ -97,9 +97,20 @@ export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId
 }
 
 export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: HomeSection) => void): void => {
-    const hotSection = App.createHomeSection({ id: 'hot_comic', title: 'Hot Comics', containsMoreItems: false })
-    const latestSection = App.createHomeSection({ id: 'latest_comic', title: 'Latest Comics', containsMoreItems: true })
-    const popularSection = App.createHomeSection({ id: 'popular_comic', title: 'Most Popular Comics', containsMoreItems: true })
+    const hotSection = App.createHomeSection({
+        id: 'hot_comic', title: 'Hot Comics', containsMoreItems: false,
+        type: 'singleRowNormal'
+    })
+    
+    const latestSection = App.createHomeSection({
+        id: 'latest_comic', title: 'Latest Comics', containsMoreItems: true,
+        type: 'singleRowNormal'
+    })
+
+    const popularSection = App.createHomeSection({
+        id: 'popular_comic', title: 'Most Popular Comics', containsMoreItems: true,
+        type: 'singleRowNormal'
+    })
 
     // Hot
     const hotSection_Array: PartialSourceManga[] = []

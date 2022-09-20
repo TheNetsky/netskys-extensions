@@ -1048,7 +1048,7 @@ const types_1 = require("@paperback/types");
 const ReadComicsOnlineParser_1 = require("./ReadComicsOnlineParser");
 const RCO_DOMAIN = 'https://readcomicsonline.ru';
 exports.ReadComicsOnlineInfo = {
-    version: '1.1.0',
+    version: '2.0.0',
     name: 'ReadComicsOnline',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1388,9 +1388,6 @@ const parseSearch = (data) => {
     return comics;
 };
 exports.parseSearch = parseSearch;
-const decodeHTMLEntity = (str) => {
-    return entities.decodeHTML(str);
-};
 const isLastPage = ($) => {
     let isLast = false;
     const pages = [];
@@ -1407,6 +1404,9 @@ const isLastPage = ($) => {
     return isLast;
 };
 exports.isLastPage = isLastPage;
+const decodeHTMLEntity = (str) => {
+    return entities.decodeHTML(str);
+};
 
 },{"entities":66}]},{},[67])(67)
 });

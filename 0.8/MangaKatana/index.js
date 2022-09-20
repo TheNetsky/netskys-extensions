@@ -1048,7 +1048,7 @@ const types_1 = require("@paperback/types");
 const MangaKatanaParser_1 = require("./MangaKatanaParser");
 const MK_DOMAIN = 'https://mangakatana.com';
 exports.MangaKatanaInfo = {
-    version: '2.1.0',
+    version: '3.0.0',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1105,7 +1105,7 @@ class MangaKatana extends types_1.Source {
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
-        return (0, MangaKatanaParser_1.parseChapters)($, mangaId);
+        return (0, MangaKatanaParser_1.parseChapters)($);
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
@@ -1201,7 +1201,7 @@ const parseMangaDetails = ($, mangaId) => {
     for (const title of altTitles) {
         titles.push(decodeHTMLEntity(title.trim()));
     }
-    const image = $('div.media div.cover img').attr('src');
+    const image = $('div.media div.cover img').attr('src') ?? '';
     const author = $('.author').text().trim();
     const description = decodeHTMLEntity($('.summary > p').text().trim());
     const arrayTags = [];
@@ -1230,7 +1230,7 @@ const parseMangaDetails = ($, mangaId) => {
         id: mangaId,
         mangaInfo: App.createMangaInfo({
             titles: titles,
-            image: image ?? '',
+            image: image,
             status: status,
             author: author,
             tags: tagSections,
@@ -1239,7 +1239,7 @@ const parseMangaDetails = ($, mangaId) => {
     });
 };
 exports.parseMangaDetails = parseMangaDetails;
-const parseChapters = ($, mangaId) => {
+const parseChapters = ($) => {
     const chapters = [];
     for (const elem of $('tr:has(.chapter)').toArray()) {
         const title = $('a', elem).text();

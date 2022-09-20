@@ -1048,7 +1048,7 @@ const types_1 = require("@paperback/types");
 const McReaderParser_1 = require("./McReaderParser");
 const MCR_DOMAIN = 'https://www.mcreader.net';
 exports.McReaderInfo = {
-    version: '1.1.0',
+    version: '2.0.0',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1105,7 +1105,7 @@ class McReader extends types_1.Source {
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
         const $ = this.cheerio.load(response.data);
-        return (0, McReaderParser_1.parseChapters)($, mangaId);
+        return (0, McReaderParser_1.parseChapters)($);
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
@@ -1229,6 +1229,7 @@ const parseMangaDetails = ($, mangaId) => {
     }
     const image = $('img', 'div.fixed-img').attr('data-src') ?? '';
     const author = $('span', 'div.author').next().text().trim();
+    const description = decodeHTMLEntity($('p.description > br')[1]?.nextSibling.nodeValue.trim() ?? '');
     const arrayTags = [];
     for (const tag of $('li', 'div.categories').toArray()) {
         const label = $(tag).text().trim();
@@ -1238,7 +1239,6 @@ const parseMangaDetails = ($, mangaId) => {
         arrayTags.push({ id: id, label: label });
     }
     const tagSections = [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })];
-    const description = decodeHTMLEntity($('p.description > br')[1]?.nextSibling.nodeValue.trim() ?? '');
     const rawStatus = $('small:contains(Status)', 'div.header-stats').prev().text().trim();
     let status = 'ONGOING';
     switch (rawStatus.toUpperCase()) {
@@ -1266,7 +1266,7 @@ const parseMangaDetails = ($, mangaId) => {
     });
 };
 exports.parseMangaDetails = parseMangaDetails;
-const parseChapters = ($, mangaId) => {
+const parseChapters = ($) => {
     const chapters = [];
     let sortingIndex = 0;
     for (const chapter of $('li', 'ul.chapter-list').toArray()) {

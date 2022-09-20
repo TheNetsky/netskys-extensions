@@ -1263,6 +1263,7 @@ const parseMangaDetails = ($, mangaId) => {
     let image = $('img', 'div.manga-image').attr('src') ?? '';
     image = image.startsWith('/') ? 'https:' + image : image;
     const author = $('td:contains(Author:)').next().text().trim();
+    const description = decodeHTMLEntity($('p.pdesc').text().trim());
     const arrayTags = [];
     for (const tag of $('a', $('td:contains(Genre)').next()).toArray()) {
         const label = $(tag).text().trim();
@@ -1272,7 +1273,6 @@ const parseMangaDetails = ($, mangaId) => {
         arrayTags.push({ id: id, label: label });
     }
     const tagSections = [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })];
-    const description = decodeHTMLEntity($('p.pdesc').text().trim());
     const rawStatus = $('td:contains(Status:)').next().text().trim();
     let status = 'ONGOING';
     switch (rawStatus.toUpperCase()) {
@@ -1429,17 +1429,15 @@ const parseViewMore = ($) => {
         const id = $('a', obj).attr('href')?.split('/').pop()?.trim();
         let subtitle = $('div.detail > a', obj).first().text().trim();
         subtitle = subtitle.substring(subtitle.indexOf('#'))?.trim();
-        if (!id || !title)
+        if (!id || !title || collectedIds.includes(id))
             continue;
-        if (!collectedIds.includes(id)) {
-            manga.push(App.createPartialSourceManga({
-                image: image,
-                title: decodeHTMLEntity(title),
-                mangaId: id,
-                subtitle: decodeHTMLEntity(subtitle)
-            }));
-            collectedIds.push(id);
-        }
+        manga.push(App.createPartialSourceManga({
+            image: image,
+            title: decodeHTMLEntity(title),
+            mangaId: id,
+            subtitle: decodeHTMLEntity(subtitle)
+        }));
+        collectedIds.push(id);
     }
     return manga;
 };

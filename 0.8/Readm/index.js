@@ -1573,9 +1573,6 @@ const getImageSrc = (imageObj) => {
     }
     return encodeURI(decodeURI(decodeHTMLEntity(image?.trim() ?? '')));
 };
-const decodeHTMLEntity = (str) => {
-    return entities.decodeHTML(str);
-};
 const isLastPage = ($) => {
     let isLast = true;
     const hasNext = Boolean($('a:contains(\u00BB)', 'div.ui.pagination.menu')[0]);
@@ -1584,6 +1581,9 @@ const isLastPage = ($) => {
     return isLast;
 };
 exports.isLastPage = isLastPage;
+const decodeHTMLEntity = (str) => {
+    return entities.decodeHTML(str);
+};
 
 },{"entities":66}]},{},[67])(67)
 });

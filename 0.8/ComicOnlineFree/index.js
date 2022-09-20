@@ -1042,15 +1042,6 @@ Object.defineProperty(exports, "decodeXMLStrict", { enumerable: true, get: funct
 
 },{"./decode.js":59,"./encode.js":61,"./escape.js":62}],67:[function(require,module,exports){
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ComicOnlineFree = exports.ComicOnlineFreeInfo = void 0;
 const types_1 = require("@paperback/types");
@@ -1080,135 +1071,121 @@ class ComicOnlineFree extends types_1.Source {
             requestsPerSecond: 4,
             requestTimeout: 15000,
             interceptor: {
-                interceptRequest: (request) => __awaiter(this, void 0, void 0, function* () {
-                    var _a;
-                    request.headers = Object.assign(Object.assign({}, ((_a = request.headers) !== null && _a !== void 0 ? _a : {})), {
-                        'referer': `${COF_DOMAIN}/`,
-                        'user-agent': yield this.requestManager.getDefaultUserAgent()
-                    });
+                interceptRequest: async (request) => {
+                    request.headers = {
+                        ...(request.headers ?? {}),
+                        ...{
+                            'referer': `${COF_DOMAIN}/`,
+                            'user-agent': await this.requestManager.getDefaultUserAgent()
+                        }
+                    };
                     return request;
-                }),
-                interceptResponse: (response) => __awaiter(this, void 0, void 0, function* () {
+                },
+                interceptResponse: async (response) => {
                     return response;
-                })
+                }
             }
         });
     }
     getMangaShareUrl(mangaId) { return `${COF_DOMAIN}/comic/${mangaId}`; }
-    getMangaDetails(mangaId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const request = App.createRequest({
-                url: `${COF_DOMAIN}/comic/${mangaId}`,
-                method: 'GET'
-            });
-            const response = yield this.requestManager.schedule(request, 1);
-            this.CloudFlareError(response.status);
-            const $ = this.cheerio.load(response.data);
-            return (0, ComicOnlineFreeParser_1.parseMangaDetails)($, mangaId);
+    async getMangaDetails(mangaId) {
+        const request = App.createRequest({
+            url: `${COF_DOMAIN}/comic/${mangaId}`,
+            method: 'GET'
+        });
+        const response = await this.requestManager.schedule(request, 1);
+        this.CloudFlareError(response.status);
+        const $ = this.cheerio.load(response.data);
+        return (0, ComicOnlineFreeParser_1.parseMangaDetails)($, mangaId);
+    }
+    async getChapters(mangaId) {
+        const request = App.createRequest({
+            url: `${COF_DOMAIN}/comic/${mangaId}`,
+            method: 'GET'
+        });
+        const response = await this.requestManager.schedule(request, 1);
+        this.CloudFlareError(response.status);
+        const $ = this.cheerio.load(response.data);
+        return (0, ComicOnlineFreeParser_1.parseChapters)($);
+    }
+    async getChapterDetails(mangaId, chapterId) {
+        const request = App.createRequest({
+            url: `${COF_DOMAIN}/${mangaId}/${chapterId}/full`,
+            method: 'GET'
+        });
+        const response = await this.requestManager.schedule(request, 1);
+        this.CloudFlareError(response.status);
+        const $ = this.cheerio.load(response.data);
+        return (0, ComicOnlineFreeParser_1.parseChapterDetails)($, mangaId, chapterId);
+    }
+    async getHomePageSections(sectionCallback) {
+        const request = App.createRequest({
+            url: COF_DOMAIN,
+            method: 'GET'
+        });
+        const response = await this.requestManager.schedule(request, 1);
+        this.CloudFlareError(response.status);
+        const $ = this.cheerio.load(response.data);
+        (0, ComicOnlineFreeParser_1.parseHomeSections)($, sectionCallback);
+    }
+    async getViewMoreItems(homepageSectionId, metadata) {
+        if (metadata?.completed)
+            return metadata;
+        const page = metadata?.page ?? 1;
+        let param = '';
+        switch (homepageSectionId) {
+            case 'popular':
+                param = `/popular-comic/${page}`;
+                break;
+            case 'hot':
+                param = `/hot-comic/${page}`;
+                break;
+            default:
+                throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
+        }
+        const request = App.createRequest({
+            url: COF_DOMAIN,
+            method: 'GET',
+            param
+        });
+        const response = await this.requestManager.schedule(request, 1);
+        this.CloudFlareError(response.status);
+        const $ = this.cheerio.load(response.data);
+        const manga = (0, ComicOnlineFreeParser_1.parseViewMore)($);
+        metadata = !(0, ComicOnlineFreeParser_1.isLastPage)($) ? { page: page + 1 } : undefined;
+        return App.createPagedResults({
+            results: manga,
+            metadata
         });
     }
-    getChapters(mangaId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const request = App.createRequest({
-                url: `${COF_DOMAIN}/comic/${mangaId}`,
-                method: 'GET'
-            });
-            const response = yield this.requestManager.schedule(request, 1);
-            this.CloudFlareError(response.status);
-            const $ = this.cheerio.load(response.data);
-            return (0, ComicOnlineFreeParser_1.parseChapters)($);
+    async getSearchTags() {
+        const request = App.createRequest({
+            url: `${COF_DOMAIN}/advanced-search`,
+            method: 'GET'
         });
+        const response = await this.requestManager.schedule(request, 1);
+        const $ = this.cheerio.load(response.data);
+        return (0, ComicOnlineFreeParser_1.parseTags)($);
     }
-    getChapterDetails(mangaId, chapterId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const request = App.createRequest({
-                url: `${COF_DOMAIN}/${mangaId}/${chapterId}/full`,
-                method: 'GET'
-            });
-            const response = yield this.requestManager.schedule(request, 1);
-            this.CloudFlareError(response.status);
-            const $ = this.cheerio.load(response.data);
-            return (0, ComicOnlineFreeParser_1.parseChapterDetails)($, mangaId, chapterId);
+    async getSearchResults(query, metadata) {
+        const page = metadata?.page ?? 1;
+        const url = new ComicOnlineFreeHelper_1.URLBuilder(COF_DOMAIN)
+            .addPathComponent('advanced-search')
+            .addQueryParameter('key', encodeURI(query?.title || ''))
+            .addQueryParameter('page', page)
+            .addQueryParameter('wg', query.includedTags?.map((x) => x.id).join('%2C'))
+            .buildUrl();
+        const request = App.createRequest({
+            url: url,
+            method: 'GET'
         });
-    }
-    getHomePageSections(sectionCallback) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const request = App.createRequest({
-                url: COF_DOMAIN,
-                method: 'GET'
-            });
-            const response = yield this.requestManager.schedule(request, 1);
-            this.CloudFlareError(response.status);
-            const $ = this.cheerio.load(response.data);
-            (0, ComicOnlineFreeParser_1.parseHomeSections)($, sectionCallback);
-        });
-    }
-    getViewMoreItems(homepageSectionId, metadata) {
-        var _a;
-        return __awaiter(this, void 0, void 0, function* () {
-            if (metadata === null || metadata === void 0 ? void 0 : metadata.completed)
-                return metadata;
-            const page = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.page) !== null && _a !== void 0 ? _a : 1;
-            let param = '';
-            switch (homepageSectionId) {
-                case 'popular':
-                    param = `/popular-comic/${page}`;
-                    break;
-                case 'hot':
-                    param = `/hot-comic/${page}`;
-                    break;
-                default:
-                    throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
-            }
-            const request = App.createRequest({
-                url: COF_DOMAIN,
-                method: 'GET',
-                param
-            });
-            const response = yield this.requestManager.schedule(request, 1);
-            this.CloudFlareError(response.status);
-            const $ = this.cheerio.load(response.data);
-            const manga = (0, ComicOnlineFreeParser_1.parseViewMore)($);
-            metadata = !(0, ComicOnlineFreeParser_1.isLastPage)($) ? { page: page + 1 } : undefined;
-            return App.createPagedResults({
-                results: manga,
-                metadata
-            });
-        });
-    }
-    getSearchTags() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const request = App.createRequest({
-                url: `${COF_DOMAIN}/advanced-search`,
-                method: 'GET'
-            });
-            const response = yield this.requestManager.schedule(request, 1);
-            const $ = this.cheerio.load(response.data);
-            return (0, ComicOnlineFreeParser_1.parseTags)($);
-        });
-    }
-    getSearchResults(query, metadata) {
-        var _a, _b;
-        return __awaiter(this, void 0, void 0, function* () {
-            const page = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.page) !== null && _a !== void 0 ? _a : 1;
-            const url = new ComicOnlineFreeHelper_1.URLBuilder(COF_DOMAIN)
-                .addPathComponent('advanced-search')
-                .addQueryParameter('key', encodeURI((query === null || query === void 0 ? void 0 : query.title) || ''))
-                .addQueryParameter('page', page)
-                .addQueryParameter('wg', (_b = query.includedTags) === null || _b === void 0 ? void 0 : _b.map((x) => x.id).join('%2C'))
-                .buildUrl();
-            const request = App.createRequest({
-                url: url,
-                method: 'GET'
-            });
-            const response = yield this.requestManager.schedule(request, 1);
-            const $ = this.cheerio.load(response.data);
-            const manga = (0, ComicOnlineFreeParser_1.parseSearch)($);
-            metadata = !(0, ComicOnlineFreeParser_1.isLastPage)($) ? { page: page + 1 } : undefined;
-            return App.createPagedResults({
-                results: manga,
-                metadata
-            });
+        const response = await this.requestManager.schedule(request, 1);
+        const $ = this.cheerio.load(response.data);
+        const manga = (0, ComicOnlineFreeParser_1.parseSearch)($);
+        metadata = !(0, ComicOnlineFreeParser_1.isLastPage)($) ? { page: page + 1 } : undefined;
+        return App.createPagedResults({
+            results: manga,
+            metadata
         });
     }
     CloudFlareError(status) {
@@ -1216,16 +1193,14 @@ class ComicOnlineFree extends types_1.Source {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${ComicOnlineFree.name}> and press the cloud icon.`);
         }
     }
-    getCloudflareBypassRequestAsync() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return App.createRequest({
-                url: COF_DOMAIN,
-                method: 'GET',
-                headers: {
-                    'referer': `${COF_DOMAIN}/`,
-                    'user-agent': yield this.requestManager.getDefaultUserAgent()
-                }
-            });
+    async getCloudflareBypassRequestAsync() {
+        return App.createRequest({
+            url: COF_DOMAIN,
+            method: 'GET',
+            headers: {
+                'referer': `${COF_DOMAIN}/`,
+                'user-agent': await this.requestManager.getDefaultUserAgent()
+            }
         });
     }
 }
@@ -1282,11 +1257,10 @@ exports.isLastPage = exports.parseSearch = exports.parseTags = exports.parseView
 const types_1 = require("@paperback/types");
 const entities = require("entities");
 const parseMangaDetails = ($, mangaId) => {
-    var _a;
     const titles = [];
     titles.push(decodeHTMLEntity($('td:contains(Name:)').first().next().text().trim()));
     titles.push(decodeHTMLEntity($('td:contains(Alternate Name:)').next().text().trim()));
-    let image = (_a = $('img', 'div.manga-image').attr('src')) !== null && _a !== void 0 ? _a : '';
+    let image = $('img', 'div.manga-image').attr('src') ?? '';
     image = image.startsWith('/') ? 'https:' + image : image;
     const author = $('td:contains(Author:)').next().text().trim();
     const arrayTags = [];
@@ -1327,12 +1301,11 @@ const parseMangaDetails = ($, mangaId) => {
 };
 exports.parseMangaDetails = parseMangaDetails;
 const parseChapters = ($) => {
-    var _a, _b;
     const chapters = [];
     let sortingIndex = 0;
     for (const chapter of $('li', 'ul.basic-list').toArray()) {
         const title = decodeHTMLEntity($('a.ch-name', chapter).text().trim());
-        const chapterId = (_b = (_a = $('a', chapter).attr('href')) === null || _a === void 0 ? void 0 : _a.split('/').pop()) !== null && _b !== void 0 ? _b : '';
+        const chapterId = $('a', chapter).attr('href')?.split('/').pop() ?? '';
         if (!chapterId)
             continue;
         const date = new Date($('span', chapter).text());
@@ -1370,7 +1343,6 @@ const parseChapterDetails = ($, mangaId, chapterId) => {
 };
 exports.parseChapterDetails = parseChapterDetails;
 const parseHomeSections = ($, sectionCallback) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
     const popularSection = App.createHomeSection({
         id: 'popular',
         title: 'Popular Comics',
@@ -1392,11 +1364,11 @@ const parseHomeSections = ($, sectionCallback) => {
     // Popular
     const popularSection_Array = [];
     for (const manga of $('li.list-top-movie-item', 'div.right-box-content').toArray()) {
-        const image = (_a = $('img', manga).attr('src')) !== null && _a !== void 0 ? _a : '';
-        const title = (_b = $('span.list-top-movie-item-vn', manga).text().trim()) !== null && _b !== void 0 ? _b : '';
-        const id = (_d = (_c = $('a', manga).attr('href')) === null || _c === void 0 ? void 0 : _c.split('/').pop()) === null || _d === void 0 ? void 0 : _d.trim();
-        let subtitle = (_e = $('a.chapter', manga).text()) !== null && _e !== void 0 ? _e : '';
-        subtitle = (_f = subtitle.substring(subtitle.indexOf('#'))) === null || _f === void 0 ? void 0 : _f.trim();
+        const image = $('img', manga).attr('src') ?? '';
+        const title = $('span.list-top-movie-item-vn', manga).text().trim() ?? '';
+        const id = $('a', manga).attr('href')?.split('/').pop()?.trim();
+        let subtitle = $('a.chapter', manga).text() ?? '';
+        subtitle = subtitle.substring(subtitle.indexOf('#'))?.trim();
         if (!id || !title)
             continue;
         popularSection_Array.push(App.createPartialSourceManga({
@@ -1411,11 +1383,11 @@ const parseHomeSections = ($, sectionCallback) => {
     // Update
     const updateSection_Array = [];
     for (const manga of $('li.manga-box', 'ul.home-list').toArray()) {
-        const image = (_g = $('img', manga).attr('data-original')) !== null && _g !== void 0 ? _g : '';
-        const title = (_j = (_h = $('img', manga).attr('alt')) === null || _h === void 0 ? void 0 : _h.trim()) !== null && _j !== void 0 ? _j : '';
-        const id = (_l = (_k = $('a', manga).attr('href')) === null || _k === void 0 ? void 0 : _k.split('/').pop()) === null || _l === void 0 ? void 0 : _l.trim();
+        const image = $('img', manga).attr('data-original') ?? '';
+        const title = $('img', manga).attr('alt')?.trim() ?? '';
+        const id = $('a', manga).attr('href')?.split('/').pop()?.trim();
         let subtitle = $('div.detail > a', manga).text().trim();
-        subtitle = (_m = subtitle.substring(subtitle.indexOf('#'))) === null || _m === void 0 ? void 0 : _m.trim();
+        subtitle = subtitle.substring(subtitle.indexOf('#'))?.trim();
         if (!id || !title)
             continue;
         updateSection_Array.push(App.createPartialSourceManga({
@@ -1430,11 +1402,11 @@ const parseHomeSections = ($, sectionCallback) => {
     // Hot
     const hotSection_Array = [];
     for (const manga of $('li.manga-box.hotbox', 'ul.home-list').toArray()) {
-        const image = (_o = $('img', manga).attr('data-original')) !== null && _o !== void 0 ? _o : '';
-        const title = (_q = (_p = $('img', manga).attr('alt')) === null || _p === void 0 ? void 0 : _p.trim()) !== null && _q !== void 0 ? _q : '';
-        const id = (_s = (_r = $('a', manga).attr('href')) === null || _r === void 0 ? void 0 : _r.split('/').pop()) === null || _s === void 0 ? void 0 : _s.trim();
+        const image = $('img', manga).attr('data-original') ?? '';
+        const title = $('img', manga).attr('alt')?.trim() ?? '';
+        const id = $('a', manga).attr('href')?.split('/').pop()?.trim();
         let subtitle = $('div.detail > a', manga).text().trim();
-        subtitle = (_t = subtitle.substring(subtitle.indexOf('#'))) === null || _t === void 0 ? void 0 : _t.trim();
+        subtitle = subtitle.substring(subtitle.indexOf('#'))?.trim();
         if (!id || !title)
             continue;
         hotSection_Array.push(App.createPartialSourceManga({
@@ -1449,15 +1421,14 @@ const parseHomeSections = ($, sectionCallback) => {
 };
 exports.parseHomeSections = parseHomeSections;
 const parseViewMore = ($) => {
-    var _a, _b, _c, _d, _e, _f;
     const manga = [];
     const collectedIds = [];
     for (const obj of $('div.manga-box', 'div.home-list').toArray()) {
-        const image = (_a = $('img', obj).attr('data-original')) !== null && _a !== void 0 ? _a : '';
-        const title = (_c = (_b = $('img', obj).attr('alt')) === null || _b === void 0 ? void 0 : _b.trim()) !== null && _c !== void 0 ? _c : '';
-        const id = (_e = (_d = $('a', obj).attr('href')) === null || _d === void 0 ? void 0 : _d.split('/').pop()) === null || _e === void 0 ? void 0 : _e.trim();
+        const image = $('img', obj).attr('data-original') ?? '';
+        const title = $('img', obj).attr('alt')?.trim() ?? '';
+        const id = $('a', obj).attr('href')?.split('/').pop()?.trim();
         let subtitle = $('div.detail > a', obj).first().text().trim();
-        subtitle = (_f = subtitle.substring(subtitle.indexOf('#'))) === null || _f === void 0 ? void 0 : _f.trim();
+        subtitle = subtitle.substring(subtitle.indexOf('#'))?.trim();
         if (!id || !title)
             continue;
         if (!collectedIds.includes(id)) {
@@ -1474,11 +1445,10 @@ const parseViewMore = ($) => {
 };
 exports.parseViewMore = parseViewMore;
 const parseTags = ($) => {
-    var _a, _b;
     const arrayTags = [];
     for (const tag of $('li', 'ul.search-checks').toArray()) {
-        const label = (_a = $(tag).text().trim()) !== null && _a !== void 0 ? _a : '';
-        const id = (_b = $(tag).text().trim().replace(/\s/g, '+')) !== null && _b !== void 0 ? _b : '';
+        const label = $(tag).text().trim() ?? '';
+        const id = $(tag).text().trim().replace(/\s/g, '+') ?? '';
         if (!id || !label)
             continue;
         arrayTags.push({ id: id, label: label });
@@ -1488,12 +1458,11 @@ const parseTags = ($) => {
 };
 exports.parseTags = parseTags;
 const parseSearch = ($) => {
-    var _a, _b, _c, _d, _e;
     const mangas = [];
     for (const obj of $('div.manga-box', 'div.result-left').toArray()) {
-        const id = (_b = (_a = $('a', obj).attr('href')) === null || _a === void 0 ? void 0 : _a.split('/').pop()) === null || _b === void 0 ? void 0 : _b.trim();
-        const image = (_c = $('img', obj).attr('data-original')) !== null && _c !== void 0 ? _c : '';
-        const title = (_e = (_d = $('img', obj).attr('alt')) === null || _d === void 0 ? void 0 : _d.trim()) !== null && _e !== void 0 ? _e : '';
+        const id = $('a', obj).attr('href')?.split('/').pop()?.trim();
+        const image = $('img', obj).attr('data-original') ?? '';
+        const title = $('img', obj).attr('alt')?.trim() ?? '';
         const subtitle = $('div.detail', obj).first().text().trim();
         if (!id || !title)
             continue;

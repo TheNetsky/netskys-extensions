@@ -10,8 +10,7 @@ import {
     ContentRating,
     BadgeColor,
     Request,
-    Response,
-    TagSection
+    Response
 } from '@paperback/types'
 
 import {
@@ -21,23 +20,20 @@ import {
     parseHomeSections,
     parseMangaDetails,
     parseViewMore,
-    parseSearch,
-    parseTags
-} from './ComicOnlineFreeParser'
+    parseSearch
+} from './ReadComicsOnlineParser'
 
-import { URLBuilder } from './ComicOnlineFreeHelper'
+const RCO_DOMAIN = 'https://readcomicsonline.ru'
 
-const COF_DOMAIN = 'https://comiconlinefree.net'
-
-export const ComicOnlineFreeInfo: SourceInfo = {
+export const ReadComicsOnlineInfo: SourceInfo = {
     version: '1.1.0',
-    name: 'ComicOnlineFree',
+    name: 'ReadComicsOnline',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls comics from ComicOnlineFree.net',
+    description: 'Extension that pulls comics from ReadComicsOnline.ru.',
     contentRating: ContentRating.MATURE,
-    websiteBaseURL: COF_DOMAIN,
+    websiteBaseURL: RCO_DOMAIN,
     sourceTags: [
         {
             text: 'Notifications',
@@ -46,16 +42,17 @@ export const ComicOnlineFreeInfo: SourceInfo = {
     ]
 }
 
-export class ComicOnlineFree extends Source {
+export class ReadComicsOnline extends Source {
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15000,
         interceptor: {
             interceptRequest: async (request: Request): Promise<Request> => {
+
                 request.headers = {
                     ...(request.headers ?? {}),
                     ...{
-                        'referer': `${COF_DOMAIN}/`,
+                        'referer': `${RCO_DOMAIN}/`,
                         'user-agent': await this.requestManager.getDefaultUserAgent()
                     }
                 }
@@ -65,14 +62,16 @@ export class ComicOnlineFree extends Source {
                 return response
             }
         }
-    });
+    })
 
-    override getMangaShareUrl(mangaId: string): string { return `${COF_DOMAIN}/comic/${mangaId}` }
+
+    override getMangaShareUrl(mangaId: string): string { return `${RCO_DOMAIN}/comic/${mangaId}` }
 
     override async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
-            url: `${COF_DOMAIN}/comic/${mangaId}`,
-            method: 'GET'
+            url: `${RCO_DOMAIN}/comic/`,
+            method: 'GET',
+            param: mangaId
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -83,8 +82,9 @@ export class ComicOnlineFree extends Source {
 
     override async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = App.createRequest({
-            url: `${COF_DOMAIN}/comic/${mangaId}`,
-            method: 'GET'
+            url: `${RCO_DOMAIN}/comic/`,
+            method: 'GET',
+            param: mangaId,
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -95,8 +95,8 @@ export class ComicOnlineFree extends Source {
 
     override async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = App.createRequest({
-            url: `${COF_DOMAIN}/${mangaId}/${chapterId}/full`,
-            method: 'GET'
+            url: `${RCO_DOMAIN}/comic/${mangaId}/${chapterId}`,
+            method: 'GET',
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -107,8 +107,8 @@ export class ComicOnlineFree extends Source {
 
     override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
         const request = App.createRequest({
-            url: COF_DOMAIN,
-            method: 'GET'
+            url: RCO_DOMAIN,
+            method: 'GET',
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -118,24 +118,22 @@ export class ComicOnlineFree extends Source {
     }
 
     override async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
-        if (metadata?.completed) return metadata
-
         const page: number = metadata?.page ?? 1
         let param = ''
 
         switch (homepageSectionId) {
-            case 'popular':
-                param = `/popular-comic/${page}`
+            case 'latest_comic':
+                param = `?page=${page}&sortBy=last_release&asc=false`
                 break
-            case 'hot':
-                param = `/hot-comic/${page}`
+            case 'popular_comic':
+                param = `?page=${page}&sortBy=views&asc=false`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
         }
 
         const request = App.createRequest({
-            url: COF_DOMAIN,
+            url: `${RCO_DOMAIN}/filterList`,
             method: 'GET',
             param
         })
@@ -143,8 +141,8 @@ export class ComicOnlineFree extends Source {
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data)
+
         const manga = parseViewMore($)
-
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
         return App.createPagedResults({
             results: manga,
@@ -152,54 +150,34 @@ export class ComicOnlineFree extends Source {
         })
     }
 
-    override async getSearchTags(): Promise<TagSection[]> {
+    override async getSearchResults(query: SearchRequest): Promise<PagedResults> {
         const request = App.createRequest({
-            url: `${COF_DOMAIN}/advanced-search`,
+            url: `${RCO_DOMAIN}/search?query=${encodeURI(query.title ?? '')}`,
             method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
-        return parseTags($)
-    }
+        this.CloudFlareError(response.status)
+        const manga = parseSearch(response.data)
 
-    async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
-        const page: number = metadata?.page ?? 1
-        const url = new URLBuilder(COF_DOMAIN)
-            .addPathComponent('advanced-search')
-            .addQueryParameter('key', encodeURI(query?.title || ''))
-            .addQueryParameter('page', page)
-            .addQueryParameter('wg', query.includedTags?.map((x: any) => x.id).join('%2C'))
-            .buildUrl()
-
-        const request = App.createRequest({
-            url: url,
-            method: 'GET'
-        })
-
-        const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
-        const manga = parseSearch($)
-        metadata = !isLastPage($) ? { page: page + 1 } : undefined
         return App.createPagedResults({
             results: manga,
-            metadata
         })
+
     }
 
     CloudFlareError(status: number): void {
         if (status == 503) {
-            throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${ComicOnlineFree.name}> and press the cloud icon.`)
+            throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${ReadComicsOnline.name}> and press the cloud icon.`)
         }
     }
 
-
     override async getCloudflareBypassRequestAsync(): Promise<Request> {
         return App.createRequest({
-            url: COF_DOMAIN,
+            url: RCO_DOMAIN,
             method: 'GET',
             headers: {
-                'referer': `${COF_DOMAIN}/`,
+                'referer': `${RCO_DOMAIN}/`,
                 'user-agent': await this.requestManager.getDefaultUserAgent()
             }
         })

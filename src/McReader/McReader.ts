@@ -31,7 +31,7 @@ import {
 const MCR_DOMAIN = 'https://www.mreader.co'
 
 export const McReaderInfo: SourceInfo = {
-    version: '2.0.1',
+    version: '2.0.2',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',

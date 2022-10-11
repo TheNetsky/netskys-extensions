@@ -102,7 +102,11 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
         sortingIndex--
     }
 
-    return chapters
+    return chapters.map(chapter => {
+        // @ts-ignore
+        chapter.sortingIndex += chapters.length
+        return createChapter(chapter)
+    })
 }
 
 export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId: string): ChapterDetails => {
@@ -140,7 +144,7 @@ export const parseUpdatedManga = ($: CheerioStatic, time: Date, ids: string[]): 
         if (!id) continue
 
         const rawDate = $('p.date_created', obj).children().remove().end().text().trim() ?? ''
-        const mangaDate = new Date( Date.parse(rawDate))
+        const mangaDate = new Date(Date.parse(rawDate))
 
         if (!mangaDate || !id) continue
 

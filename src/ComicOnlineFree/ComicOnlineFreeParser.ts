@@ -91,7 +91,11 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
         sortingIndex--
     }
 
-    return chapters
+    return chapters.map(chapter => {
+        // @ts-ignore
+        chapter.sortingIndex += chapters.length
+        return createChapter(chapter)
+    })
 }
 
 export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId: string): ChapterDetails => {

@@ -31,7 +31,7 @@ import {
 const MH_DOMAIN = 'https://mangahasu.se'
 
 export const MangaHasuInfo: SourceInfo = {
-    version: '1.0.0',
+    version: '1.0.1',
     name: 'MangaHasu',
     icon: 'icon.png',
     author: 'Netsky',

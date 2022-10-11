@@ -889,7 +889,7 @@ const parseChapters = ($, mangaId) => {
         const date = new Date($('div.date-chapter-title-rtl', chapter).last().text().trim());
         if (!chapterId || !title)
             continue;
-        chapters.push(createChapter({
+        chapters.push({
             id: chapterId,
             mangaId,
             name: decodeHTMLEntity(title),
@@ -898,7 +898,7 @@ const parseChapters = ($, mangaId) => {
             time: date,
             // @ts-ignore
             sortingIndex
-        }));
+        });
         sortingIndex--;
     }
     return chapters.map(chapter => {

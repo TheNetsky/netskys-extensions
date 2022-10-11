@@ -958,7 +958,7 @@ const parseChapters = ($, mangaId) => {
         let chapNum = 0;
         if (chapNumRegex && chapNumRegex[1])
             chapNum = Number(chapNumRegex[1]);
-        chapters.push(createChapter({
+        chapters.push({
             id: chapterId,
             mangaId,
             name: title,
@@ -967,7 +967,7 @@ const parseChapters = ($, mangaId) => {
             time: date,
             // @ts-ignore
             sortingIndex
-        }));
+        });
         sortingIndex--;
     }
     return chapters.map(chapter => {

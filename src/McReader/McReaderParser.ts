@@ -82,7 +82,7 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
         let chapNum = 0
         if (chapNumRegex && chapNumRegex[1]) chapNum = Number(chapNumRegex[1])
 
-        chapters.push(createChapter({
+        chapters.push({
             id: chapterId,
             mangaId,
             name: `Chapter ${chapNum}`,
@@ -91,7 +91,7 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
             time: date,
             // @ts-ignore
             sortingIndex
-        }))
+        })
         sortingIndex--
     }
 

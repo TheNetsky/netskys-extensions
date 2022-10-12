@@ -14,7 +14,7 @@ import {
     PartialSourceManga,
     Request,
     Response,
-    Cookie,
+    Cookie
 } from '@paperback/types'
 
 import {
@@ -30,7 +30,7 @@ const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql'
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/'
 
 export const MangahubInfo: SourceInfo = {
-    version: '3.0.0',
+    version: '3.0.1',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -45,6 +45,10 @@ export const MangahubInfo: SourceInfo = {
         },
         {
             text: 'Cloudlare',
+            type: BadgeColor.RED
+        },
+        {
+            text: 'Buggy',
             type: BadgeColor.RED
         }
     ]
@@ -61,7 +65,7 @@ export class Mangahub extends Source {
                     ...(request.headers ?? {}),
                     ...{
                         'referer': `${MH_DOMAIN}/`,
-                        'user-agent': await this.requestManager.getDefaultUserAgent(),
+                        'user-agent': await this.getUserAgent(),
                         'x-mhub-access': await this.getMhubAccess(),
                         'accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
                         'Accept-Language': 'en-US,en;q=0.5',
@@ -82,6 +86,8 @@ export class Mangahub extends Source {
         }
     });
 
+    //stateManager = App.createSourceStateManager()
+
     getMhubAccess = async (): Promise<string> => {
         const cookies = this.requestManager?.cookieStore?.getAllCookies() ?? []
         let key
@@ -89,7 +95,7 @@ export class Mangahub extends Source {
         for (const cookieRaw of cookies) {
             const cookie = cookieRaw as Cookie
             const cName = cookie.name
-            
+
             if (cName == 'mhub_access') {
                 key = cookie.value
                 break
@@ -98,6 +104,24 @@ export class Mangahub extends Source {
 
         if (!key) throw new Error('MISSING MANGAHUB KEY:\nDo the Cloudflare bypass by pressing the cloud icon!')
         return key
+    }
+
+    getUserAgent = async (): Promise<string> => {
+        //await this.stateManager.store('userAgent', 'null')
+        //const storedUserAgent = await this.stateManager.retrieve('userAgent') as string
+        //if (storedUserAgent !== 'null') return storedUserAgent
+
+        const userAgent = await this.requestManager.getDefaultUserAgent() // Mozilla/5.0 (iPad; CPU OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148
+        const regEx = /AppleWebKit\/([^\s]+)/
+        const match = userAgent.match(regEx)
+
+        let newUserAgent: string = userAgent
+        if (match && match[1]) {
+            newUserAgent = userAgent.replace(match[1], `${Math.floor(Math.random() * 999)}.${Math.floor(Math.random() * 99)}.${Math.floor(Math.random() * 99)}`)
+        }
+
+        //await this.stateManager.store('userAgent', newUserAgent)
+        return newUserAgent
     }
 
     override getMangaShareUrl(mangaId: string): string { return `${MH_DOMAIN}/manga/${mangaId}` }
@@ -109,7 +133,7 @@ export class Mangahub extends Source {
             headers: {
                 'accept': 'application/json',
                 'content-type': 'application/json',
-                'user-agent': await this.requestManager.getDefaultUserAgent(),
+                'user-agent': await this.getUserAgent(),
                 'x-mhub-access': await this.getMhubAccess(),
                 'origin': `${MH_DOMAIN}/`,
                 'referer': `${MH_DOMAIN}/`,
@@ -156,7 +180,7 @@ export class Mangahub extends Source {
             headers: {
                 'accept': 'application/json',
                 'content-type': 'application/json',
-                'user-agent': await this.requestManager.getDefaultUserAgent(),
+                'user-agent': await this.getUserAgent(),
                 'x-mhub-access': await this.getMhubAccess(),
                 'origin': `${MH_DOMAIN}/`,
                 'referer': `${MH_DOMAIN}/`,
@@ -202,15 +226,18 @@ export class Mangahub extends Source {
             headers: {
                 'accept': 'application/json',
                 'content-type': 'application/json',
-                'user-agent': await this.requestManager.getDefaultUserAgent(),
+                'user-agent': await this.getUserAgent(),
                 'x-mhub-access': await this.getMhubAccess(),
                 'origin': `${MH_DOMAIN}/`,
                 'referer': `${MH_DOMAIN}/`,
                 'Accept-Language': 'en-US,en;q=0.5',
                 'DNT': '1',
-                'Sec-CH-UA': '"Chromium";v="104", " Not A;Brand";v="104", "Microsoft Edge";v="104"',
+                'Sec-CH-UA': '"Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"',
                 'Sec-CH-UA-Mobile': '?0',
-                'Sec-CH-UA-Platform': '"Windows"'
+                'Sec-CH-UA-Platform': '"Windows"',
+                'sec-fetch-dest': 'image',
+                'sec-fetch-mode': 'no-cors',
+                'sec-fetch-site': 'cross-site'
             },
             data: {
                 query: `query {
@@ -230,7 +257,12 @@ export class Mangahub extends Source {
         try {
             data = JSON.parse(response.data)
         } catch (e) {
-            throw new Error(`${e}`)
+            // Silently log errors
+            console.log(`${e}`)
+        }
+
+        if (data?.errors) {
+            throw new Error('API LIMIT EXCEEDED!\nTry doing to CloudFlare again bypass or come back later!')
         }
 
         if (!data.data?.chapter?.pages) throw new Error(`Failed to parse chapter or pages property from data object mangaId:${mangaId} chapterId:${chapterId}`)
@@ -259,7 +291,7 @@ export class Mangahub extends Source {
             headers: {
                 'accept': 'application/json',
                 'content-type': 'application/json',
-                'user-agent': await this.requestManager.getDefaultUserAgent(),
+                'user-agent': await this.getUserAgent(),
                 'x-mhub-access': await this.getMhubAccess(),
                 'origin': `${MH_DOMAIN}/`,
                 'referer': `${MH_DOMAIN}/`,
@@ -304,7 +336,7 @@ export class Mangahub extends Source {
             headers: {
                 'accept': 'application/json',
                 'content-type': 'application/json',
-                'user-agent': await this.requestManager.getDefaultUserAgent(),
+                'user-agent': await this.getUserAgent(),
                 'x-mhub-access': await this.getMhubAccess(),
                 'origin': `${MH_DOMAIN}/`,
                 'referer': `${MH_DOMAIN}/`,
@@ -378,7 +410,7 @@ export class Mangahub extends Source {
             headers: {
                 'accept': 'application/json',
                 'content-type': 'application/json',
-                'user-agent': await this.requestManager.getDefaultUserAgent(),
+                'user-agent': await this.getUserAgent(),
                 'x-mhub-access': await this.getMhubAccess(),
                 'origin': `${MH_DOMAIN}/`,
                 'referer': `${MH_DOMAIN}/`,
@@ -460,7 +492,7 @@ export class Mangahub extends Source {
                     headers: {
                         'accept': 'application/json',
                         'content-type': 'application/json',
-                        'user-agent': await this.requestManager.getDefaultUserAgent(),
+                        'user-agent': await this.getUserAgent(),
                         'x-mhub-access': await this.getMhubAccess(),
                         'origin': `${MH_DOMAIN}/`,
                         'referer': `${MH_DOMAIN}/`,
@@ -494,7 +526,7 @@ export class Mangahub extends Source {
                     headers: {
                         'accept': 'application/json',
                         'content-type': 'application/json',
-                        'user-agent': await this.requestManager.getDefaultUserAgent(),
+                        'user-agent': await this.getUserAgent(),
                         'x-mhub-access': await this.getMhubAccess(),
                         'origin': `${MH_DOMAIN}/`,
                         'referer': `${MH_DOMAIN}/`,
@@ -555,16 +587,18 @@ export class Mangahub extends Source {
     }
 
     override async getCloudflareBypassRequestAsync(): Promise<Request> {
+        // Remove stored UserAgent
+        //await this.stateManager.store('userAgent', 'null')
+
         // Clear old cookies
         this.requestManager?.cookieStore?.getAllCookies().forEach(x => { this.requestManager?.cookieStore?.removeCookie(x) })
 
-
         return App.createRequest({
-            url: MH_DOMAIN,
+            url: `${MH_DOMAIN}/chapter/the-last-human/chapter-1?reloadKey=1`,
             method: 'GET',
             headers: {
                 'referer': `${MH_DOMAIN}/`,
-                'user-agent': await this.requestManager.getDefaultUserAgent()
+                'user-agent': await this.getUserAgent()
             }
         })
     }

@@ -32,7 +32,7 @@ import {
 const MCR_DOMAIN = 'https://www.mreader.co'
 
 export const McReaderInfo: SourceInfo = {
-    version: '1.0.3',
+    version: '1.0.4',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -92,7 +92,7 @@ export class McReader extends Source {
 
     override async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = createRequestObject({
-            url: `${MCR_DOMAIN}/manga/${mangaId}`,
+            url: `${MCR_DOMAIN}/manga/${mangaId}/all-chapters/`,
             method: 'GET'
         })
 

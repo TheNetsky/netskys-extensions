@@ -1046,9 +1046,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.McReader = exports.McReaderInfo = void 0;
 const types_1 = require("@paperback/types");
 const McReaderParser_1 = require("./McReaderParser");
-const MCR_DOMAIN = 'https://www.mcreader.net';
+const MCR_DOMAIN = 'https://www.mreader.co';
 exports.McReaderInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1099,7 +1099,7 @@ class McReader extends types_1.Source {
     }
     async getChapters(mangaId) {
         const request = App.createRequest({
-            url: `${MCR_DOMAIN}/manga/${mangaId}`,
+            url: `${MCR_DOMAIN}/manga/${mangaId}/all-chapters/`,
             method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);

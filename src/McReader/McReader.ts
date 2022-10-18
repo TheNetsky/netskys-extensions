@@ -25,10 +25,10 @@ import {
     parseTags
 } from './McReaderParser'
 
-const MCR_DOMAIN = 'https://www.mcreader.net'
+const MCR_DOMAIN = 'https://www.mreader.co'
 
 export const McReaderInfo: SourceInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -81,7 +81,7 @@ export class McReader extends Source {
 
     override async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = App.createRequest({
-            url: `${MCR_DOMAIN}/manga/${mangaId}`,
+            url: `${MCR_DOMAIN}/manga/${mangaId}/all-chapters/`,
             method: 'GET'
         })
 

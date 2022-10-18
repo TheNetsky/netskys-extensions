@@ -679,7 +679,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const McReaderParser_1 = require("./McReaderParser");
 const MCR_DOMAIN = 'https://www.mreader.co';
 exports.McReaderInfo = {
-    version: '1.0.3',
+    version: '1.0.4',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -731,7 +731,7 @@ class McReader extends paperback_extensions_common_1.Source {
     }
     async getChapters(mangaId) {
         const request = createRequestObject({
-            url: `${MCR_DOMAIN}/manga/${mangaId}`,
+            url: `${MCR_DOMAIN}/manga/${mangaId}/all-chapters/`,
             method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);

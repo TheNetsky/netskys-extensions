@@ -1071,7 +1071,8 @@ exports.HentaiHereInfo = {
             text: '18+',
             type: types_1.BadgeColor.YELLOW
         }
-    ]
+    ],
+    intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
 class HentaiHere extends types_1.Source {
     constructor() {

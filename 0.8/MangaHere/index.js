@@ -470,7 +470,8 @@ exports.MangaHereInfo = {
             text: 'Notifications',
             type: types_1.BadgeColor.GREEN
         }
-    ]
+    ],
+    intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
 class MangaHere extends types_1.Source {
     constructor() {

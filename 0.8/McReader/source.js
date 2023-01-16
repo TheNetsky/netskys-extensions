@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const McReaderParser_1 = require("./McReaderParser");
 const MCR_DOMAIN = 'https://www.mreader.co';
 exports.McReaderInfo = {
-    version: '2.0.1',
+    version: '2.0.0',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1071,7 +1071,8 @@ exports.McReaderInfo = {
             text: 'Notifications',
             type: types_1.BadgeColor.GREEN
         }
-    ]
+    ],
+    intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
 class McReader extends types_1.Source {
     constructor() {
@@ -1109,7 +1110,7 @@ class McReader extends types_1.Source {
     }
     async getChapters(mangaId) {
         const request = App.createRequest({
-            url: `${MCR_DOMAIN}/manga/${mangaId}/all-chapters/`,
+            url: `${MCR_DOMAIN}/manga/${mangaId}`,
             method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);

@@ -14,7 +14,8 @@ import {
     PartialSourceManga,
     Request,
     Response,
-    Cookie
+    Cookie,
+    SourceIntents,
 } from '@paperback/types'
 
 import {
@@ -30,7 +31,7 @@ const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql'
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/'
 
 export const MangahubInfo: SourceInfo = {
-    version: '3.0.1',
+    version: '3.0.2',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -51,13 +52,15 @@ export const MangahubInfo: SourceInfo = {
             text: 'Buggy',
             type: BadgeColor.RED
         }
-    ]
+    ],
+    intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
+
 }
 
 export class Mangahub extends Source {
 
     requestManager = App.createRequestManager({
-        requestsPerSecond: 3,
+        requestsPerSecond: 2,
         requestTimeout: 15000,
         interceptor: {
             interceptRequest: async (request: Request): Promise<Request> => {
@@ -86,7 +89,7 @@ export class Mangahub extends Source {
         }
     });
 
-    //stateManager = App.createSourceStateManager()
+    stateManager = App.createSourceStateManager()
 
     getMhubAccess = async (): Promise<string> => {
         const cookies = this.requestManager?.cookieStore?.getAllCookies() ?? []
@@ -107,9 +110,8 @@ export class Mangahub extends Source {
     }
 
     getUserAgent = async (): Promise<string> => {
-        //await this.stateManager.store('userAgent', 'null')
-        //const storedUserAgent = await this.stateManager.retrieve('userAgent') as string
-        //if (storedUserAgent !== 'null') return storedUserAgent
+        const storedUserAgent = await this.stateManager.retrieve('userAgent') as string
+        if (storedUserAgent !== 'null') return storedUserAgent
 
         const userAgent = await this.requestManager.getDefaultUserAgent() // Mozilla/5.0 (iPad; CPU OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148
         const regEx = /AppleWebKit\/([^\s]+)/
@@ -588,7 +590,7 @@ export class Mangahub extends Source {
 
     override async getCloudflareBypassRequestAsync(): Promise<Request> {
         // Remove stored UserAgent
-        //await this.stateManager.store('userAgent', 'null')
+        await this.stateManager.store('userAgent', 'null')
 
         // Clear old cookies
         this.requestManager?.cookieStore?.getAllCookies().forEach(x => { this.requestManager?.cookieStore?.removeCookie(x) })

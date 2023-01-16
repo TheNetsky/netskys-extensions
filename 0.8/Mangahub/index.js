@@ -1060,7 +1060,7 @@ const MH_DOMAIN = 'https://mangahub.io';
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/';
 exports.MangahubInfo = {
-    version: '3.0.1',
+    version: '3.0.2',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1081,13 +1081,14 @@ exports.MangahubInfo = {
             text: 'Buggy',
             type: types_1.BadgeColor.RED
         }
-    ]
+    ],
+    intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
 class Mangahub extends types_1.Source {
     constructor() {
         super(...arguments);
         this.requestManager = App.createRequestManager({
-            requestsPerSecond: 3,
+            requestsPerSecond: 2,
             requestTimeout: 15000,
             interceptor: {
                 interceptRequest: async (request) => {
@@ -1115,7 +1116,7 @@ class Mangahub extends types_1.Source {
                 }
             }
         });
-        //stateManager = App.createSourceStateManager()
+        this.stateManager = App.createSourceStateManager();
         this.getMhubAccess = async () => {
             const cookies = this.requestManager?.cookieStore?.getAllCookies() ?? [];
             let key;
@@ -1132,9 +1133,9 @@ class Mangahub extends types_1.Source {
             return key;
         };
         this.getUserAgent = async () => {
-            //await this.stateManager.store('userAgent', 'null')
-            //const storedUserAgent = await this.stateManager.retrieve('userAgent') as string
-            //if (storedUserAgent !== 'null') return storedUserAgent
+            const storedUserAgent = await this.stateManager.retrieve('userAgent');
+            if (storedUserAgent !== 'null')
+                return storedUserAgent;
             const userAgent = await this.requestManager.getDefaultUserAgent(); // Mozilla/5.0 (iPad; CPU OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148
             const regEx = /AppleWebKit\/([^\s]+)/;
             const match = userAgent.match(regEx);
@@ -1591,7 +1592,7 @@ class Mangahub extends types_1.Source {
     }
     async getCloudflareBypassRequestAsync() {
         // Remove stored UserAgent
-        //await this.stateManager.store('userAgent', 'null')
+        await this.stateManager.store('userAgent', 'null');
         // Clear old cookies
         this.requestManager?.cookieStore?.getAllCookies().forEach(x => { this.requestManager?.cookieStore?.removeCookie(x); });
         return App.createRequest({

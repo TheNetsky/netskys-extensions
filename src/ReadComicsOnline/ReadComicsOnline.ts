@@ -10,7 +10,8 @@ import {
     ContentRating,
     BadgeColor,
     Request,
-    Response
+    Response,
+    SourceIntents
 } from '@paperback/types'
 
 import {
@@ -39,7 +40,8 @@ export const ReadComicsOnlineInfo: SourceInfo = {
             text: 'Notifications',
             type: BadgeColor.GREEN
         }
-    ]
+    ],
+    intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
 export class ReadComicsOnline extends Source {

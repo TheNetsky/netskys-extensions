@@ -11,7 +11,8 @@ import {
     BadgeColor,
     Request,
     Response,
-    TagSection
+    TagSection,
+    SourceIntents
 } from '@paperback/types'
 
 import {
@@ -43,7 +44,8 @@ export const ComicOnlineFreeInfo: SourceInfo = {
             text: 'Notifications',
             type: BadgeColor.GREEN
         }
-    ]
+    ],
+    intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
 export class ComicOnlineFree extends Source {

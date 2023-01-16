@@ -11,7 +11,8 @@ import {
     TagSection,
     ContentRating,
     Request,
-    Response
+    Response,
+    SourceIntents
 } from '@paperback/types'
 
 import {
@@ -44,8 +45,10 @@ export const MangaHereInfo: SourceInfo = {
             text: 'Notifications',
             type: BadgeColor.GREEN
         }
-    ]
+    ],
+    intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
+
 export class MangaHere extends Source {
 
     readonly cookies = [App.createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })];

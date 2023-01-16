@@ -54,7 +54,6 @@ export const MangahubInfo: SourceInfo = {
         }
     ],
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
-
 }
 
 export class Mangahub extends Source {

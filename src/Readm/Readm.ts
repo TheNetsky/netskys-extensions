@@ -12,7 +12,8 @@ import {
     PartialSourceManga,
     ContentRating,
     Request,
-    Response
+    Response,
+    SourceIntents
 } from '@paperback/types'
 
 import {
@@ -45,7 +46,8 @@ export const ReadmInfo: SourceInfo = {
             text: 'Cloudflare',
             type: BadgeColor.RED
         }
-    ]
+    ],
+    intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
 export class Readm extends Source {

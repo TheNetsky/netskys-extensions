@@ -11,7 +11,8 @@ import {
     BadgeColor,
     Request,
     Response,
-    TagSection
+    TagSection,
+    SourceIntents
 } from '@paperback/types'
 
 import {
@@ -41,8 +42,10 @@ export const HentaiHereInfo: SourceInfo = {
             text: '18+',
             type: BadgeColor.YELLOW
         }
-    ]
+    ],
+    intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
+
 export class HentaiHere extends Source {
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,

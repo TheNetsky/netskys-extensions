@@ -9,7 +9,8 @@ import {
     SourceInfo,
     BadgeColor,
     TagSection,
-    ContentRating
+    ContentRating,
+    SourceIntents
 } from '@paperback/types'
 
 import {
@@ -43,7 +44,8 @@ export const MangaJarInfo: SourceInfo = {
             text: 'Buggy',
             type: BadgeColor.RED
         }
-    ]
+    ],
+    intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
 export class MangaJar extends Source {

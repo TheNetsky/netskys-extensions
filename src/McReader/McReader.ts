@@ -11,7 +11,8 @@ import {
     BadgeColor,
     Request,
     Response,
-    TagSection
+    TagSection,
+    SourceIntents
 } from '@paperback/types'
 
 import {
@@ -28,7 +29,7 @@ import {
 const MCR_DOMAIN = 'https://www.mreader.co'
 
 export const McReaderInfo: SourceInfo = {
-    version: '2.0.1',
+    version: '2.0.0',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -41,7 +42,8 @@ export const McReaderInfo: SourceInfo = {
             text: 'Notifications',
             type: BadgeColor.GREEN
         }
-    ]
+    ],
+    intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
 export class McReader extends Source {
@@ -81,7 +83,7 @@ export class McReader extends Source {
 
     override async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = App.createRequest({
-            url: `${MCR_DOMAIN}/manga/${mangaId}/all-chapters/`,
+            url: `${MCR_DOMAIN}/manga/${mangaId}`,
             method: 'GET'
         })
 

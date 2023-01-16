@@ -11,7 +11,8 @@ import {
     TagSection,
     ContentRating,
     Request,
-    Response
+    Response,
+    SourceIntents
 } from '@paperback/types'
 
 import {
@@ -41,7 +42,8 @@ export const MangaKatanaInfo: SourceInfo = {
             text: 'Notifications',
             type: BadgeColor.GREEN
         }
-    ]
+    ],
+    intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
 export class MangaKatana extends Source {

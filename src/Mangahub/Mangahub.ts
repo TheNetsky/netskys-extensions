@@ -15,7 +15,7 @@ import {
     Request,
     Response,
     Cookie,
-    SourceIntents,
+    SourceIntents
 } from '@paperback/types'
 
 import {
@@ -31,7 +31,7 @@ const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql'
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/'
 
 export const MangahubInfo: SourceInfo = {
-    version: '3.0.2',
+    version: '3.0.3',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -110,7 +110,7 @@ export class Mangahub extends Source {
 
     getUserAgent = async (): Promise<string> => {
         const storedUserAgent = await this.stateManager.retrieve('userAgent') as string
-        if (storedUserAgent !== 'null') return storedUserAgent
+        if (storedUserAgent && storedUserAgent !== 'null') return storedUserAgent
 
         const userAgent = await this.requestManager.getDefaultUserAgent() // Mozilla/5.0 (iPad; CPU OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148
         const regEx = /AppleWebKit\/([^\s]+)/
@@ -121,7 +121,7 @@ export class Mangahub extends Source {
             newUserAgent = userAgent.replace(match[1], `${Math.floor(Math.random() * 999)}.${Math.floor(Math.random() * 99)}.${Math.floor(Math.random() * 99)}`)
         }
 
-        //await this.stateManager.store('userAgent', newUserAgent)
+        await this.stateManager.store('userAgent', newUserAgent)
         return newUserAgent
     }
 

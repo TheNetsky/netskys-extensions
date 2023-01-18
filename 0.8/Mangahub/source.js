@@ -1060,7 +1060,7 @@ const MH_DOMAIN = 'https://mangahub.io';
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/';
 exports.MangahubInfo = {
-    version: '3.0.2',
+    version: '3.0.3',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1134,7 +1134,7 @@ class Mangahub extends types_1.Source {
         };
         this.getUserAgent = async () => {
             const storedUserAgent = await this.stateManager.retrieve('userAgent');
-            if (storedUserAgent !== 'null')
+            if (storedUserAgent && storedUserAgent !== 'null')
                 return storedUserAgent;
             const userAgent = await this.requestManager.getDefaultUserAgent(); // Mozilla/5.0 (iPad; CPU OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148
             const regEx = /AppleWebKit\/([^\s]+)/;
@@ -1143,7 +1143,7 @@ class Mangahub extends types_1.Source {
             if (match && match[1]) {
                 newUserAgent = userAgent.replace(match[1], `${Math.floor(Math.random() * 999)}.${Math.floor(Math.random() * 99)}.${Math.floor(Math.random() * 99)}`);
             }
-            //await this.stateManager.store('userAgent', newUserAgent)
+            await this.stateManager.store('userAgent', newUserAgent);
             return newUserAgent;
         };
     }

@@ -26,7 +26,7 @@ import {
 const HC_DOMAIN = 'https://hentai-cosplays.com'
 
 export const HentaiCosplayInfo: SourceInfo = {
-    version: '1.0.0',
+    version: '1.0.1',
     name: 'HentaiCosplay',
     icon: 'icon.png',
     author: 'Netsky',
@@ -79,13 +79,6 @@ export class HentaiCosplay extends Source {
     }
 
     override async getChapters(mangaId: string): Promise<Chapter[]> {
-        const request = App.createRequest({
-            url: `${HC_DOMAIN}/image/${mangaId}`,
-            method: 'GET'
-        })
-
-        const response = await this.requestManager.schedule(request, 1)
-        this.CloudFlareError(response.status)
         return parseChapters(mangaId)
     }
 

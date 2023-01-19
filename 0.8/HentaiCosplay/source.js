@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const HentaiCosplayParser_1 = require("./HentaiCosplayParser");
 const HC_DOMAIN = 'https://hentai-cosplays.com';
 exports.HentaiCosplayInfo = {
-    version: '1.0.0',
+    version: '1.0.1',
     name: 'HentaiCosplay',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1109,12 +1109,6 @@ class HentaiCosplay extends types_1.Source {
         return (0, HentaiCosplayParser_1.parseMangaDetails)($, mangaId);
     }
     async getChapters(mangaId) {
-        const request = App.createRequest({
-            url: `${HC_DOMAIN}/image/${mangaId}`,
-            method: 'GET'
-        });
-        const response = await this.requestManager.schedule(request, 1);
-        this.CloudFlareError(response.status);
         return (0, HentaiCosplayParser_1.parseChapters)(mangaId);
     }
     async getChapterDetails(mangaId) {

@@ -31,7 +31,7 @@ import {
 const MH_DOMAIN = 'https://mangahasu.se'
 
 export const MangaHasuInfo: SourceInfo = {
-    version: '1.0.1',
+    version: '1.0.2',
     name: 'MangaHasu',
     icon: 'icon.png',
     author: 'Netsky',
@@ -155,7 +155,7 @@ export class MangaHasu extends Source {
 
         switch (homepageSectionId) {
             case 'update':
-                param = `/latest-releases.html?page=2${page}`
+                param = `/latest-releases.html?page=${page}`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')

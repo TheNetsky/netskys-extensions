@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const MangaHasuParser_1 = require("./MangaHasuParser");
 const MH_DOMAIN = 'https://mangahasu.se';
 exports.MangaHasuInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'MangaHasu',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1145,7 +1145,7 @@ class MangaHasu extends types_1.Source {
         let param = '';
         switch (homepageSectionId) {
             case 'update':
-                param = `/latest-releases.html?page=2${page}`;
+                param = `/latest-releases.html?page=${page}`;
                 break;
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');

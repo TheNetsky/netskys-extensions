@@ -1,5 +1,4 @@
 import {
-    Source,
     SourceManga,
     Chapter,
     ChapterDetails,
@@ -12,7 +11,10 @@ import {
     ContentRating,
     Request,
     Response,
-    SourceIntents
+    SourceIntents,
+    ChapterProviding,
+    MangaProviding,
+    Searchable
 } from '@paperback/types'
 
 import {
@@ -32,7 +34,7 @@ const FF_DOMAIN = 'https://fanfox.net'
 const FF_DOMAIN_MOBILE = 'https://m.fanfox.net'
 
 export const MangaFoxInfo: SourceInfo = {
-    version: '3.0.0',
+    version: '3.0.1',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -49,9 +51,9 @@ export const MangaFoxInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class MangaFox extends Source {
+export class MangaFox implements Searchable, MangaProviding, ChapterProviding {
 
-    readonly cookies = [App.createCookie({ name: 'isAdult', value: '1', domain: 'fanfox.net' })];
+    constructor(private cheerio: CheerioAPI) { }
 
     requestManager = App.createRequestManager({
         requestsPerSecond: 5,
@@ -64,7 +66,10 @@ export class MangaFox extends Source {
                         'referer': `${FF_DOMAIN}/`,
                         'user-agent': await this.requestManager.getDefaultUserAgent()
                     }
-                }
+                },
+                request.cookies = [
+                    App.createCookie({ name: 'isAdult', value: '1', domain: 'fanfox.net' })
+                ]
                 return request
             },
             interceptResponse: async (response: Response): Promise<Response> => {
@@ -73,7 +78,7 @@ export class MangaFox extends Source {
         }
     });
 
-    override getMangaShareUrl(mangaId: string): string { return `${FF_DOMAIN}/manga/${mangaId}` }
+    getMangaShareUrl(mangaId: string): string { return `${FF_DOMAIN}/manga/${mangaId}` }
 
     async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
@@ -83,7 +88,7 @@ export class MangaFox extends Source {
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
@@ -91,39 +96,37 @@ export class MangaFox extends Source {
         const request = App.createRequest({
             url: `${FF_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId,
-            cookies: this.cookies
+            param: mangaId
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseChapters($)
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = App.createRequest({
             url: `${FF_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
-            method: 'GET',
-            cookies: this.cookies
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseChapterDetails($, mangaId, chapterId)
     }
 
-    override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
+    async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
         const request = App.createRequest({
             url: FF_DOMAIN,
             method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         parseHomeSections($, sectionCallback)
     }
 
-    override async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
+    async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
         const page: number = metadata?.page ?? 1
         let param = ''
 
@@ -148,7 +151,7 @@ export class MangaFox extends Source {
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         const manga = parseViewMore($, homepageSectionId)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -174,7 +177,7 @@ export class MangaFox extends Source {
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         const manga = parseSearch($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -184,14 +187,14 @@ export class MangaFox extends Source {
         })
     }
 
-    override async getTags(): Promise<TagSection[]> {
+    async getSearchTags(): Promise<TagSection[]> {
         const request = App.createRequest({
             url: `${FF_DOMAIN}/search?`,
             method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseTags($)
     }
 }

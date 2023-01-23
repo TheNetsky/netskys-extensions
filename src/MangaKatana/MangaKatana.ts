@@ -1,5 +1,4 @@
 import {
-    Source,
     SourceManga,
     Chapter,
     ChapterDetails,
@@ -12,7 +11,10 @@ import {
     ContentRating,
     Request,
     Response,
-    SourceIntents
+    SourceIntents,
+    ChapterProviding,
+    MangaProviding,
+    Searchable
 } from '@paperback/types'
 
 import {
@@ -29,7 +31,7 @@ import {
 const MK_DOMAIN = 'https://mangakatana.com'
 
 export const MangaKatanaInfo: SourceInfo = {
-    version: '3.0.0',
+    version: '3.0.1',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
@@ -46,7 +48,10 @@ export const MangaKatanaInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class MangaKatana extends Source {
+export class MangaKatana implements Searchable, MangaProviding, ChapterProviding {
+
+    constructor(private cheerio: CheerioAPI) { }
+
     requestManager = App.createRequestManager({
         requestsPerSecond: 5,
         requestTimeout: 20000,
@@ -67,7 +72,7 @@ export class MangaKatana extends Source {
         }
     });
 
-    override getMangaShareUrl(mangaId: string): string { return `${MK_DOMAIN}/manga/${mangaId}` }
+    getMangaShareUrl(mangaId: string): string { return `${MK_DOMAIN}/manga/${mangaId}` }
 
     async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
@@ -77,7 +82,7 @@ export class MangaKatana extends Source {
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
@@ -89,7 +94,7 @@ export class MangaKatana extends Source {
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseChapters($)
     }
 
@@ -103,28 +108,28 @@ export class MangaKatana extends Source {
         return parseChapterDetails(response.data, mangaId, chapterId)
     }
 
-    override async getTags(): Promise<TagSection[]> {
+    async getSearchTags(): Promise<TagSection[]> {
         const request = App.createRequest({
             url: `${MK_DOMAIN}/genres`,
             method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseTags($)
     }
 
-    override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
+    async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
         const request = App.createRequest({
             url: MK_DOMAIN,
             method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         parseHomeSections($, sectionCallback)
     }
-    override async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
+    async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
         const page: number = metadata?.page ?? 1
         let param = ''
 
@@ -146,7 +151,7 @@ export class MangaKatana extends Source {
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         const manga = parseViewMore($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -175,7 +180,7 @@ export class MangaKatana extends Source {
         }
         
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         const manga = parseSearch($)
         
         metadata = !isLastPage($) ? { page: page + 1 } : undefined

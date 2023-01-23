@@ -1,5 +1,4 @@
 import {
-    Source,
     SourceManga,
     Chapter,
     ChapterDetails,
@@ -11,7 +10,10 @@ import {
     BadgeColor,
     Request,
     Response,
-    SourceIntents
+    SourceIntents,
+    ChapterProviding,
+    MangaProviding,
+    Searchable
 } from '@paperback/types'
 
 import {
@@ -27,7 +29,7 @@ import {
 const RCO_DOMAIN = 'https://readcomicsonline.ru'
 
 export const ReadComicsOnlineInfo: SourceInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'ReadComicsOnline',
     icon: 'icon.png',
     author: 'Netsky',
@@ -44,7 +46,10 @@ export const ReadComicsOnlineInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class ReadComicsOnline extends Source {
+export class ReadComicsOnline implements Searchable, MangaProviding, ChapterProviding {
+
+    constructor(private cheerio: CheerioAPI) { }
+
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15000,
@@ -67,9 +72,9 @@ export class ReadComicsOnline extends Source {
     })
 
 
-    override getMangaShareUrl(mangaId: string): string { return `${RCO_DOMAIN}/comic/${mangaId}` }
+    getMangaShareUrl(mangaId: string): string { return `${RCO_DOMAIN}/comic/${mangaId}` }
 
-    override async getMangaDetails(mangaId: string): Promise<SourceManga> {
+    async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
             url: `${RCO_DOMAIN}/comic/`,
             method: 'GET',
@@ -78,48 +83,48 @@ export class ReadComicsOnline extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
-    override async getChapters(mangaId: string): Promise<Chapter[]> {
+    async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = App.createRequest({
             url: `${RCO_DOMAIN}/comic/`,
             method: 'GET',
-            param: mangaId,
+            param: mangaId
         })
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseChapters($)
     }
 
-    override async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
+    async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = App.createRequest({
             url: `${RCO_DOMAIN}/comic/${mangaId}/${chapterId}`,
-            method: 'GET',
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseChapterDetails($, mangaId, chapterId)
     }
 
-    override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
+    async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
         const request = App.createRequest({
             url: RCO_DOMAIN,
-            method: 'GET',
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         parseHomeSections($, sectionCallback)
     }
 
-    override async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
+    async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
         const page: number = metadata?.page ?? 1
         let param = ''
 
@@ -142,7 +147,7 @@ export class ReadComicsOnline extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
 
         const manga = parseViewMore($)
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -152,7 +157,7 @@ export class ReadComicsOnline extends Source {
         })
     }
 
-    override async getSearchResults(query: SearchRequest): Promise<PagedResults> {
+    async getSearchResults(query: SearchRequest): Promise<PagedResults> {
         const request = App.createRequest({
             url: `${RCO_DOMAIN}/search?query=${encodeURI(query.title ?? '')}`,
             method: 'GET'
@@ -163,7 +168,7 @@ export class ReadComicsOnline extends Source {
         const manga = parseSearch(response.data)
 
         return App.createPagedResults({
-            results: manga,
+            results: manga
         })
 
     }
@@ -174,7 +179,7 @@ export class ReadComicsOnline extends Source {
         }
     }
 
-    override async getCloudflareBypassRequestAsync(): Promise<Request> {
+    async getCloudflareBypassRequestAsync(): Promise<Request> {
         return App.createRequest({
             url: RCO_DOMAIN,
             method: 'GET',

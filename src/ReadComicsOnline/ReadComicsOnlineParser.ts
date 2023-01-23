@@ -5,14 +5,15 @@ import {
     HomeSection,
     SourceManga,
     PartialSourceManga,
-    TagSection
+    TagSection,
+    HomeSectionType
 } from '@paperback/types'
 
 import entities = require('entities')
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
     const titles: string[] = []
-    
+
     titles.push(decodeHTMLEntity($('h2.listmanga-header').first().text().trim()))
 
     let image: string = $('img', 'div.boxed').attr('src') ?? ''
@@ -32,8 +33,8 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     const tagSections: TagSection[] = [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })]
 
     const rawStatus: string = $('span.label').text().trim() ?? ''
-    let status = 'ONGOING'
-    if (rawStatus.toUpperCase().includes('COMPLETED')) status = 'COMPLETED'
+    let status = 'Ongoing'
+    if (rawStatus.toUpperCase().includes('COMPLETED')) status = 'Completed'
 
     return App.createSourceManga({
         id: mangaId,
@@ -68,7 +69,7 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
         chapters.push(App.createChapter({
             id: chapterId,
             name: decodeHTMLEntity(title),
-            langCode: 'ENGLISH',
+            langCode: 'ENG',
             chapNum: isNaN(chapNum) ? 0 : chapNum,
             time: date,
             sortingIndex
@@ -99,17 +100,17 @@ export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId
 export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: HomeSection) => void): void => {
     const hotSection = App.createHomeSection({
         id: 'hot_comic', title: 'Hot Comics', containsMoreItems: false,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
-    
+
     const latestSection = App.createHomeSection({
         id: 'latest_comic', title: 'Latest Comics', containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     const popularSection = App.createHomeSection({
         id: 'popular_comic', title: 'Most Popular Comics', containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     // Hot
@@ -231,7 +232,7 @@ export const parseSearch = (data: any): PartialSourceManga[] => {
 
 export const isLastPage = ($: CheerioStatic): boolean => {
     let isLast = false
-    const pages = []
+    const pages: number[] = []
 
     for (const page of $('li', 'ul.pagination').toArray()) {
         const p = Number($(page).text().trim())

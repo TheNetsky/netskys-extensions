@@ -1,5 +1,4 @@
 import {
-    Source,
     SourceManga,
     Chapter,
     ChapterDetails,
@@ -10,7 +9,12 @@ import {
     BadgeColor,
     TagSection,
     ContentRating,
-    SourceIntents
+    SourceIntents,
+    ChapterProviding,
+    MangaProviding,
+    Searchable,
+    Response,
+    Request
 } from '@paperback/types'
 
 import {
@@ -27,7 +31,7 @@ import {
 const MJ_DOMAIN = 'https://mangajar.com'
 
 export const MangaJarInfo: SourceInfo = {
-    version: '3.0.0',
+    version: '3.0.1',
     name: 'MangaJar',
     icon: 'icon.png',
     author: 'Netsky',
@@ -39,38 +43,42 @@ export const MangaJarInfo: SourceInfo = {
         {
             text: 'Notifications',
             type: BadgeColor.GREEN
-        },
-        {
-            text: 'Buggy',
-            type: BadgeColor.RED
         }
     ],
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class MangaJar extends Source {
-    readonly cookies = [
-        App.createCookie({ name: 'adultConfirmed', value: '1', domain: 'mangajar.com' }),
-        App.createCookie({ name: 'readingMode', value: 'v', domain: 'mangajar.com' })
-    ];
+export class MangaJar implements Searchable, MangaProviding, ChapterProviding {
+
+    constructor(private cheerio: CheerioAPI) { }
 
     requestManager = App.createRequestManager({
         requestsPerSecond: 5,
-        requestTimeout: 20000
+        requestTimeout: 20000,
+        interceptor: {
+            interceptRequest: async (request: Request): Promise<Request> => {
+                request.cookies = [
+                    App.createCookie({ name: 'adultConfirmed', value: '1', domain: 'mangajar.com' }),
+                    App.createCookie({ name: 'readingMode', value: 'v', domain: 'mangajar.com' })]
+                return request
+            },
+            interceptResponse: async (response: Response): Promise<Response> => {
+                return response
+            }
+        }
     });
 
-    override getMangaShareUrl(mangaId: string): string { return `${MJ_DOMAIN}/manga/${mangaId}` }
+    getMangaShareUrl(mangaId: string): string { return `${MJ_DOMAIN}/manga/${mangaId}` }
 
     async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
             url: `${MJ_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId,
-            cookies: this.cookies
+            param: mangaId
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
@@ -83,12 +91,11 @@ export class MangaJar extends Source {
             const request = App.createRequest({
                 url: `${MJ_DOMAIN}/manga/${mangaId}/chaptersList`,
                 method: 'GET',
-                param: `?infinite=1&page=${page++}`,
-                cookies: this.cookies
+                param: `?infinite=1&page=${page++}`
             })
 
             const response = await this.requestManager.schedule(request, 1)
-            const $ = this.cheerio.load(response.data)
+            const $ = this.cheerio.load(response.data as string)
 
             isLast = !isLastPage($) ? false : true
             chapters = chapters.concat(parseChapters($, mangaId))
@@ -99,28 +106,26 @@ export class MangaJar extends Source {
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = App.createRequest({
             url: `${MJ_DOMAIN}/manga/${mangaId}/chapter/${chapterId}`,
-            method: 'GET',
-            cookies: this.cookies
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseChapterDetails($, mangaId, chapterId)
     }
 
-    override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
+    async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
         const request = App.createRequest({
             url: MJ_DOMAIN,
-            method: 'GET',
-            cookies: this.cookies
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         parseHomeSections($, sectionCallback)
     }
 
-    override async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
+    async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
         const page: number = metadata?.page ?? 1
         let param = ''
 
@@ -144,12 +149,11 @@ export class MangaJar extends Source {
         const request = App.createRequest({
             url: MJ_DOMAIN,
             method: 'GET',
-            param,
-            cookies: this.cookies
+            param
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         const manga = parseViewMore($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -166,12 +170,11 @@ export class MangaJar extends Source {
             const request = App.createRequest({
                 url: `${MJ_DOMAIN}/search?q=`,
                 method: 'GET',
-                param: `${encodeURI(query.title)}&page=${page}`,
-                cookies: this.cookies
+                param: `${encodeURI(query.title)}&page=${page}`
             })
 
             const response = await this.requestManager.schedule(request, 1)
-            const $ = this.cheerio.load(response.data)
+            const $ = this.cheerio.load(response.data as string)
             const manga = parseSearch($, false)
 
             metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -184,14 +187,13 @@ export class MangaJar extends Source {
             const request = App.createRequest({
                 url: MJ_DOMAIN,
                 method: 'GET',
-                param: `/genre/${query?.includedTags?.map((x: any) => x.id)[0]}?page=${page}`,
-                cookies: this.cookies
+                param: `/genre/${query?.includedTags?.map((x: any) => x.id)[0]}?page=${page}`
             })
 
             const response = await this.requestManager.schedule(request, 1)
-            const $ = this.cheerio.load(response.data)
+            const $ = this.cheerio.load(response.data as string)
             const manga = parseSearch($, true)
-            
+
             metadata = !isLastPage($) ? { page: page + 1 } : undefined
             return App.createPagedResults({
                 results: manga,
@@ -200,15 +202,14 @@ export class MangaJar extends Source {
         }
     }
 
-    override async getTags(): Promise<TagSection[]> {
+    async getSearchTags(): Promise<TagSection[]> {
         const request = App.createRequest({
             url: `${MJ_DOMAIN}/genre`,
-            method: 'GET',
-            cookies: this.cookies
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseTags($)
     }
 }

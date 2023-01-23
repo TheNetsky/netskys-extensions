@@ -9,7 +9,7 @@ import {
     HomeSectionType
 } from '@paperback/types'
 
-import entities = require('entities');
+import entities = require('entities')
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
     const titles: string[] = []
@@ -43,13 +43,13 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     let status = 'ONGOING'
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
         case 'COMPLETED':
-            status = 'COMPLETED'
+            status = 'Completed'
             break
         default:
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
     }
 
@@ -59,8 +59,8 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
             titles: titles,
             image: image,
             status: status,
-            author: artist == '-' ? 'N/A' : artist,
-            artist: artist == '-' ? 'N/A' : artist,
+            author: artist == '-' ? '' : artist,
+            artist: artist == '-' ? '' : artist,
             tags: tagSections,
             desc: description
         })
@@ -75,7 +75,7 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
         const chapterIdRaw = $('a', chapter).attr('href') ?? ''
         const chapterIdRegex = chapterIdRaw?.match(/m\/[A-z0-9]+\/(\d+)/)
 
-        let chapterId = null
+        let chapterId: string | null = null
         if (chapterIdRegex && chapterIdRegex[1]) chapterId = chapterIdRegex[1]
 
         if (!chapterId) continue
@@ -123,14 +123,14 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         id: 'newest',
         title: 'Recently Added',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     const trendingSection = App.createHomeSection({
         id: 'trending',
         title: 'Trending',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     // Staff Pick
@@ -247,7 +247,7 @@ export const parseSearch = ($: CheerioStatic): PartialSourceManga[] => {
 
 export const isLastPage = ($: CheerioStatic): boolean => {
     let isLast = false
-    const pages = []
+    const pages: number[] = []
 
     for (const page of $('li', 'ul.pagination').toArray()) {
         const p = Number($(page).text().trim())

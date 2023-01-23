@@ -38,16 +38,16 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     let status = 'ONGOING'
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
         case 'COMPLETED':
-            status = 'COMPLETED'
+            status = 'Completed'
             break
         default:
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
     }
-    
+
     return App.createSourceManga({
         id: mangaId,
         mangaInfo: App.createMangaInfo({
@@ -120,14 +120,14 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         id: 'new',
         title: 'New',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     const updateSection = App.createHomeSection({
         id: 'updated',
         title: 'Latest Updated',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     // Most Viewed
@@ -259,7 +259,7 @@ export const parseSearch = ($: CheerioStatic): PartialSourceManga[] => {
 
 export const isLastPage = ($: CheerioStatic): boolean => {
     let isLast = false
-    const pages = []
+    const pages: number[] = []
 
     for (const page of $('li', 'ul.pagination').toArray()) {
         const p = Number($(page).text().trim())

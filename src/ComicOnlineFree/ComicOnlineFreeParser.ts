@@ -9,7 +9,7 @@ import {
     HomeSectionType
 } from '@paperback/types'
 
-import entities = require('entities');
+import entities = require('entities')
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
     const titles: string[] = []
@@ -37,13 +37,13 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     let status = 'ONGOING'
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
         case 'COMPLETED':
-            status = 'COMPLETED'
+            status = 'Completed'
             break
         default:
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
     }
 
@@ -121,14 +121,14 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         id: 'hot',
         title: 'Hot Comics',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     const updateSection = App.createHomeSection({
         id: 'update',
         title: 'Latest Updates Comics',
         containsMoreItems: false,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     // Popular
@@ -262,7 +262,7 @@ const decodeHTMLEntity = (str: string): string => {
 
 export const isLastPage = ($: CheerioStatic): boolean => {
     let isLast = false
-    const items = []
+    const items: string[] = []
 
     for (const page of $('a', 'div.general-nav').toArray()) {
         items.push($(page).text().trim().toLowerCase())

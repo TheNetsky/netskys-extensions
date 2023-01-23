@@ -5,7 +5,8 @@ import {
     HomeSection,
     SourceManga,
     PartialSourceManga,
-    TagSection
+    TagSection,
+    HomeSectionType
 } from '@paperback/types'
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
@@ -30,13 +31,13 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     let status = 'ONGOING'
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
         case 'COMPLETED':
-            status = 'COMPLETED'
+            status = 'Completed'
             break
         default:
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
     }
 
@@ -63,7 +64,7 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
         const chapterIdRaw = $(chapter).attr('href')?.trim()
         const chapterIdRegex = chapterIdRaw?.match(/\/manga\/[a-zA-Z0-9_]*\/(.*)\//)
 
-        let chapterId = null
+        let chapterId: string | null = null
         if (chapterIdRegex && chapterIdRegex[1]) chapterId = chapterIdRegex[1]
 
         if (!chapterId) continue
@@ -114,7 +115,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
                 id: 'hot_release',
                 title: 'Hot Manga Releases',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: HomeSectionType.singleRowNormal
             }),
             selector: $('div.manga-list-1').get(0)
         },
@@ -123,7 +124,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
                 id: 'being_read',
                 title: 'Being Read Right Now',
                 containsMoreItems: false,
-                type: 'singleRowNormal'
+                type: HomeSectionType.singleRowNormal
             }),
             selector: $('div.manga-list-1').get(1)
         },
@@ -132,7 +133,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
                 id: 'recommended',
                 title: 'Recommended',
                 containsMoreItems: false,
-                type: 'singleRowNormal'
+                type: HomeSectionType.singleRowNormal
             }),
             selector: $('div.manga-list-3')
         },
@@ -141,7 +142,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
                 id: 'new_manga',
                 title: 'New Manga Releases',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: HomeSectionType.singleRowNormal
             }),
             selector: $('div.manga-list-1').get(2)
         }
@@ -179,7 +180,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         id: 'latest_updates',
         title: 'Latest Updates',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     const latestManga: PartialSourceManga[] = []
@@ -313,7 +314,7 @@ const parseDate = (date: string): Date => {
 
 export const isLastPage = ($: CheerioStatic): boolean => {
     let isLast = true
-    const pages = []
+    const pages: number[] = []
 
     for (const page of $('a', '.pager-list-left').toArray()) {
         const p = Number($(page).text().trim())

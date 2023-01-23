@@ -1,5 +1,4 @@
 import {
-    Source,
     SourceManga,
     Chapter,
     ChapterDetails,
@@ -13,7 +12,10 @@ import {
     ContentRating,
     Request,
     Response,
-    SourceIntents
+    SourceIntents,
+    ChapterProviding,
+    MangaProviding,
+    Searchable
 } from '@paperback/types'
 
 import {
@@ -29,7 +31,7 @@ import {
 const RM_DOMAIN = 'https://readm.org'
 
 export const ReadmInfo: SourceInfo = {
-    version: '2.1.0',
+    version: '2.1.1',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -50,7 +52,10 @@ export const ReadmInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class Readm extends Source {
+export class Readm implements Searchable, MangaProviding, ChapterProviding {
+
+    constructor(private cheerio: CheerioAPI) { }
+
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15000,
@@ -71,9 +76,9 @@ export class Readm extends Source {
         }
     });
 
-    override getMangaShareUrl(mangaId: string): string { return `${RM_DOMAIN}/manga/${mangaId}` }
+    getMangaShareUrl(mangaId: string): string { return `${RM_DOMAIN}/manga/${mangaId}` }
 
-    override async getMangaDetails(mangaId: string): Promise<SourceManga> {
+    async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
             url: `${RM_DOMAIN}/manga/`,
             method: 'GET',
@@ -85,11 +90,11 @@ export class Readm extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
-    override async getChapters(mangaId: string): Promise<Chapter[]> {
+    async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = App.createRequest({
             url: `${RM_DOMAIN}/manga/`,
             method: 'GET',
@@ -98,11 +103,11 @@ export class Readm extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseChapters($)
     }
 
-    override async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
+    async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = App.createRequest({
             url: `${RM_DOMAIN}/manga/${mangaId}/${chapterId}`,
             method: 'GET',
@@ -111,11 +116,11 @@ export class Readm extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data, { xmlMode: false })
+        const $ = this.cheerio.load(response.data as string, { xmlMode: false })
         return parseChapterDetails($, mangaId, chapterId)
     }
 
-    override async getTags(): Promise<TagSection[]> {
+    async getSearchTags(): Promise<TagSection[]> {
         const request = App.createRequest({
             url: RM_DOMAIN,
             method: 'GET'
@@ -123,11 +128,11 @@ export class Readm extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseTags($) || []
     }
 
-    override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
+    async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
         const request = App.createRequest({
             url: RM_DOMAIN,
             method: 'GET'
@@ -135,11 +140,11 @@ export class Readm extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         parseHomeSections($, sectionCallback)
     }
 
-    override async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
+    async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
         const page: number = metadata?.page ?? 1
         let param = ''
 
@@ -162,7 +167,7 @@ export class Readm extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         const manga = parseViewMore($, homepageSectionId)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -172,7 +177,7 @@ export class Readm extends Source {
         })
     }
 
-    override async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
+    async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
         const page: number = metadata?.page ?? 1
 
         // Regular search
@@ -232,7 +237,7 @@ export class Readm extends Source {
 
             const response = await this.requestManager.schedule(request, 1)
             this.CloudFlareError(response.status)
-            const $ = this.cheerio.load(response.data)
+            const $ = this.cheerio.load(response.data as string)
             const manga = parseViewMore($, 'popular_manga')
 
             metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -249,7 +254,7 @@ export class Readm extends Source {
         }
     }
 
-    override async getCloudflareBypassRequestAsync(): Promise<Request> {
+    async getCloudflareBypassRequestAsync(): Promise<Request> {
         return App.createRequest({
             url: RM_DOMAIN,
             method: 'GET',

@@ -5,13 +5,14 @@ import {
     HomeSection,
     SourceManga,
     PartialSourceManga,
-    TagSection
+    TagSection,
+    HomeSectionType
 } from '@paperback/types'
 
-import entities = require('entities');
+import entities = require('entities')
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
-    const titles = []
+    const titles: string[] = []
 
     titles.push(decodeHTMLEntity($('span.post-name', 'div.card-body').text().trim())) // Main English Title
     titles.push(decodeHTMLEntity($('h2.post-name-jp.h5', 'div.row').text().trim())) // Japanese Title
@@ -34,13 +35,13 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     let status = 'ONGOING'
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
         case 'COMPLETED':
-            status = 'COMPLETED'
+            status = 'Completed'
             break
         default:
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
     }
 
@@ -100,7 +101,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
                 id: 'hot_update',
                 title: 'Top Manga Updates',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: HomeSectionType.singleRowNormal
             }),
             selector: $('div.row.splider').get(0)
         },
@@ -109,7 +110,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
                 id: 'new_trending',
                 title: 'New Trending',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: HomeSectionType.singleRowNormal
             }),
             selector: $('div.row.splider').get(1)
         },
@@ -118,7 +119,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
                 id: 'popular_manga',
                 title: 'Popular Manga',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: HomeSectionType.singleRowNormal
             }),
             selector: $('div.row.splider').get(2)
         },
@@ -127,7 +128,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
                 id: 'new_manga',
                 title: 'Recently Added',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: HomeSectionType.singleRowNormal
             }),
             selector: $('div.row.splider').get(3)
         }
@@ -299,7 +300,7 @@ const getImageSrc = (imageObj: Cheerio | undefined): string => {
 
 export const isLastPage = ($: CheerioStatic): boolean => {
     let isLast = false
-    const pages = []
+    const pages: number[] = []
 
     for (const page of $('li.page-item').toArray()) {
         const p = Number($(page).text().trim())

@@ -8,7 +8,7 @@ import {
     HomeSectionType
 } from '@paperback/types'
 
-import entities = require('entities');
+import entities = require('entities')
 
 const MH_CDN_THUMBS_DOMAIN = 'https://thumb.mghubcdn.com'
 
@@ -41,13 +41,13 @@ export const parseMangaDetails = (data: any, mangaId: string): SourceManga => {
     let status = 'ONGOING'
     switch (data.status.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
         case 'COMPLETED':
-            status = 'COMPLETED'
+            status = 'Completed'
             break
         default:
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
     }
     return App.createSourceManga({
@@ -56,8 +56,8 @@ export const parseMangaDetails = (data: any, mangaId: string): SourceManga => {
             titles: titles,
             image: data?.image ? `${MH_CDN_THUMBS_DOMAIN}/${data.image}` : '',
             status: status,
-            author: author == '' ? 'Unknown' : author,
-            artist: artist == '' ? 'Unknown' : artist,
+            author: author == '' ? '' : author,
+            artist: artist == '' ? '' : artist,
             tags: tagSections,
             desc: description
         })
@@ -100,7 +100,7 @@ export const parseHomeSections = (data: any, sectionCallback: (section: HomeSect
                 id: 'popular_update',
                 title: 'Popular Updates',
                 containsMoreItems: false,
-                type: 'singleRowNormal'
+                type: HomeSectionType.singleRowNormal
             })
         },
         {
@@ -109,7 +109,7 @@ export const parseHomeSections = (data: any, sectionCallback: (section: HomeSect
                 id: 'latest_update',
                 title: 'Latest Updates',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: HomeSectionType.singleRowNormal
             })
         },
         {
@@ -118,7 +118,7 @@ export const parseHomeSections = (data: any, sectionCallback: (section: HomeSect
                 id: 'new_manga',
                 title: 'New Manga',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: HomeSectionType.singleRowNormal
             })
         },
         {
@@ -127,7 +127,7 @@ export const parseHomeSections = (data: any, sectionCallback: (section: HomeSect
                 id: 'completed_manga',
                 title: 'Completed Manga',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: HomeSectionType.singleRowNormal
             })
         }
     ]
@@ -196,7 +196,7 @@ export const parseViewMore = (homepageSectionId: string, data: any): PartialSour
     return moreManga
 }
 
-export const parseSearch = (data: any): any[] => {
+export const parseSearch = (data: any): PartialSourceManga[] => {
     const collectedIds: string[] = []
     const searchResults: PartialSourceManga[] = []
 

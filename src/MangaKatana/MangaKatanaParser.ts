@@ -5,20 +5,21 @@ import {
     HomeSection,
     SourceManga,
     PartialSourceManga,
-    TagSection
+    TagSection,
+    HomeSectionType
 } from '@paperback/types'
 
-import entities = require('entities');
+import entities = require('entities')
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
-    const titles = []
+    const titles: string[] = []
 
     titles.push(decodeHTMLEntity($('h1.heading').first().text().trim()))
     const altTitles = $('div.alt_name').text().split(';')
     for (const title of altTitles) {
         titles.push(decodeHTMLEntity(title.trim()))
     }
-    
+
     const image = $('div.media div.cover img').attr('src') ?? ''
     const author = $('.author').text().trim()
     const description = decodeHTMLEntity($('.summary > p').text().trim())
@@ -37,13 +38,13 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     let status = 'ONGOING'
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
         case 'COMPLETED':
-            status = 'COMPLETED'
+            status = 'Completed'
             break
         default:
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
     }
 
@@ -132,21 +133,21 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         id: 'hot_update',
         title: 'Hot Updates',
         containsMoreItems: false,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     const hotSection = App.createHomeSection({
         id: 'hot_manga',
         title: 'Hot Manga',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     const latestSection = App.createHomeSection({
         id: 'latest_updates',
         title: 'Latest Updates',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     // Hot Update

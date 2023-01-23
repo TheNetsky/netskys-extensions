@@ -7,7 +7,7 @@ import {
     TagSection
 } from '@paperback/types'
 
-import entities = require('entities');
+import entities = require('entities')
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
     const title: string = $('meta[property="og:description"]').attr('content')?.trim() ?? ''

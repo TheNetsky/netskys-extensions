@@ -1,5 +1,4 @@
 import {
-    Source,
     SourceManga,
     Chapter,
     ChapterDetails,
@@ -11,7 +10,10 @@ import {
     BadgeColor,
     Request,
     Response,
-    SourceIntents
+    SourceIntents,
+    ChapterProviding,
+    MangaProviding,
+    Searchable
 } from '@paperback/types'
 
 import {
@@ -26,7 +28,7 @@ import {
 const HC_DOMAIN = 'https://hentai-cosplays.com'
 
 export const HentaiCosplayInfo: SourceInfo = {
-    version: '1.0.1',
+    version: '1.0.2',
     name: 'HentaiCosplay',
     icon: 'icon.png',
     author: 'Netsky',
@@ -43,7 +45,10 @@ export const HentaiCosplayInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class HentaiCosplay extends Source {
+export class HentaiCosplay implements Searchable, MangaProviding, ChapterProviding {
+
+    constructor(private cheerio: CheerioAPI) { }
+
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15000,
@@ -64,9 +69,9 @@ export class HentaiCosplay extends Source {
         }
     });
 
-    override getMangaShareUrl(mangaId: string): string { return `${HC_DOMAIN}/image/${mangaId}` }
+    getMangaShareUrl(mangaId: string): string { return `${HC_DOMAIN}/image/${mangaId}` }
 
-    override async getMangaDetails(mangaId: string): Promise<SourceManga> {
+    async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
             url: `${HC_DOMAIN}/image/${mangaId}`,
             method: 'GET'
@@ -74,15 +79,15 @@ export class HentaiCosplay extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
-    override async getChapters(mangaId: string): Promise<Chapter[]> {
+    async getChapters(mangaId: string): Promise<Chapter[]> {
         return parseChapters(mangaId)
     }
 
-    override async getChapterDetails(mangaId: string): Promise<ChapterDetails> {
+    async getChapterDetails(mangaId: string): Promise<ChapterDetails> {
         const request = App.createRequest({
             url: `${HC_DOMAIN}/story/${mangaId}`,
             method: 'GET'
@@ -91,11 +96,11 @@ export class HentaiCosplay extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseChapterDetails($, mangaId)
     }
 
-    override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
+    async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
         const request = App.createRequest({
             url: HC_DOMAIN,
             method: 'GET'
@@ -103,11 +108,11 @@ export class HentaiCosplay extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         parseHomeSections($, sectionCallback)
     }
 
-    override async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
+    async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
         if (metadata?.completed) return metadata
 
         const page: number = metadata?.page ?? 1
@@ -132,7 +137,7 @@ export class HentaiCosplay extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         const manga = parseViewMore($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -155,7 +160,7 @@ export class HentaiCosplay extends Source {
         }
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         const manga = parseViewMore($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -171,7 +176,7 @@ export class HentaiCosplay extends Source {
         }
     }
 
-    override async getCloudflareBypassRequestAsync(): Promise<Request> {
+    async getCloudflareBypassRequestAsync(): Promise<Request> {
         return App.createRequest({
             url: HC_DOMAIN,
             method: 'GET',

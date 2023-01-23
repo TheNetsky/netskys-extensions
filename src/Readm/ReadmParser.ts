@@ -5,10 +5,11 @@ import {
     HomeSection,
     SourceManga,
     PartialSourceManga,
-    TagSection
+    TagSection,
+    HomeSectionType
 } from '@paperback/types'
 
-import entities = require('entities');
+import entities = require('entities')
 
 const RM_DOMAIN = 'https://readm.org'
 
@@ -43,16 +44,16 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     let status = 'ONGOING'
     switch (rawStatus.toLocaleUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
         case 'COMPLETED':
-            status = 'COMPLETED'
+            status = 'Completed'
             break
         default:
-            status = 'ONGOING'
+            status = 'Ongoing'
             break
     }
-    
+
     return App.createSourceManga({
         id: mangaId,
         mangaInfo: App.createMangaInfo({
@@ -75,7 +76,7 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
         const rawChapterId: string = $('a', chapter).attr('href') ?? ''
         const chapRegex = rawChapterId.match(/\/manga\/(?:.*)\/(.+)\//)
 
-        let chapterId = null
+        let chapterId: string | null = null
         if (chapRegex && chapRegex[1]) chapterId = chapRegex[1]
 
         const chapNumRegex = title.match(/(\d+\.?\d?)+/)
@@ -136,28 +137,28 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         id: 'hot_update',
         title: 'Hot Manga Updates',
         containsMoreItems: false,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     const popularMangaSection = App.createHomeSection({
         id: 'popular_manga',
         title: 'Popular Manga',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     const latestUpdateSection = App.createHomeSection({
         id: 'latest_updates',
         title: 'Latest Updates',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     const newMangaSection = App.createHomeSection({
         id: 'new_manga',
         title: 'New Manga',
         containsMoreItems: false,
-        type: 'singleRowNormal'
+        type: HomeSectionType.singleRowNormal
     })
 
     // Hot Update
@@ -168,7 +169,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
 
         const idRegex = rawId.match(/\/manga\/(.*?)\//)
 
-        let id = null
+        let id: string | null = null
         if (idRegex && idRegex[1]) id = idRegex[1]
 
         const parseImage = getImageSrc($('img', manga))

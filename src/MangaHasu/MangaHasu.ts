@@ -1,5 +1,4 @@
 import {
-    Source,
     SourceManga,
     Chapter,
     ChapterDetails,
@@ -12,7 +11,10 @@ import {
     Request,
     Response,
     TagSection,
-    SourceIntents
+    SourceIntents,
+    ChapterProviding,
+    MangaProviding,
+    Searchable
 } from '@paperback/types'
 
 import {
@@ -28,7 +30,7 @@ import {
 const MH_DOMAIN = 'https://mangahasu.se'
 
 export const MangaHasuInfo: SourceInfo = {
-    version: '2.0.1',
+    version: '2.0.2',
     name: 'MangaHasu',
     icon: 'icon.png',
     author: 'Netsky',
@@ -45,7 +47,10 @@ export const MangaHasuInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class MangaHasu extends Source {
+export class MangaHasu implements Searchable, MangaProviding, ChapterProviding {
+
+    constructor(private cheerio: CheerioAPI) { }
+
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15000,
@@ -66,9 +71,9 @@ export class MangaHasu extends Source {
         }
     });
 
-    override getMangaShareUrl(mangaId: string): string { return `${MH_DOMAIN}/${mangaId}` }
+    getMangaShareUrl(mangaId: string): string { return `${MH_DOMAIN}/${mangaId}` }
 
-    override async getMangaDetails(mangaId: string): Promise<SourceManga> {
+    async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
             url: `${MH_DOMAIN}/${mangaId}`,
             method: 'GET'
@@ -76,11 +81,11 @@ export class MangaHasu extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
-    override async getChapters(mangaId: string): Promise<Chapter[]> {
+    async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = App.createRequest({
             url: `${MH_DOMAIN}/${mangaId}`,
             method: 'GET'
@@ -88,11 +93,11 @@ export class MangaHasu extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseChapters($)
     }
 
-    override async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
+    async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = App.createRequest({
             url: `${MH_DOMAIN}/${chapterId}`,
             method: 'GET'
@@ -100,11 +105,11 @@ export class MangaHasu extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseChapterDetails($, mangaId, chapterId)
     }
 
-    override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
+    async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
         const request = App.createRequest({
             url: MH_DOMAIN,
             method: 'GET'
@@ -112,11 +117,11 @@ export class MangaHasu extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         parseHomeSections($, sectionCallback)
     }
 
-    override async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
+    async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
         if (metadata?.completed) return metadata
 
         const page: number = metadata?.page ?? 1
@@ -138,7 +143,7 @@ export class MangaHasu extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         const manga = parseViewMore($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -148,14 +153,14 @@ export class MangaHasu extends Source {
         })
     }
 
-    override async getSearchTags(): Promise<TagSection[]> {
+    async getSearchTags(): Promise<TagSection[]> {
         const request = App.createRequest({
             url: MH_DOMAIN,
             method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         return parseTags($)
     }
 
@@ -179,7 +184,7 @@ export class MangaHasu extends Source {
         }
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data)
+        const $ = this.cheerio.load(response.data as string)
         const manga = parseViewMore($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -195,7 +200,7 @@ export class MangaHasu extends Source {
         }
     }
 
-    override async getCloudflareBypassRequestAsync(): Promise<Request> {
+    async getCloudflareBypassRequestAsync(): Promise<Request> {
         return App.createRequest({
             url: MH_DOMAIN,
             method: 'GET',

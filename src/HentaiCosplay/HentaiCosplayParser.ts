@@ -7,7 +7,7 @@ import {
     HomeSectionType
 } from '@paperback/types'
 
-import entities = require('entities');
+import entities = require('entities')
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
     const title: string = decodeHTMLEntity($('span#title > h2').text().trim())
@@ -20,7 +20,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
         mangaInfo: App.createMangaInfo({
             titles: [title],
             image: image,
-            status: 'COMPLETED',
+            status: 'Completed',
             desc: description
         })
     })

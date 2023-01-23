@@ -1,5 +1,4 @@
 import {
-    Source,
     SourceManga,
     Chapter,
     ChapterDetails,
@@ -15,7 +14,10 @@ import {
     Request,
     Response,
     Cookie,
-    SourceIntents
+    SourceIntents,
+    ChapterProviding,
+    MangaProviding,
+    Searchable
 } from '@paperback/types'
 
 import {
@@ -28,10 +30,10 @@ import {
 
 const MH_DOMAIN = 'https://mangahub.io'
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql'
-const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/'
+const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub'
 
 export const MangahubInfo: SourceInfo = {
-    version: '3.0.3',
+    version: '3.0.4',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -56,7 +58,7 @@ export const MangahubInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class Mangahub extends Source {
+export class Mangahub implements Searchable, MangaProviding, ChapterProviding {
 
     requestManager = App.createRequestManager({
         requestsPerSecond: 2,
@@ -125,7 +127,7 @@ export class Mangahub extends Source {
         return newUserAgent
     }
 
-    override getMangaShareUrl(mangaId: string): string { return `${MH_DOMAIN}/manga/${mangaId}` }
+    getMangaShareUrl(mangaId: string): string { return `${MH_DOMAIN}/manga/${mangaId}` }
 
     async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
@@ -272,7 +274,7 @@ export class Mangahub extends Source {
         try {
             const parsedPages = JSON.parse(data.data.chapter.pages)
             for (const i in parsedPages) {
-                pages.push(MH_CDN_DOMAIN + parsedPages[i])
+                pages.push(MH_CDN_DOMAIN + '/' + parsedPages[i])
             }
         } catch (e) {
             throw new Error(`${e}`)
@@ -285,7 +287,7 @@ export class Mangahub extends Source {
         })
     }
 
-    override async getTags(): Promise<TagSection[]> {
+    async getSearchTags(): Promise<TagSection[]> {
         const request = App.createRequest({
             url: MH_API_DOMAIN,
             method: 'POST',
@@ -330,7 +332,7 @@ export class Mangahub extends Source {
         return [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })]
     }
 
-    override async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
+    async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
         const request = App.createRequest({
             url: MH_API_DOMAIN,
             method: 'POST',
@@ -403,7 +405,7 @@ export class Mangahub extends Source {
         }
     }
 
-    override async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
+    async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
         const offset: number = metadata?.offset ?? 0
         const request = App.createRequest({
             url: MH_API_DOMAIN,
@@ -480,7 +482,7 @@ export class Mangahub extends Source {
         })
     }
 
-    override async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
+    async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
         const offset: number = metadata?.offset ?? 0
         const searchTag: any = query?.includedTags?.map((x: any) => x.id)
 
@@ -587,7 +589,7 @@ export class Mangahub extends Source {
         })
     }
 
-    override async getCloudflareBypassRequestAsync(): Promise<Request> {
+    async getCloudflareBypassRequestAsync(): Promise<Request> {
         // Remove stored UserAgent
         await this.stateManager.store('userAgent', 'null')
 

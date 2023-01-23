@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const MangaJarParser_1 = require("./MangaJarParser");
 const MJ_DOMAIN = 'https://mangajar.com';
 exports.MangaJarInfo = {
-    version: '3.0.0',
+    version: '3.0.1',
     name: 'MangaJar',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1070,24 +1070,28 @@ exports.MangaJarInfo = {
         {
             text: 'Notifications',
             type: types_1.BadgeColor.GREEN
-        },
-        {
-            text: 'Buggy',
-            type: types_1.BadgeColor.RED
         }
     ],
     intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
-class MangaJar extends types_1.Source {
-    constructor() {
-        super(...arguments);
-        this.cookies = [
-            App.createCookie({ name: 'adultConfirmed', value: '1', domain: 'mangajar.com' }),
-            App.createCookie({ name: 'readingMode', value: 'v', domain: 'mangajar.com' })
-        ];
+class MangaJar {
+    constructor(cheerio) {
+        this.cheerio = cheerio;
         this.requestManager = App.createRequestManager({
             requestsPerSecond: 5,
-            requestTimeout: 20000
+            requestTimeout: 20000,
+            interceptor: {
+                interceptRequest: async (request) => {
+                    request.cookies = [
+                        App.createCookie({ name: 'adultConfirmed', value: '1', domain: 'mangajar.com' }),
+                        App.createCookie({ name: 'readingMode', value: 'v', domain: 'mangajar.com' })
+                    ];
+                    return request;
+                },
+                interceptResponse: async (response) => {
+                    return response;
+                }
+            }
         });
     }
     getMangaShareUrl(mangaId) { return `${MJ_DOMAIN}/manga/${mangaId}`; }
@@ -1095,8 +1099,7 @@ class MangaJar extends types_1.Source {
         const request = App.createRequest({
             url: `${MJ_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId,
-            cookies: this.cookies
+            param: mangaId
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -1110,8 +1113,7 @@ class MangaJar extends types_1.Source {
             const request = App.createRequest({
                 url: `${MJ_DOMAIN}/manga/${mangaId}/chaptersList`,
                 method: 'GET',
-                param: `?infinite=1&page=${page++}`,
-                cookies: this.cookies
+                param: `?infinite=1&page=${page++}`
             });
             const response = await this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -1123,8 +1125,7 @@ class MangaJar extends types_1.Source {
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
             url: `${MJ_DOMAIN}/manga/${mangaId}/chapter/${chapterId}`,
-            method: 'GET',
-            cookies: this.cookies
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -1133,8 +1134,7 @@ class MangaJar extends types_1.Source {
     async getHomePageSections(sectionCallback) {
         const request = App.createRequest({
             url: MJ_DOMAIN,
-            method: 'GET',
-            cookies: this.cookies
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -1162,8 +1162,7 @@ class MangaJar extends types_1.Source {
         const request = App.createRequest({
             url: MJ_DOMAIN,
             method: 'GET',
-            param,
-            cookies: this.cookies
+            param
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -1180,8 +1179,7 @@ class MangaJar extends types_1.Source {
             const request = App.createRequest({
                 url: `${MJ_DOMAIN}/search?q=`,
                 method: 'GET',
-                param: `${encodeURI(query.title)}&page=${page}`,
-                cookies: this.cookies
+                param: `${encodeURI(query.title)}&page=${page}`
             });
             const response = await this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -1196,8 +1194,7 @@ class MangaJar extends types_1.Source {
             const request = App.createRequest({
                 url: MJ_DOMAIN,
                 method: 'GET',
-                param: `/genre/${query?.includedTags?.map((x) => x.id)[0]}?page=${page}`,
-                cookies: this.cookies
+                param: `/genre/${query?.includedTags?.map((x) => x.id)[0]}?page=${page}`
             });
             const response = await this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -1209,11 +1206,10 @@ class MangaJar extends types_1.Source {
             });
         }
     }
-    async getTags() {
+    async getSearchTags() {
         const request = App.createRequest({
             url: `${MJ_DOMAIN}/genre`,
-            method: 'GET',
-            cookies: this.cookies
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -1226,6 +1222,7 @@ exports.MangaJar = MangaJar;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isLastPage = exports.parseTags = exports.parseViewMore = exports.parseSearch = exports.parseHomeSections = exports.parseChapterDetails = exports.parseChapters = exports.parseMangaDetails = void 0;
+const types_1 = require("@paperback/types");
 const entities = require("entities");
 const parseMangaDetails = ($, mangaId) => {
     const titles = [];
@@ -1247,13 +1244,13 @@ const parseMangaDetails = ($, mangaId) => {
     let status = 'ONGOING';
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
         case 'COMPLETED':
-            status = 'COMPLETED';
+            status = 'Completed';
             break;
         default:
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
     }
     return App.createSourceManga({
@@ -1311,7 +1308,7 @@ const parseHomeSections = ($, sectionCallback) => {
                 id: 'hot_update',
                 title: 'Top Manga Updates',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: types_1.HomeSectionType.singleRowNormal
             }),
             selector: $('div.row.splider').get(0)
         },
@@ -1320,7 +1317,7 @@ const parseHomeSections = ($, sectionCallback) => {
                 id: 'new_trending',
                 title: 'New Trending',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: types_1.HomeSectionType.singleRowNormal
             }),
             selector: $('div.row.splider').get(1)
         },
@@ -1329,7 +1326,7 @@ const parseHomeSections = ($, sectionCallback) => {
                 id: 'popular_manga',
                 title: 'Popular Manga',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: types_1.HomeSectionType.singleRowNormal
             }),
             selector: $('div.row.splider').get(2)
         },
@@ -1338,7 +1335,7 @@ const parseHomeSections = ($, sectionCallback) => {
                 id: 'new_manga',
                 title: 'Recently Added',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: types_1.HomeSectionType.singleRowNormal
             }),
             selector: $('div.row.splider').get(3)
         }
@@ -1527,5 +1524,5 @@ const decodeHTMLEntity = (str) => {
     return entities.decodeHTML(str);
 };
 
-},{"entities":67}]},{},[68])(68)
+},{"@paperback/types":59,"entities":67}]},{},[68])(68)
 });

@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const McReaderParser_1 = require("./McReaderParser");
 const MCR_DOMAIN = 'https://www.mreader.co';
 exports.McReaderInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1074,9 +1074,9 @@ exports.McReaderInfo = {
     ],
     intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
-class McReader extends types_1.Source {
-    constructor() {
-        super(...arguments);
+class McReader {
+    constructor(cheerio) {
+        this.cheerio = cheerio;
         this.requestManager = App.createRequestManager({
             requestsPerSecond: 4,
             requestTimeout: 15000,
@@ -1254,13 +1254,13 @@ const parseMangaDetails = ($, mangaId) => {
     let status = 'ONGOING';
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
         case 'COMPLETED':
-            status = 'COMPLETED';
+            status = 'Completed';
             break;
         default:
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
     }
     return App.createSourceManga({
@@ -1333,13 +1333,13 @@ const parseHomeSections = ($, sectionCallback) => {
         id: 'new',
         title: 'New',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     const updateSection = App.createHomeSection({
         id: 'updated',
         title: 'Latest Updated',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     // Most Viewed
     const mostViewedSection_Array = [];

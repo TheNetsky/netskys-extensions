@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const HentaiCosplayParser_1 = require("./HentaiCosplayParser");
 const HC_DOMAIN = 'https://hentai-cosplays.com';
 exports.HentaiCosplayInfo = {
-    version: '1.0.1',
+    version: '1.0.2',
     name: 'HentaiCosplay',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1074,9 +1074,9 @@ exports.HentaiCosplayInfo = {
     ],
     intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
-class HentaiCosplay extends types_1.Source {
-    constructor() {
-        super(...arguments);
+class HentaiCosplay {
+    constructor(cheerio) {
+        this.cheerio = cheerio;
         this.requestManager = App.createRequestManager({
             requestsPerSecond: 4,
             requestTimeout: 15000,
@@ -1213,7 +1213,7 @@ const parseMangaDetails = ($, mangaId) => {
         mangaInfo: App.createMangaInfo({
             titles: [title],
             image: image,
-            status: 'COMPLETED',
+            status: 'Completed',
             desc: description
         })
     });

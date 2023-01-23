@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const OsosedkiParser_1 = require("./OsosedkiParser");
 const OS_DOMAIN = 'https://ososedki.com';
 exports.OsosedkiInfo = {
-    version: '1.0.0',
+    version: '1.0.1',
     name: 'Ososedki',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1074,9 +1074,9 @@ exports.OsosedkiInfo = {
     ],
     intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
-class Ososedki extends types_1.Source {
-    constructor() {
-        super(...arguments);
+class Ososedki {
+    constructor(cheerio) {
+        this.cheerio = cheerio;
         this.requestManager = App.createRequestManager({
             requestsPerSecond: 4,
             requestTimeout: 15000,

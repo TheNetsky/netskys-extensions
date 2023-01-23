@@ -457,7 +457,7 @@ const MangaHereHelper_1 = require("./MangaHereHelper");
 const MH_DOMAIN = 'https://www.mangahere.cc';
 const MH_DOMAIN_MOBILE = 'http://m.mangahere.cc';
 exports.MangaHereInfo = {
-    version: '3.0.0',
+    version: '3.0.1',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -473,10 +473,9 @@ exports.MangaHereInfo = {
     ],
     intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
-class MangaHere extends types_1.Source {
-    constructor() {
-        super(...arguments);
-        this.cookies = [App.createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })];
+class MangaHere {
+    constructor(cheerio) {
+        this.cheerio = cheerio;
         this.requestManager = App.createRequestManager({
             requestsPerSecond: 5,
             requestTimeout: 20000,
@@ -488,7 +487,10 @@ class MangaHere extends types_1.Source {
                             'referer': `${MH_DOMAIN}/`,
                             'user-agent': await this.requestManager.getDefaultUserAgent()
                         }
-                    };
+                    },
+                        request.cookies = [
+                            App.createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })
+                        ];
                     return request;
                 },
                 interceptResponse: async (response) => {
@@ -512,8 +514,7 @@ class MangaHere extends types_1.Source {
         const request = App.createRequest({
             url: `${MH_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId,
-            cookies: this.cookies
+            param: mangaId
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -522,8 +523,7 @@ class MangaHere extends types_1.Source {
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
             url: `${MH_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
-            method: 'GET',
-            cookies: this.cookies
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -589,7 +589,7 @@ class MangaHere extends types_1.Source {
             metadata
         });
     }
-    async getTags() {
+    async getSearchTags() {
         const request = App.createRequest({
             url: `${MH_DOMAIN}/search?`,
             method: 'GET'
@@ -647,6 +647,7 @@ exports.URLBuilder = URLBuilder;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isLastPage = exports.parseTags = exports.parseViewMore = exports.parseSearch = exports.parseHomeSections = exports.parseChapterDetails = exports.parseChapters = exports.parseMangaDetails = void 0;
+const types_1 = require("@paperback/types");
 const parseMangaDetails = ($, mangaId) => {
     const section = $('.detail-info');
     const title = $('span.detail-info-right-title-font', section).text().trim();
@@ -666,13 +667,13 @@ const parseMangaDetails = ($, mangaId) => {
     let status = 'ONGOING';
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
         case 'COMPLETED':
-            status = 'COMPLETED';
+            status = 'Completed';
             break;
         default:
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
     }
     return App.createSourceManga({
@@ -747,7 +748,7 @@ const parseHomeSections = ($, sectionCallback) => {
                 id: 'hot_release',
                 title: 'Hot Manga Releases',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: types_1.HomeSectionType.singleRowNormal
             }),
             selector: $('div.manga-list-1').get(0)
         },
@@ -756,7 +757,7 @@ const parseHomeSections = ($, sectionCallback) => {
                 id: 'being_read',
                 title: 'Being Read Right Now',
                 containsMoreItems: false,
-                type: 'singleRowNormal'
+                type: types_1.HomeSectionType.singleRowNormal
             }),
             selector: $('div.manga-list-1').get(1)
         },
@@ -765,7 +766,7 @@ const parseHomeSections = ($, sectionCallback) => {
                 id: 'recommended',
                 title: 'Recommended',
                 containsMoreItems: false,
-                type: 'singleRowNormal'
+                type: types_1.HomeSectionType.singleRowNormal
             }),
             selector: $('div.manga-list-3')
         },
@@ -774,7 +775,7 @@ const parseHomeSections = ($, sectionCallback) => {
                 id: 'new_manga',
                 title: 'New Manga Releases',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: types_1.HomeSectionType.singleRowNormal
             }),
             selector: $('div.manga-list-1').get(2)
         }
@@ -809,7 +810,7 @@ const parseHomeSections = ($, sectionCallback) => {
         id: 'latest_updates',
         title: 'Latest Updates',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     const latestManga = [];
     for (const manga of $('li', 'div.manga-list-4 ').toArray()) {
@@ -964,5 +965,5 @@ const isLastPage = ($) => {
 };
 exports.isLastPage = isLastPage;
 
-},{}]},{},[60])(60)
+},{"@paperback/types":59}]},{},[60])(60)
 });

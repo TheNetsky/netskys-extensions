@@ -1058,9 +1058,9 @@ const types_1 = require("@paperback/types");
 const MangahubParser_1 = require("./MangahubParser");
 const MH_DOMAIN = 'https://mangahub.io';
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
-const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub/';
+const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub';
 exports.MangahubInfo = {
-    version: '3.0.3',
+    version: '3.0.4',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1084,9 +1084,8 @@ exports.MangahubInfo = {
     ],
     intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
-class Mangahub extends types_1.Source {
+class Mangahub {
     constructor() {
-        super(...arguments);
         this.requestManager = App.createRequestManager({
             requestsPerSecond: 2,
             requestTimeout: 15000,
@@ -1288,7 +1287,7 @@ class Mangahub extends types_1.Source {
         try {
             const parsedPages = JSON.parse(data.data.chapter.pages);
             for (const i in parsedPages) {
-                pages.push(MH_CDN_DOMAIN + parsedPages[i]);
+                pages.push(MH_CDN_DOMAIN + '/' + parsedPages[i]);
             }
         }
         catch (e) {
@@ -1300,7 +1299,7 @@ class Mangahub extends types_1.Source {
             pages: pages
         });
     }
-    async getTags() {
+    async getSearchTags() {
         const request = App.createRequest({
             url: MH_API_DOMAIN,
             method: 'POST',
@@ -1639,13 +1638,13 @@ const parseMangaDetails = (data, mangaId) => {
     let status = 'ONGOING';
     switch (data.status.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
         case 'COMPLETED':
-            status = 'COMPLETED';
+            status = 'Completed';
             break;
         default:
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
     }
     return App.createSourceManga({
@@ -1654,8 +1653,8 @@ const parseMangaDetails = (data, mangaId) => {
             titles: titles,
             image: data?.image ? `${MH_CDN_THUMBS_DOMAIN}/${data.image}` : '',
             status: status,
-            author: author == '' ? 'Unknown' : author,
-            artist: artist == '' ? 'Unknown' : artist,
+            author: author == '' ? '' : author,
+            artist: artist == '' ? '' : artist,
             tags: tagSections,
             desc: description
         })
@@ -1696,7 +1695,7 @@ const parseHomeSections = (data, sectionCallback) => {
                 id: 'popular_update',
                 title: 'Popular Updates',
                 containsMoreItems: false,
-                type: 'singleRowNormal'
+                type: types_1.HomeSectionType.singleRowNormal
             })
         },
         {
@@ -1705,7 +1704,7 @@ const parseHomeSections = (data, sectionCallback) => {
                 id: 'latest_update',
                 title: 'Latest Updates',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: types_1.HomeSectionType.singleRowNormal
             })
         },
         {
@@ -1714,7 +1713,7 @@ const parseHomeSections = (data, sectionCallback) => {
                 id: 'new_manga',
                 title: 'New Manga',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: types_1.HomeSectionType.singleRowNormal
             })
         },
         {
@@ -1723,7 +1722,7 @@ const parseHomeSections = (data, sectionCallback) => {
                 id: 'completed_manga',
                 title: 'Completed Manga',
                 containsMoreItems: true,
-                type: 'singleRowNormal'
+                type: types_1.HomeSectionType.singleRowNormal
             })
         }
     ];

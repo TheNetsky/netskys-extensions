@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const ReadmParser_1 = require("./ReadmParser");
 const RM_DOMAIN = 'https://readm.org';
 exports.ReadmInfo = {
-    version: '2.1.0',
+    version: '2.1.1',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1078,9 +1078,9 @@ exports.ReadmInfo = {
     ],
     intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
-class Readm extends types_1.Source {
-    constructor() {
-        super(...arguments);
+class Readm {
+    constructor(cheerio) {
+        this.cheerio = cheerio;
         this.requestManager = App.createRequestManager({
             requestsPerSecond: 4,
             requestTimeout: 15000,
@@ -1138,7 +1138,7 @@ class Readm extends types_1.Source {
         const $ = this.cheerio.load(response.data, { xmlMode: false });
         return (0, ReadmParser_1.parseChapterDetails)($, mangaId, chapterId);
     }
-    async getTags() {
+    async getSearchTags() {
         const request = App.createRequest({
             url: RM_DOMAIN,
             method: 'GET'
@@ -1271,6 +1271,7 @@ exports.Readm = Readm;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isLastPage = exports.parseViewMore = exports.parseHomeSections = exports.parseTags = exports.parseChapterDetails = exports.parseChapters = exports.parseMangaDetails = void 0;
+const types_1 = require("@paperback/types");
 const entities = require("entities");
 const RM_DOMAIN = 'https://readm.org';
 const parseMangaDetails = ($, mangaId) => {
@@ -1299,13 +1300,13 @@ const parseMangaDetails = ($, mangaId) => {
     let status = 'ONGOING';
     switch (rawStatus.toLocaleUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
         case 'COMPLETED':
-            status = 'COMPLETED';
+            status = 'Completed';
             break;
         default:
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
     }
     return App.createSourceManga({
@@ -1384,25 +1385,25 @@ const parseHomeSections = ($, sectionCallback) => {
         id: 'hot_update',
         title: 'Hot Manga Updates',
         containsMoreItems: false,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     const popularMangaSection = App.createHomeSection({
         id: 'popular_manga',
         title: 'Popular Manga',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     const latestUpdateSection = App.createHomeSection({
         id: 'latest_updates',
         title: 'Latest Updates',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     const newMangaSection = App.createHomeSection({
         id: 'new_manga',
         title: 'New Manga',
         containsMoreItems: false,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     // Hot Update
     const hotMangaUpdate = [];
@@ -1596,5 +1597,5 @@ const decodeHTMLEntity = (str) => {
     return entities.decodeHTML(str);
 };
 
-},{"entities":67}]},{},[68])(68)
+},{"@paperback/types":59,"entities":67}]},{},[68])(68)
 });

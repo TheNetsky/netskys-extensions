@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const MangaHasuParser_1 = require("./MangaHasuParser");
 const MH_DOMAIN = 'https://mangahasu.se';
 exports.MangaHasuInfo = {
-    version: '2.0.1',
+    version: '2.0.2',
     name: 'MangaHasu',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1074,9 +1074,9 @@ exports.MangaHasuInfo = {
     ],
     intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
-class MangaHasu extends types_1.Source {
-    constructor() {
-        super(...arguments);
+class MangaHasu {
+    constructor(cheerio) {
+        this.cheerio = cheerio;
         this.requestManager = App.createRequestManager({
             requestsPerSecond: 4,
             requestTimeout: 15000,
@@ -1249,13 +1249,13 @@ const parseMangaDetails = ($, mangaId) => {
     let status = 'ONGOING';
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
         case 'COMPLETED':
-            status = 'COMPLETED';
+            status = 'Completed';
             break;
         default:
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
     }
     return App.createSourceManga({
@@ -1332,13 +1332,13 @@ const parseHomeSections = ($, sectionCallback) => {
         id: 'update',
         title: 'Latest Updated',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     const viewedTodaySection = App.createHomeSection({
         id: 'today',
         title: 'Most viewed today',
         containsMoreItems: false,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     // Recommend
     const recommendSection_Array = [];

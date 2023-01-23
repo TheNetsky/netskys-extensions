@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const HentaiHereParser_1 = require("./HentaiHereParser");
 const HH_DOMAIN = 'https://hentaihere.com';
 exports.HentaiHereInfo = {
-    version: '3.0.0',
+    version: '3.0.1',
     name: 'HentaiHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1074,9 +1074,9 @@ exports.HentaiHereInfo = {
     ],
     intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
-class HentaiHere extends types_1.Source {
-    constructor() {
-        super(...arguments);
+class HentaiHere {
+    constructor(cheerio) {
+        this.cheerio = cheerio;
         this.requestManager = App.createRequestManager({
             requestsPerSecond: 4,
             requestTimeout: 15000,
@@ -1255,13 +1255,13 @@ const parseMangaDetails = ($, mangaId) => {
     let status = 'ONGOING';
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
         case 'COMPLETED':
-            status = 'COMPLETED';
+            status = 'Completed';
             break;
         default:
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
     }
     return App.createSourceManga({
@@ -1270,8 +1270,8 @@ const parseMangaDetails = ($, mangaId) => {
             titles: titles,
             image: image,
             status: status,
-            author: artist == '-' ? 'N/A' : artist,
-            artist: artist == '-' ? 'N/A' : artist,
+            author: artist == '-' ? '' : artist,
+            artist: artist == '-' ? '' : artist,
             tags: tagSections,
             desc: description
         })
@@ -1331,13 +1331,13 @@ const parseHomeSections = ($, sectionCallback) => {
         id: 'newest',
         title: 'Recently Added',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     const trendingSection = App.createHomeSection({
         id: 'trending',
         title: 'Trending',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     // Staff Pick
     const staffSection_Array = [];

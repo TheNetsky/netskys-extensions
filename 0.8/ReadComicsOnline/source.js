@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const ReadComicsOnlineParser_1 = require("./ReadComicsOnlineParser");
 const RCO_DOMAIN = 'https://readcomicsonline.ru';
 exports.ReadComicsOnlineInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'ReadComicsOnline',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1074,9 +1074,9 @@ exports.ReadComicsOnlineInfo = {
     ],
     intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
-class ReadComicsOnline extends types_1.Source {
-    constructor() {
-        super(...arguments);
+class ReadComicsOnline {
+    constructor(cheerio) {
+        this.cheerio = cheerio;
         this.requestManager = App.createRequestManager({
             requestsPerSecond: 4,
             requestTimeout: 15000,
@@ -1113,7 +1113,7 @@ class ReadComicsOnline extends types_1.Source {
         const request = App.createRequest({
             url: `${RCO_DOMAIN}/comic/`,
             method: 'GET',
-            param: mangaId,
+            param: mangaId
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1123,7 +1123,7 @@ class ReadComicsOnline extends types_1.Source {
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
             url: `${RCO_DOMAIN}/comic/${mangaId}/${chapterId}`,
-            method: 'GET',
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1133,7 +1133,7 @@ class ReadComicsOnline extends types_1.Source {
     async getHomePageSections(sectionCallback) {
         const request = App.createRequest({
             url: RCO_DOMAIN,
-            method: 'GET',
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1177,7 +1177,7 @@ class ReadComicsOnline extends types_1.Source {
         this.CloudFlareError(response.status);
         const manga = (0, ReadComicsOnlineParser_1.parseSearch)(response.data);
         return App.createPagedResults({
-            results: manga,
+            results: manga
         });
     }
     CloudFlareError(status) {
@@ -1202,6 +1202,7 @@ exports.ReadComicsOnline = ReadComicsOnline;
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isLastPage = exports.parseSearch = exports.parseViewMore = exports.parseHomeSections = exports.parseChapterDetails = exports.parseChapters = exports.parseMangaDetails = void 0;
+const types_1 = require("@paperback/types");
 const entities = require("entities");
 const parseMangaDetails = ($, mangaId) => {
     const titles = [];
@@ -1221,9 +1222,9 @@ const parseMangaDetails = ($, mangaId) => {
     }
     const tagSections = [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })];
     const rawStatus = $('span.label').text().trim() ?? '';
-    let status = 'ONGOING';
+    let status = 'Ongoing';
     if (rawStatus.toUpperCase().includes('COMPLETED'))
-        status = 'COMPLETED';
+        status = 'Completed';
     return App.createSourceManga({
         id: mangaId,
         mangaInfo: App.createMangaInfo({
@@ -1253,7 +1254,7 @@ const parseChapters = ($) => {
         chapters.push(App.createChapter({
             id: chapterId,
             name: decodeHTMLEntity(title),
-            langCode: 'ENGLISH',
+            langCode: 'ENG',
             chapNum: isNaN(chapNum) ? 0 : chapNum,
             time: date,
             sortingIndex
@@ -1282,15 +1283,15 @@ exports.parseChapterDetails = parseChapterDetails;
 const parseHomeSections = ($, sectionCallback) => {
     const hotSection = App.createHomeSection({
         id: 'hot_comic', title: 'Hot Comics', containsMoreItems: false,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     const latestSection = App.createHomeSection({
         id: 'latest_comic', title: 'Latest Comics', containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     const popularSection = App.createHomeSection({
         id: 'popular_comic', title: 'Most Popular Comics', containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     // Hot
     const hotSection_Array = [];
@@ -1419,5 +1420,5 @@ const decodeHTMLEntity = (str) => {
     return entities.decodeHTML(str);
 };
 
-},{"entities":67}]},{},[68])(68)
+},{"@paperback/types":59,"entities":67}]},{},[68])(68)
 });

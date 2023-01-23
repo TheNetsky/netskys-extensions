@@ -1059,7 +1059,7 @@ const ComicOnlineFreeParser_1 = require("./ComicOnlineFreeParser");
 const ComicOnlineFreeHelper_1 = require("./ComicOnlineFreeHelper");
 const COF_DOMAIN = 'https://comiconlinefree.net';
 exports.ComicOnlineFreeInfo = {
-    version: '1.1.0',
+    version: '1.1.1',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1075,9 +1075,9 @@ exports.ComicOnlineFreeInfo = {
     ],
     intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
-class ComicOnlineFree extends types_1.Source {
-    constructor() {
-        super(...arguments);
+class ComicOnlineFree {
+    constructor(cheerio) {
+        this.cheerio = cheerio;
         this.requestManager = App.createRequestManager({
             requestsPerSecond: 4,
             requestTimeout: 15000,
@@ -1288,13 +1288,13 @@ const parseMangaDetails = ($, mangaId) => {
     let status = 'ONGOING';
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
         case 'COMPLETED':
-            status = 'COMPLETED';
+            status = 'Completed';
             break;
         default:
-            status = 'ONGOING';
+            status = 'Ongoing';
             break;
     }
     return App.createSourceManga({
@@ -1364,13 +1364,13 @@ const parseHomeSections = ($, sectionCallback) => {
         id: 'hot',
         title: 'Hot Comics',
         containsMoreItems: true,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     const updateSection = App.createHomeSection({
         id: 'update',
         title: 'Latest Updates Comics',
         containsMoreItems: false,
-        type: 'singleRowNormal'
+        type: types_1.HomeSectionType.singleRowNormal
     });
     // Popular
     const popularSection_Array = [];

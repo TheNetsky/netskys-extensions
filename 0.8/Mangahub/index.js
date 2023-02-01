@@ -1060,7 +1060,7 @@ const MH_DOMAIN = 'https://mangahub.io';
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub';
 exports.MangahubInfo = {
-    version: '3.0.4',
+    version: '3.0.5',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1286,8 +1286,8 @@ class Mangahub {
         const pages = [];
         try {
             const parsedPages = JSON.parse(data.data.chapter.pages);
-            for (const i in parsedPages) {
-                pages.push(MH_CDN_DOMAIN + '/' + parsedPages[i]);
+            for (const img of parsedPages.i) {
+                pages.push(`${MH_CDN_DOMAIN}/${parsedPages.p}${img}`);
             }
         }
         catch (e) {

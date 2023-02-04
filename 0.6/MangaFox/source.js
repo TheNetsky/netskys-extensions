@@ -384,12 +384,8 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const MangaFoxParser_1 = require("./MangaFoxParser");
 const MangaFoxHelper_1 = require("./MangaFoxHelper");
 const FF_DOMAIN = 'https://fanfox.net';
-const FF_DOMAIN_MOBILE = 'https://m.fanfox.net';
-const headers = {
-    'content-type': 'application/x-www-form-urlencoded'
-};
 exports.MangaFoxInfo = {
-    version: '2.0.7',
+    version: '2.0.8',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -407,7 +403,6 @@ exports.MangaFoxInfo = {
 class MangaFox extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
-        this.cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'fanfox.net' })];
         this.requestManager = createRequestManager({
             requestsPerSecond: 5,
             requestTimeout: 20000,
@@ -418,7 +413,10 @@ class MangaFox extends paperback_extensions_common_1.Source {
                         ...({
                             'referer': FF_DOMAIN,
                         })
-                    };
+                    },
+                        request.cookies = [
+                            createCookie({ name: 'isAdult', value: '1', domain: 'fanfox.net' })
+                        ];
                     return request;
                 },
                 interceptResponse: async (response) => {
@@ -442,8 +440,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
         const request = createRequestObject({
             url: `${FF_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId,
-            cookies: this.cookies
+            param: mangaId
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -451,9 +448,8 @@ class MangaFox extends paperback_extensions_common_1.Source {
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = createRequestObject({
-            url: `${FF_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
-            method: 'GET',
-            cookies: this.cookies
+            url: `${FF_DOMAIN}/manga/${mangaId}/${chapterId}/1.html`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -529,8 +525,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
             .buildUrl();
         const request = createRequestObject({
             url: url,
-            method: 'GET',
-            headers
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -684,15 +679,11 @@ const parseChapters = ($, mangaId) => {
 exports.parseChapters = parseChapters;
 const parseChapterDetails = ($, mangaId, chapterId) => {
     const pages = [];
-    if ($('div#viewer').length == 0)
-        pages.push('https://i.imgur.com/8WoVeWv.png'); //Fallback in case the manga is licensed
-    for (const page of $('div#viewer').children('img').toArray()) {
-        let url = page.attribs['data-original'];
-        if (!url)
-            continue;
-        if (url?.startsWith('//'))
-            url = 'https:' + url;
-        pages.push(url);
+    const script = $('script:contains(function(p,a,c,k,e,d))').html()?.replace('eval', '');
+    const deobfuscatedScript = eval(script).toString(); // Big Thanks to Tachi!
+    const urls = deobfuscatedScript.substring(deobfuscatedScript.indexOf('newImgs=[\'') + 9, deobfuscatedScript.indexOf('\'];')).split('\',\'');
+    for (const url of urls) {
+        pages.push('https:' + url.replace('\'', ''));
     }
     const chapterDetails = createChapterDetails({
         id: chapterId,

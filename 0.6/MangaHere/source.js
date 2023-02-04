@@ -384,9 +384,8 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const MangaHereParser_1 = require("./MangaHereParser");
 const MangaHereHelper_1 = require("./MangaHereHelper");
 const MH_DOMAIN = 'https://www.mangahere.cc';
-const MH_DOMAIN_MOBILE = 'http://m.mangahere.cc';
 exports.MangaHereInfo = {
-    version: '2.0.6',
+    version: '2.0.8',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -404,7 +403,6 @@ exports.MangaHereInfo = {
 class MangaHere extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
-        this.cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })];
         this.requestManager = createRequestManager({
             requestsPerSecond: 5,
             requestTimeout: 20000,
@@ -415,7 +413,10 @@ class MangaHere extends paperback_extensions_common_1.Source {
                         ...({
                             'referer': MH_DOMAIN,
                         })
-                    };
+                    },
+                        request.cookies = [
+                            createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.net' })
+                        ];
                     return request;
                 },
                 interceptResponse: async (response) => {
@@ -439,8 +440,7 @@ class MangaHere extends paperback_extensions_common_1.Source {
         const request = createRequestObject({
             url: `${MH_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId,
-            cookies: this.cookies
+            param: mangaId
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -448,9 +448,8 @@ class MangaHere extends paperback_extensions_common_1.Source {
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = createRequestObject({
-            url: `${MH_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
-            method: 'GET',
-            cookies: this.cookies
+            url: `${MH_DOMAIN}/manga/${mangaId}/${chapterId}/1.html`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -680,15 +679,11 @@ const parseChapters = ($, mangaId) => {
 exports.parseChapters = parseChapters;
 const parseChapterDetails = ($, mangaId, chapterId) => {
     const pages = [];
-    if ($('div#viewer').length == 0)
-        pages.push('https://i.imgur.com/8WoVeWv.png'); //Fallback in case the manga is licensed
-    for (const page of $('div#viewer').children('img').toArray()) {
-        let url = page.attribs['data-original'];
-        if (!url)
-            continue;
-        if (url?.startsWith('//'))
-            url = 'https:' + url;
-        pages.push(url);
+    const script = $('script:contains(function(p,a,c,k,e,d))').html()?.replace('eval', '');
+    const deobfuscatedScript = eval(script).toString(); // Big Thanks to Tachi!
+    const urls = deobfuscatedScript.substring(deobfuscatedScript.indexOf('newImgs=[\'') + 9, deobfuscatedScript.indexOf('\'];')).split('\',\'');
+    for (const url of urls) {
+        pages.push('https:' + url.replace('\'', ''));
     }
     const chapterDetails = createChapterDetails({
         id: chapterId,

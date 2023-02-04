@@ -31,10 +31,9 @@ import {
 import { URLBuilder } from './MangaFoxHelper'
 
 const FF_DOMAIN = 'https://fanfox.net'
-const FF_DOMAIN_MOBILE = 'https://m.fanfox.net'
 
 export const MangaFoxInfo: SourceInfo = {
-    version: '3.0.1',
+    version: '3.0.2',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -106,7 +105,7 @@ export class MangaFox implements Searchable, MangaProviding, ChapterProviding {
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = App.createRequest({
-            url: `${FF_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
+            url: `${FF_DOMAIN}/manga/${mangaId}/${chapterId}/1.html`,
             method: 'GET'
         })
 

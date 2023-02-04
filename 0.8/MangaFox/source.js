@@ -455,9 +455,8 @@ const types_1 = require("@paperback/types");
 const MangaFoxParser_1 = require("./MangaFoxParser");
 const MangaFoxHelper_1 = require("./MangaFoxHelper");
 const FF_DOMAIN = 'https://fanfox.net';
-const FF_DOMAIN_MOBILE = 'https://m.fanfox.net';
 exports.MangaFoxInfo = {
-    version: '3.0.1',
+    version: '3.0.2',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -522,7 +521,7 @@ class MangaFox {
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
-            url: `${FF_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
+            url: `${FF_DOMAIN}/manga/${mangaId}/${chapterId}/1.html`,
             method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
@@ -725,15 +724,11 @@ const parseChapters = ($) => {
 exports.parseChapters = parseChapters;
 const parseChapterDetails = ($, mangaId, chapterId) => {
     const pages = [];
-    if ($('div#viewer').length == 0)
-        pages.push('https://i.imgur.com/8WoVeWv.png'); // Fallback in case the manga is licensed
-    for (const page of $('div#viewer').children('img').toArray()) {
-        let url = page.attribs['data-original'];
-        if (!url)
-            continue;
-        if (url?.startsWith('//'))
-            url = 'https:' + url;
-        pages.push(url);
+    const script = $('script:contains(function(p,a,c,k,e,d))').html()?.replace('eval', '');
+    const deobfuscatedScript = eval(script).toString(); // Big Thanks to Tachi!
+    const urls = deobfuscatedScript.substring(deobfuscatedScript.indexOf('newImgs=[\'') + 9, deobfuscatedScript.indexOf('\'];')).split('\',\'');
+    for (const url of urls) {
+        pages.push('https:' + url.replace('\'', ''));
     }
     const chapterDetails = App.createChapterDetails({
         id: chapterId,

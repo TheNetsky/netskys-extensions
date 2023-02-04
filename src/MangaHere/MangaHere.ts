@@ -31,10 +31,9 @@ import {
 import { URLBuilder } from './MangaHereHelper'
 
 const MH_DOMAIN = 'https://www.mangahere.cc'
-const MH_DOMAIN_MOBILE = 'http://m.mangahere.cc'
 
 export const MangaHereInfo: SourceInfo = {
-    version: '3.0.1',
+    version: '3.0.2',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -106,7 +105,7 @@ export class MangaHere implements Searchable, MangaProviding, ChapterProviding {
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = App.createRequest({
-            url: `${MH_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
+            url: `${MH_DOMAIN}/manga/${mangaId}/${chapterId}/1.html`,
             method: 'GET'
         })
 

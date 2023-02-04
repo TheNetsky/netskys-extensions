@@ -92,12 +92,12 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
 export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId: string): ChapterDetails => {
     const pages: string[] = []
 
-    if ($('div#viewer').length == 0) pages.push('https://i.imgur.com/8WoVeWv.png') // Fallback in case the manga is licensed
-    for (const page of $('div#viewer').children('img').toArray()) {
-        let url = page.attribs['data-original']
-        if (!url) continue
-        if (url?.startsWith('//')) url = 'https:' + url
-        pages.push(url)
+    const script: any = $('script:contains(function(p,a,c,k,e,d))').html()?.replace('eval', '')
+    const deobfuscatedScript = eval(script).toString() // Big Thanks to Tachi!
+    const urls = deobfuscatedScript.substring(deobfuscatedScript.indexOf('newImgs=[\'') + 9, deobfuscatedScript.indexOf('\'];')).split('\',\'')
+
+    for (const url of urls) {
+        pages.push('https:' + url.replace('\'', ''))
     }
 
     const chapterDetails = App.createChapterDetails({

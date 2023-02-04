@@ -31,10 +31,9 @@ import {
 import { URLBuilder } from './MangaHereHelper'
 
 const MH_DOMAIN = 'https://www.mangahere.cc'
-const MH_DOMAIN_MOBILE = 'http://m.mangahere.cc'
 
 export const MangaHereInfo: SourceInfo = {
-    version: '2.0.6',
+    version: '2.0.8',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -52,8 +51,6 @@ export const MangaHereInfo: SourceInfo = {
 
 export class MangaHere extends Source {
 
-    readonly cookies = [createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })]
-
     requestManager = createRequestManager({
         requestsPerSecond: 5,
         requestTimeout: 20000,
@@ -65,11 +62,12 @@ export class MangaHere extends Source {
                     ...({
                         'referer': MH_DOMAIN,
                     })
-                }
-
+                },
+                request.cookies = [
+                    createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.net' })
+                ]
                 return request
             },
-
             interceptResponse: async (response: Response): Promise<Response> => {
                 return response
             }
@@ -94,8 +92,7 @@ export class MangaHere extends Source {
         const request = createRequestObject({
             url: `${MH_DOMAIN}/manga/`,
             method: 'GET',
-            param: mangaId,
-            cookies: this.cookies
+            param: mangaId
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -105,9 +102,8 @@ export class MangaHere extends Source {
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = createRequestObject({
-            url: `${MH_DOMAIN_MOBILE}/roll_manga/${mangaId}/${chapterId}`,
-            method: 'GET',
-            cookies: this.cookies
+            url: `${MH_DOMAIN}/manga/${mangaId}/${chapterId}/1.html`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)

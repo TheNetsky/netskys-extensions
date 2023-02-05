@@ -101,8 +101,8 @@ export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId
     const pages: string[] = []
 
     const script: any = $('script:contains(function(p,a,c,k,e,d))').html()?.replace('eval', '')
-    const deobfuscatedScript = eval(script).toString() // Big Thanks to Tachi!
-    const urls = deobfuscatedScript.substring(deobfuscatedScript.indexOf('newImgs=[\'') + 9, deobfuscatedScript.indexOf('\'];')).split('\',\'')
+    const deobfuscatedScript = eval(script).toString()
+    const urls = deobfuscatedScript.replace('var newImgs=[', '').match(/([^\];]+)/)[0].split(',')
 
     for (const url of urls) {
         pages.push('https:' + url.replace('\'', ''))

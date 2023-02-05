@@ -33,7 +33,7 @@ import { URLBuilder } from './MangaFoxHelper'
 const FF_DOMAIN = 'https://fanfox.net'
 
 export const MangaFoxInfo: SourceInfo = {
-    version: '2.0.8',
+    version: '2.0.9',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',

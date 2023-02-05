@@ -33,7 +33,7 @@ import { URLBuilder } from './MangaHereHelper'
 const MH_DOMAIN = 'https://www.mangahere.cc'
 
 export const MangaHereInfo: SourceInfo = {
-    version: '3.0.2',
+    version: '3.0.3',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -55,7 +55,7 @@ export class MangaHere implements Searchable, MangaProviding, ChapterProviding {
     constructor(private cheerio: CheerioAPI) { }
 
     requestManager = App.createRequestManager({
-        requestsPerSecond: 5,
+        requestsPerSecond: 10,
         requestTimeout: 20000,
         interceptor: {
             interceptRequest: async (request: Request): Promise<Request> => {
@@ -111,7 +111,7 @@ export class MangaHere implements Searchable, MangaProviding, ChapterProviding {
 
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data as string)
-        return parseChapterDetails($, mangaId, chapterId)
+        return parseChapterDetails($, mangaId, chapterId, request.url, this)
     }
 
     async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {

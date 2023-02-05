@@ -89,16 +89,73 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
     return chapters
 }
 
-export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId: string): ChapterDetails => {
+export const parseChapterDetails = async ($: CheerioStatic, mangaId: string, chapterId: string, url: string, source: any): Promise<ChapterDetails> => {
     const pages: string[] = []
 
-    const script: any = $('script:contains(function(p,a,c,k,e,d))').html()?.replace('eval', '')
-    const deobfuscatedScript = eval(script).toString() // Big Thanks to Tachi!
-    const urls = deobfuscatedScript.substring(deobfuscatedScript.indexOf('newImgs=[\'') + 9, deobfuscatedScript.indexOf('\'];')).split('\',\'')
+    const bar = $('script[src*=chapter_bar]').length
 
-    for (const url of urls) {
-        pages.push('https:' + url.replace('\'', ''))
+    if (bar) { // If webtoon
+        const script: any = $('script:contains(function(p,a,c,k,e,d))').html()?.replace('eval', '')
+        const deobfuscatedScript = eval(script).toString()
+        const urls = deobfuscatedScript.substring(deobfuscatedScript.indexOf('newImgs=[\'') + 9, deobfuscatedScript.indexOf('\'];')).split('\',\'')
+
+        for (const url of urls) {
+            pages.push('https:' + url.replace('\'', ''))
+        }
+    } else {
+        const script: any = $('script:contains(function(p,a,c,k,e,d))').html()?.replace('eval', '')
+        const deobfuscatedScript = eval(script).toString()
+
+        const secretKeyStart = deobfuscatedScript.indexOf('\'')
+        const secretKeyEnd = deobfuscatedScript.indexOf(';')
+
+        const secretKeyResultScript = deobfuscatedScript.substring(secretKeyStart, secretKeyEnd).trim()
+        let secretKey = eval(secretKeyResultScript).toString()
+
+        const chapterIdStartLoc = $.html().indexOf('chapterid')
+        const numericChapterId = $.html().substring(chapterIdStartLoc + 11, $.html().indexOf(';', chapterIdStartLoc)).trim()
+
+        const pagesLinksElements = $('a', $('.pager-list-left > span').first())
+        const pagesNumber = Number($(pagesLinksElements[pagesLinksElements.length - 2])?.attr('data-page'))
+
+        const pageBase = url.substring(0, url.lastIndexOf('/'))
+
+        for (let i = 1; i <= pagesNumber; i++) {
+            let responseString = ''
+
+            for (let tr = 1; tr <= 3; tr++) {
+                const request = App.createRequest({
+                    url: `${pageBase}/chapterfun.ashx?cid=${numericChapterId}&page=${i}&key=${secretKey}`,
+                    method: 'GET',
+                    headers: {
+                        'Referer': url,
+                        'Accept': '*/*',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Connection': 'keep-alive',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+
+                const response = await source.requestManager.schedule(request, 1)
+                responseString = response.data
+                if (!responseString) {
+                    continue
+                } else {
+                    secretKey = ''
+                }
+
+            }
+            const deobfuscatedScript = eval(responseString.replace('eval', '')).toString()
+            const baseLinkStartPos = deobfuscatedScript.indexOf('pix=') + 5
+            const baseLink = deobfuscatedScript.substring(deobfuscatedScript.indexOf('pix=') + 5, deobfuscatedScript.indexOf(';', baseLinkStartPos) - 1)
+
+            const imageLinkStartPos = deobfuscatedScript.indexOf('pvalue=') + 9
+            const imageLinkEndPos = deobfuscatedScript.indexOf('"', imageLinkStartPos)
+            const imageLink = deobfuscatedScript.substring(imageLinkStartPos, imageLinkEndPos)
+            pages.push(`https:${baseLink}${imageLink}`)
+        }
     }
+    // Big Thanks to Tachi!
 
     const chapterDetails = App.createChapterDetails({
         id: chapterId,

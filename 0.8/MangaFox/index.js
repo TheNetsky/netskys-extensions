@@ -456,7 +456,7 @@ const MangaFoxParser_1 = require("./MangaFoxParser");
 const MangaFoxHelper_1 = require("./MangaFoxHelper");
 const FF_DOMAIN = 'https://fanfox.net';
 exports.MangaFoxInfo = {
-    version: '3.0.2',
+    version: '3.0.3',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -722,11 +722,11 @@ const parseChapters = ($) => {
     return chapters;
 };
 exports.parseChapters = parseChapters;
-const parseChapterDetails = ($, mangaId, chapterId) => {
+const parseChapterDetails = async ($, mangaId, chapterId) => {
     const pages = [];
     const script = $('script:contains(function(p,a,c,k,e,d))').html()?.replace('eval', '');
-    const deobfuscatedScript = eval(script).toString(); // Big Thanks to Tachi!
-    const urls = deobfuscatedScript.substring(deobfuscatedScript.indexOf('newImgs=[\'') + 9, deobfuscatedScript.indexOf('\'];')).split('\',\'');
+    const deobfuscatedScript = eval(script).toString();
+    const urls = deobfuscatedScript.replace('var newImgs=[', '').match(/([^\];]+)/)[0].split(',');
     for (const url of urls) {
         pages.push('https:' + url.replace('\'', ''));
     }

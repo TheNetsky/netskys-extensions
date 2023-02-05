@@ -385,7 +385,7 @@ const MangaFoxParser_1 = require("./MangaFoxParser");
 const MangaFoxHelper_1 = require("./MangaFoxHelper");
 const FF_DOMAIN = 'https://fanfox.net';
 exports.MangaFoxInfo = {
-    version: '2.0.8',
+    version: '2.0.9',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -404,7 +404,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
     constructor() {
         super(...arguments);
         this.requestManager = createRequestManager({
-            requestsPerSecond: 5,
+            requestsPerSecond: 10,
             requestTimeout: 20000,
             interceptor: {
                 interceptRequest: async (request) => {
@@ -453,7 +453,7 @@ class MangaFox extends paperback_extensions_common_1.Source {
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
-        return MangaFoxParser_1.parseChapterDetails($, mangaId, chapterId);
+        return MangaFoxParser_1.parseChapterDetails($, mangaId, chapterId, request.url, this);
     }
     async filterUpdatedManga(mangaUpdatesFoundCallback, time, ids) {
         let page = 1;
@@ -677,14 +677,62 @@ const parseChapters = ($, mangaId) => {
     return chapters;
 };
 exports.parseChapters = parseChapters;
-const parseChapterDetails = ($, mangaId, chapterId) => {
+const parseChapterDetails = async ($, mangaId, chapterId, url, source) => {
     const pages = [];
-    const script = $('script:contains(function(p,a,c,k,e,d))').html()?.replace('eval', '');
-    const deobfuscatedScript = eval(script).toString(); // Big Thanks to Tachi!
-    const urls = deobfuscatedScript.substring(deobfuscatedScript.indexOf('newImgs=[\'') + 9, deobfuscatedScript.indexOf('\'];')).split('\',\'');
-    for (const url of urls) {
-        pages.push('https:' + url.replace('\'', ''));
+    const bar = $('script[src*=chapter_bar]').length;
+    if (bar) { // If webtoon
+        const script = $('script:contains(function(p,a,c,k,e,d))').html()?.replace('eval', '');
+        const deobfuscatedScript = eval(script).toString();
+        const urls = deobfuscatedScript.substring(deobfuscatedScript.indexOf('newImgs=[\'') + 9, deobfuscatedScript.indexOf('\'];')).split('\',\'');
+        for (const url of urls) {
+            pages.push('https:' + url.replace('\'', ''));
+        }
     }
+    else {
+        const script = $('script:contains(function(p,a,c,k,e,d))').html()?.replace('eval', '');
+        const deobfuscatedScript = eval(script).toString();
+        const secretKeyStart = deobfuscatedScript.indexOf('\'');
+        const secretKeyEnd = deobfuscatedScript.indexOf(';');
+        const secretKeyResultScript = deobfuscatedScript.substring(secretKeyStart, secretKeyEnd).trim();
+        let secretKey = eval(secretKeyResultScript).toString();
+        const chapterIdStartLoc = $.html().indexOf('chapterid');
+        const numericChapterId = $.html().substring(chapterIdStartLoc + 11, $.html().indexOf(';', chapterIdStartLoc)).trim();
+        const pagesLinksElements = $('a', $('.pager-list-left > span').first());
+        const pagesNumber = Number($(pagesLinksElements[pagesLinksElements.length - 2])?.attr('data-page'));
+        const pageBase = url.substring(0, url.lastIndexOf('/'));
+        for (let i = 1; i <= pagesNumber; i++) {
+            let responseString = '';
+            for (let tr = 1; tr <= 3; tr++) {
+                const request = createRequestObject({
+                    url: `${pageBase}/chapterfun.ashx?cid=${numericChapterId}&page=${i}&key=${secretKey}`,
+                    method: 'GET',
+                    headers: {
+                        'Referer': url,
+                        'Accept': '*/*',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Connection': 'keep-alive',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const response = await source.requestManager.schedule(request, 1);
+                responseString = response.data;
+                if (!responseString) {
+                    continue;
+                }
+                else {
+                    secretKey = '';
+                }
+            }
+            const deobfuscatedScript = eval(responseString.replace('eval', '')).toString();
+            const baseLinkStartPos = deobfuscatedScript.indexOf('pix=') + 5;
+            const baseLink = deobfuscatedScript.substring(deobfuscatedScript.indexOf('pix=') + 5, deobfuscatedScript.indexOf(';', baseLinkStartPos) - 1);
+            const imageLinkStartPos = deobfuscatedScript.indexOf('pvalue=') + 9;
+            const imageLinkEndPos = deobfuscatedScript.indexOf('"', imageLinkStartPos);
+            const imageLink = deobfuscatedScript.substring(imageLinkStartPos, imageLinkEndPos);
+            pages.push(`https:${baseLink}${imageLink}`);
+        }
+    }
+    // Big Thanks to Tachi!
     const chapterDetails = createChapterDetails({
         id: chapterId,
         mangaId: mangaId,

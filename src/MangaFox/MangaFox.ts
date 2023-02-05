@@ -52,7 +52,7 @@ export const MangaFoxInfo: SourceInfo = {
 export class MangaFox extends Source {
 
     requestManager = createRequestManager({
-        requestsPerSecond: 5,
+        requestsPerSecond: 10,
         requestTimeout: 20000,
         interceptor: {
             interceptRequest: async (request: Request): Promise<Request> => {
@@ -108,7 +108,7 @@ export class MangaFox extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data)
-        return parseChapterDetails($, mangaId, chapterId)
+        return parseChapterDetails($, mangaId, chapterId, request.url, this)
     }
 
     override async filterUpdatedManga(mangaUpdatesFoundCallback: (updates: MangaUpdates) => void, time: Date, ids: string[]): Promise<void> {

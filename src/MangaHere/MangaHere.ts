@@ -33,7 +33,7 @@ import { URLBuilder } from './MangaHereHelper'
 const MH_DOMAIN = 'https://www.mangahere.cc'
 
 export const MangaHereInfo: SourceInfo = {
-    version: '2.0.8',
+    version: '2.0.9',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -108,7 +108,7 @@ export class MangaHere extends Source {
 
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data)
-        return parseChapterDetails($, mangaId, chapterId)
+        return parseChapterDetails($, mangaId, chapterId, request.url, this)
     }
 
     override async filterUpdatedManga(mangaUpdatesFoundCallback: (updates: MangaUpdates) => void, time: Date, ids: string[]): Promise<void> {

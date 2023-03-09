@@ -101,20 +101,28 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
 export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId: string): ChapterDetails => {
     const pages: string[] = []
 
-    for (const page of $('div.ch-images img').toArray()) {
-        let rawPage = getImageSrc($(page))
-        if (!rawPage) continue
+    try {
+        const html = $.html()
+        const imgRegex = html.match(/chapter\['pages'\]\W=\W(.*?);/)
+        let imgJson = ''
 
-        rawPage = RM_DOMAIN + rawPage
-        pages.push(rawPage)
+        if (imgRegex && imgRegex[1]) imgJson = imgRegex[1]
+        const json = JSON.parse(imgJson)
+
+        for (const prop of json) {
+            pages.push(`https://www.readm.org${prop.src}`)
+        }
+
+        const chapterDetails = App.createChapterDetails({
+            id: chapterId,
+            mangaId: mangaId,
+            pages: pages
+        })
+
+        return chapterDetails
+    } catch (error) {
+        throw new Error('Something went wrong trying to parse images!')
     }
-
-    const chapterDetails = App.createChapterDetails({
-        id: chapterId,
-        mangaId: mangaId,
-        pages: pages
-    })
-    return chapterDetails
 }
 
 export const parseTags = ($: CheerioStatic): TagSection[] | null => {

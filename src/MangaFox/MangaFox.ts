@@ -33,7 +33,7 @@ import { URLBuilder } from './MangaFoxHelper'
 const FF_DOMAIN = 'https://fanfox.net'
 
 export const MangaFoxInfo: SourceInfo = {
-    version: '3.0.3',
+    version: '3.0.4',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -111,7 +111,7 @@ export class MangaFox implements Searchable, MangaProviding, ChapterProviding {
 
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data as string)
-        return parseChapterDetails($, mangaId, chapterId)
+        return parseChapterDetails($, mangaId, chapterId, request.url, this)
     }
 
     async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {

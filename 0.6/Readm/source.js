@@ -679,7 +679,7 @@ const paperback_extensions_common_1 = require("paperback-extensions-common");
 const ReadmParser_1 = require("./ReadmParser");
 const RM_DOMAIN = 'https://readm.org';
 exports.ReadmInfo = {
-    version: '2.0.4',
+    version: '2.0.5',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -982,20 +982,27 @@ const parseChapters = ($, mangaId) => {
 exports.parseChapters = parseChapters;
 const parseChapterDetails = ($, mangaId, chapterId) => {
     const pages = [];
-    for (const page of $('div.ch-images img').toArray()) {
-        let rawPage = getImageSrc($(page));
-        if (!rawPage)
-            continue;
-        rawPage = RM_DOMAIN + rawPage;
-        pages.push(rawPage);
+    try {
+        const html = $.html();
+        const imgRegex = html.match(/chapter\['pages'\]\W=\W(.*?);/);
+        let imgJson = '';
+        if (imgRegex && imgRegex[1])
+            imgJson = imgRegex[1];
+        const json = JSON.parse(imgJson);
+        for (const prop of json) {
+            pages.push(`https://www.readm.org${prop.src}`);
+        }
+        const chapterDetails = createChapterDetails({
+            id: chapterId,
+            mangaId: mangaId,
+            pages: pages,
+            longStrip: false
+        });
+        return chapterDetails;
     }
-    const chapterDetails = createChapterDetails({
-        id: chapterId,
-        mangaId: mangaId,
-        pages: pages,
-        longStrip: false
-    });
-    return chapterDetails;
+    catch (error) {
+        throw new Error('Something went wrong trying to parse images!');
+    }
 };
 exports.parseChapterDetails = parseChapterDetails;
 const parseTags = ($) => {

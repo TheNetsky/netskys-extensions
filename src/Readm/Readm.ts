@@ -30,7 +30,7 @@ import {
 const RM_DOMAIN = 'https://readm.org'
 
 export const ReadmInfo: SourceInfo = {
-    version: '2.0.4',
+    version: '2.0.5',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',

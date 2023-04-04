@@ -1301,7 +1301,6 @@ const parseChapters = ($) => {
         sortingIndex--;
     }
     return chapters.map(chapter => {
-        // @ts-ignore
         chapter.sortingIndex += chapters.length;
         return App.createChapter(chapter);
     });

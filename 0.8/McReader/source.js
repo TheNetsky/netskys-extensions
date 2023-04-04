@@ -1110,7 +1110,7 @@ class McReader {
     }
     async getChapters(mangaId) {
         const request = App.createRequest({
-            url: `${MCR_DOMAIN}/manga/${mangaId}/all-chapters/`,
+            url: `${MCR_DOMAIN}/manga/${mangaId}/all-chapters`,
             method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
@@ -1302,7 +1302,6 @@ const parseChapters = ($) => {
         sortingIndex--;
     }
     return chapters.map(chapter => {
-        // @ts-ignore
         chapter.sortingIndex += chapters.length;
         return App.createChapter(chapter);
     });
@@ -1413,17 +1412,15 @@ const parseViewMore = ($) => {
         if (chapNumRegex && chapNumRegex[1])
             chapNum = Number(chapNumRegex[1]);
         const subtitle = chapNum ? 'Chapter ' + chapNum : 'Chapter N/A';
-        if (!id || !title)
+        if (!id || !title || collectedIds.includes(id))
             continue;
-        if (!collectedIds.includes(id)) {
-            manga.push(App.createPartialSourceManga({
-                image: image,
-                title: decodeHTMLEntity(title),
-                mangaId: id,
-                subtitle: decodeHTMLEntity(subtitle)
-            }));
-            collectedIds.push(id);
-        }
+        manga.push(App.createPartialSourceManga({
+            image: image,
+            title: decodeHTMLEntity(title),
+            mangaId: id,
+            subtitle: decodeHTMLEntity(subtitle)
+        }));
+        collectedIds.push(id);
     }
     return manga;
 };

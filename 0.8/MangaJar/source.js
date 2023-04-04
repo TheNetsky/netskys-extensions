@@ -1353,9 +1353,7 @@ const parseHomeSections = ($, sectionCallback) => {
             if (chapRegex && chapRegex[1])
                 subtitle = chapRegex[1];
             subtitle ? subtitle = 'Chapter ' + subtitle : '';
-            if (!id || !title)
-                continue;
-            if (collectedIds.includes(id))
+            if (!id || !title || collectedIds.includes(id))
                 continue;
             mangaArray.push(App.createPartialSourceManga({
                 image: image,
@@ -1363,6 +1361,7 @@ const parseHomeSections = ($, sectionCallback) => {
                 mangaId: id,
                 subtitle: subtitle
             }));
+            collectedIds.push(id);
         }
         section.sectionID.items = mangaArray;
         sectionCallback(section.sectionID);

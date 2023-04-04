@@ -1334,9 +1334,7 @@ const parseHomeSections = ($, OS_DOMAIN, sectionID) => {
                 const image = OS_DOMAIN + $('img', item).first().attr('src') ?? '';
                 const title = $('a,text-white.text-decoration-none', item).text().trim();
                 const subtitle = $('i.bi.bi-images', item).parent().text().trim() + ' images';
-                if (!id || !title)
-                    continue;
-                if (collectedIds.includes(id))
+                if (!id || !title || collectedIds.includes(id))
                     continue;
                 itemArray.push(App.createPartialSourceManga({
                     image: image,
@@ -1344,6 +1342,7 @@ const parseHomeSections = ($, OS_DOMAIN, sectionID) => {
                     mangaId: id,
                     subtitle: decodeHTMLEntity(subtitle)
                 }));
+                collectedIds.push(id);
             }
             break;
         case 'cosplay':
@@ -1352,9 +1351,7 @@ const parseHomeSections = ($, OS_DOMAIN, sectionID) => {
                 const image = OS_DOMAIN + $('img', item).first().attr('src') ?? '';
                 const title = $('a,text-white.text-decoration-none', item).text().trim();
                 const subtitle = $('span.badge.bg-dark', item).first().text().trim();
-                if (!id || !title)
-                    continue;
-                if (collectedIds.includes(id))
+                if (!id || !title || collectedIds.includes(id))
                     continue;
                 itemArray.push(App.createPartialSourceManga({
                     image: image,
@@ -1362,6 +1359,7 @@ const parseHomeSections = ($, OS_DOMAIN, sectionID) => {
                     mangaId: id,
                     subtitle: decodeHTMLEntity(subtitle)
                 }));
+                collectedIds.push(id);
             }
             break;
         default:
@@ -1370,9 +1368,7 @@ const parseHomeSections = ($, OS_DOMAIN, sectionID) => {
                 const image = OS_DOMAIN + $('img', item).first().attr('src') ?? '';
                 const title = $('a,text-white.text-decoration-none', item).text().trim();
                 const subtitle = $('i.bi.bi-images', item).parent().text().trim() + ' images';
-                if (!id || !title)
-                    continue;
-                if (collectedIds.includes(id))
+                if (!id || !title || collectedIds.includes(id))
                     continue;
                 itemArray.push(App.createPartialSourceManga({
                     image: image,
@@ -1380,6 +1376,7 @@ const parseHomeSections = ($, OS_DOMAIN, sectionID) => {
                     mangaId: id,
                     subtitle: decodeHTMLEntity(subtitle)
                 }));
+                collectedIds.push(id);
             }
             break;
     }

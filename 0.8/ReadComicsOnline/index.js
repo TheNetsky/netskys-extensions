@@ -1262,7 +1262,6 @@ const parseChapters = ($) => {
         sortingIndex--;
     }
     return chapters.map(chapter => {
-        // @ts-ignore
         chapter.sortingIndex += chapters.length;
         return App.createChapter(chapter);
     });
@@ -1367,9 +1366,7 @@ const parseViewMore = ($) => {
         const title = $('h5.media-heading > a > strong', item).first().text().trim() ?? '';
         const id = $('h5.media-heading > a', item).attr('href')?.split('/').pop() ?? '';
         const subtitle = $('div.media-body > div > a', item).first().text().trim() ?? '';
-        if (!id || !title)
-            continue;
-        if (collectedIds.includes(id))
+        if (!id || !title || collectedIds.includes(id))
             continue;
         comics.push(App.createPartialSourceManga({
             mangaId: id,
@@ -1390,9 +1387,7 @@ const parseSearch = (data) => {
         const id = item.data;
         const image = `https://readcomicsonline.ru/uploads/manga/${id}/cover/cover_250x350.jpg`;
         const title = item.value;
-        if (!id || !title)
-            continue;
-        if (collectedIds.includes(id))
+        if (!id || !title || collectedIds.includes(id))
             continue;
         comics.push(App.createPartialSourceManga({
             mangaId: id,

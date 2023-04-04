@@ -836,7 +836,7 @@ const parseHomeSections = ($, sectionCallback) => {
             const image = $('img', manga).first().attr('src') ?? '';
             const title = $('a', manga).first().attr('title')?.trim() ?? '';
             const subtitle = $('p.manga-list-1-item-subtitle', manga).text().trim();
-            if (!id || !title || !image || collectedIds.includes(id))
+            if (!id || !title || collectedIds.includes(id))
                 continue;
             mangaArray.push(App.createPartialSourceManga({
                 image: image,
@@ -844,6 +844,7 @@ const parseHomeSections = ($, sectionCallback) => {
                 mangaId: id,
                 subtitle: subtitle
             }));
+            collectedIds.push(id);
         }
         section.sectionID.items = mangaArray;
         sectionCallback(section.sectionID);
@@ -861,7 +862,7 @@ const parseHomeSections = ($, sectionCallback) => {
         const image = $('img', manga).first().attr('src') ?? '';
         const title = $('a', manga).attr('title')?.trim() ?? '';
         const subtitle = $('ul.manga-list-4-item-part > li', manga).first().text().trim();
-        if (!id || !title || !image || collectedIds.includes(id))
+        if (!id || !title || collectedIds.includes(id))
             continue;
         latestManga.push(App.createPartialSourceManga({
             image: image,
@@ -869,6 +870,7 @@ const parseHomeSections = ($, sectionCallback) => {
             mangaId: id,
             subtitle: subtitle
         }));
+        collectedIds.push(id);
     }
     latestSection.items = latestManga;
     sectionCallback(latestSection);
@@ -882,7 +884,7 @@ const parseSearch = ($) => {
         const image = $('img', manga).first().attr('src') ?? '';
         const title = $('a', manga).attr('title')?.trim() ?? '';
         const subtitle = $('a', $('p.manga-list-4-item-tip', manga).get(1)).text();
-        if (!id || !title || !image || collectedIds.includes(id))
+        if (!id || !title || collectedIds.includes(id))
             continue;
         mangaItems.push(App.createPartialSourceManga({
             image: image,
@@ -904,7 +906,7 @@ const parseViewMore = ($, homepageSectionId) => {
             const image = $('img', manga).first().attr('src') ?? '';
             const title = $('a', manga).attr('title')?.trim() ?? '';
             const subtitle = $('ul.manga-list-4-item-part > li', manga).first().text().trim();
-            if (!id || !title || !image || collectedIds.includes(id))
+            if (!id || !title || collectedIds.includes(id))
                 continue;
             mangaItems.push(App.createPartialSourceManga({
                 image: image,
@@ -921,7 +923,7 @@ const parseViewMore = ($, homepageSectionId) => {
         const image = $('img', manga).first().attr('src') ?? '';
         const title = $('img', manga).first().attr('alt')?.trim() ?? '';
         const subtitle = $('p.manga-list-1-item-subtitle', manga).text().trim();
-        if (!id || !title || !image || collectedIds.includes(id))
+        if (!id || !title || collectedIds.includes(id))
             continue;
         mangaItems.push(App.createPartialSourceManga({
             image: image,

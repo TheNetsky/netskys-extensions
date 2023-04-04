@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const MangaHasuParser_1 = require("./MangaHasuParser");
 const MH_DOMAIN = 'https://mangahasu.se';
 exports.MangaHasuInfo = {
-    version: '2.0.2',
+    version: '2.0.3',
     name: 'MangaHasu',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1289,7 +1289,7 @@ const parseChapters = ($) => {
         let volNum = 0;
         if (volNumRegex && volNumRegex[1])
             volNum = Number(volNumRegex[1]);
-        chapters.push(App.createChapter({
+        chapters.push({
             id: chapterId,
             name: `Chapter ${chapNum}`,
             langCode: 'ENG',
@@ -1297,10 +1297,14 @@ const parseChapters = ($) => {
             volume: volNum,
             time: date,
             sortingIndex
-        }));
+        });
         sortingIndex--;
     }
-    return chapters;
+    return chapters.map(chapter => {
+        // @ts-ignore
+        chapter.sortingIndex += chapters.length;
+        return App.createChapter(chapter);
+    });
 };
 exports.parseChapters = parseChapters;
 const parseChapterDetails = ($, mangaId, chapterId) => {

@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const McReaderParser_1 = require("./McReaderParser");
 const MCR_DOMAIN = 'https://www.mreader.co';
 exports.McReaderInfo = {
-    version: '2.0.1',
+    version: '2.0.2',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1110,7 +1110,7 @@ class McReader {
     }
     async getChapters(mangaId) {
         const request = App.createRequest({
-            url: `${MCR_DOMAIN}/manga/${mangaId}`,
+            url: `${MCR_DOMAIN}/manga/${mangaId}/all-chapters/`,
             method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
@@ -1291,17 +1291,21 @@ const parseChapters = ($) => {
         let chapNum = 0;
         if (chapNumRegex && chapNumRegex[1])
             chapNum = Number(chapNumRegex[1]);
-        chapters.push(App.createChapter({
+        chapters.push({
             id: chapterId,
             name: `Chapter ${chapNum}`,
             langCode: 'ENG',
             chapNum: chapNum,
             time: date,
             sortingIndex
-        }));
+        });
         sortingIndex--;
     }
-    return chapters;
+    return chapters.map(chapter => {
+        // @ts-ignore
+        chapter.sortingIndex += chapters.length;
+        return App.createChapter(chapter);
+    });
 };
 exports.parseChapters = parseChapters;
 const parseChapterDetails = ($, mangaId, chapterId) => {

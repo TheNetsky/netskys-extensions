@@ -1059,7 +1059,7 @@ const ComicOnlineFreeParser_1 = require("./ComicOnlineFreeParser");
 const ComicOnlineFreeHelper_1 = require("./ComicOnlineFreeHelper");
 const COF_DOMAIN = 'https://comiconlinefree.net';
 exports.ComicOnlineFreeInfo = {
-    version: '1.1.1',
+    version: '1.1.2',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1324,17 +1324,21 @@ const parseChapters = ($) => {
         let chapNum = 0;
         if (chapNumRegex && chapNumRegex[1])
             chapNum = Number(chapNumRegex[1]);
-        chapters.push(App.createChapter({
+        chapters.push({
             id: chapterId,
             name: title,
             langCode: 'ENG',
             chapNum: chapNum,
             time: date,
             sortingIndex
-        }));
+        });
         sortingIndex--;
     }
-    return chapters;
+    return chapters.map(chapter => {
+        // @ts-ignore
+        chapter.sortingIndex += chapters.length;
+        return App.createChapter(chapter);
+    });
 };
 exports.parseChapters = parseChapters;
 const parseChapterDetails = ($, mangaId, chapterId) => {

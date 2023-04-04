@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const ReadComicsOnlineParser_1 = require("./ReadComicsOnlineParser");
 const RCO_DOMAIN = 'https://readcomicsonline.ru';
 exports.ReadComicsOnlineInfo = {
-    version: '2.0.1',
+    version: '2.0.2',
     name: 'ReadComicsOnline',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1251,17 +1251,21 @@ const parseChapters = ($) => {
         const date = new Date($('div.date-chapter-title-rtl', chapter).last().text().trim());
         if (!chapterId || !title)
             continue;
-        chapters.push(App.createChapter({
+        chapters.push({
             id: chapterId,
             name: decodeHTMLEntity(title),
             langCode: 'ENG',
             chapNum: isNaN(chapNum) ? 0 : chapNum,
             time: date,
             sortingIndex
-        }));
+        });
         sortingIndex--;
     }
-    return chapters;
+    return chapters.map(chapter => {
+        // @ts-ignore
+        chapter.sortingIndex += chapters.length;
+        return App.createChapter(chapter);
+    });
 };
 exports.parseChapters = parseChapters;
 const parseChapterDetails = ($, mangaId, chapterId) => {

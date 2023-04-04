@@ -29,7 +29,7 @@ import {
 const RCO_DOMAIN = 'https://readcomicsonline.ru'
 
 export const ReadComicsOnlineInfo: SourceInfo = {
-    version: '2.0.1',
+    version: '2.0.2',
     name: 'ReadComicsOnline',
     icon: 'icon.png',
     author: 'Netsky',

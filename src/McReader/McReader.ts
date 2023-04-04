@@ -28,10 +28,10 @@ import {
     parseTags
 } from './McReaderParser'
 
-const MCR_DOMAIN = 'https://www.mreader.co'
+const MCR_DOMAIN = 'https://www.mangageko.com'
 
 export const McReaderInfo: SourceInfo = {
-    version: '2.0.2',
+    version: '2.0.3',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',

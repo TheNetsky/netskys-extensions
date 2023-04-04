@@ -98,7 +98,6 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
     }
 
     return chapters.map(chapter => {
-        // @ts-ignore
         chapter.sortingIndex += chapters.length
         return App.createChapter(chapter)
     })

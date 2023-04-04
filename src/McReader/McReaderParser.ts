@@ -90,7 +90,6 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
     }
 
     return chapters.map(chapter => {
-        // @ts-ignore
         chapter.sortingIndex += chapters.length
         return App.createChapter(chapter)
     })
@@ -207,17 +206,17 @@ export const parseViewMore = ($: CheerioStatic): PartialSourceManga[] => {
         if (chapNumRegex && chapNumRegex[1]) chapNum = Number(chapNumRegex[1])
 
         const subtitle = chapNum ? 'Chapter ' + chapNum : 'Chapter N/A'
-        if (!id || !title) continue
-        if (!collectedIds.includes(id)) {
-            manga.push(App.createPartialSourceManga({
-                image: image,
-                title: decodeHTMLEntity(title),
-                mangaId: id,
-                subtitle: decodeHTMLEntity(subtitle)
-            }))
-            collectedIds.push(id)
-        }
+
+        if (!id || !title || collectedIds.includes(id)) continue
+        manga.push(App.createPartialSourceManga({
+            image: image,
+            title: decodeHTMLEntity(title),
+            mangaId: id,
+            subtitle: decodeHTMLEntity(subtitle)
+        }))
+        collectedIds.push(id)
     }
+
     return manga
 }
 

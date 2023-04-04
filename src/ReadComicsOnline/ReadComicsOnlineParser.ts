@@ -78,7 +78,6 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
     }
 
     return chapters.map(chapter => {
-        // @ts-ignore
         chapter.sortingIndex += chapters.length
         return App.createChapter(chapter)
     })
@@ -194,9 +193,7 @@ export const parseViewMore = ($: CheerioStatic): PartialSourceManga[] => {
         const id: string = $('h5.media-heading > a', item).attr('href')?.split('/').pop() ?? ''
         const subtitle: string = $('div.media-body > div > a', item).first().text().trim() ?? ''
 
-        if (!id || !title) continue
-
-        if (collectedIds.includes(id)) continue
+        if (!id || !title || collectedIds.includes(id)) continue
         comics.push(App.createPartialSourceManga({
             mangaId: id,
             image: image,
@@ -219,9 +216,7 @@ export const parseSearch = (data: any): PartialSourceManga[] => {
         const image = `https://readcomicsonline.ru/uploads/manga/${id}/cover/cover_250x350.jpg`
         const title: string = item.value
 
-        if (!id || !title) continue
-
-        if (collectedIds.includes(id)) continue
+        if (!id || !title || collectedIds.includes(id)) continue
         comics.push(App.createPartialSourceManga({
             mangaId: id,
             image: image,

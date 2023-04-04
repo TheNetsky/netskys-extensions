@@ -88,14 +88,15 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
             const title: string = $('p.image-list-item-title > a', item).text().trim()
             const subtitle: string = $('p.image-list-item-regist-date > span', item).text().trim()
 
-            if (!id || !title || !image) continue
-            if (collectedIds.includes(id)) continue
+            if (!id || !title || collectedIds.includes(id)) continue
             itemArray.push(App.createPartialSourceManga({
                 image: image,
                 title: title,
                 mangaId: id,
                 subtitle: subtitle
             }))
+            collectedIds.push(id)
+
         }
         section.sectionID.items = itemArray
         sectionCallback(section.sectionID)

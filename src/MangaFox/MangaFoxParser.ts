@@ -219,13 +219,14 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
             const title: string = $('a', manga).first().attr('title')?.trim() ?? ''
             const subtitle: string = $('p.manga-list-1-item-subtitle', manga).text().trim()
 
-            if (!id || !title || !image || collectedIds.includes(id)) continue
+            if (!id || !title || collectedIds.includes(id)) continue
             mangaArray.push(App.createPartialSourceManga({
                 image: image,
                 title: title,
                 mangaId: id,
                 subtitle: subtitle
             }))
+            collectedIds.push(id)
         }
         section.sectionID.items = mangaArray
         sectionCallback(section.sectionID)
@@ -246,13 +247,14 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         const title: string = $('a', manga).attr('title')?.trim() ?? ''
         const subtitle: string = $('ul.manga-list-4-item-part > li', manga).first().text().trim()
 
-        if (!id || !title || !image || collectedIds.includes(id)) continue
+        if (!id || !title || collectedIds.includes(id)) continue
         latestManga.push(App.createPartialSourceManga({
             image: image,
             title: title,
             mangaId: id,
             subtitle: subtitle
         }))
+        collectedIds.push(id)
     }
     latestSection.items = latestManga
     sectionCallback(latestSection)
@@ -268,7 +270,7 @@ export const parseSearch = ($: CheerioStatic): PartialSourceManga[] => {
         const title: string = $('a', manga).attr('title')?.trim() ?? ''
         const subtitle: string = $('a', $('p.manga-list-4-item-tip', manga).get(1)).text()
 
-        if (!id || !title || !image || collectedIds.includes(id)) continue
+        if (!id || !title || collectedIds.includes(id)) continue
         mangaItems.push(App.createPartialSourceManga({
             image: image,
             title: title,
@@ -291,7 +293,7 @@ export const parseViewMore = ($: CheerioStatic, homepageSectionId: string): Part
             const title: string = $('a', manga).attr('title')?.trim() ?? ''
             const subtitle: string = $('ul.manga-list-4-item-part > li', manga).first().text().trim()
 
-            if (!id || !title || !image || collectedIds.includes(id)) continue
+            if (!id || !title || collectedIds.includes(id)) continue
             mangaItems.push(App.createPartialSourceManga({
                 image: image,
                 title: title,
@@ -309,7 +311,7 @@ export const parseViewMore = ($: CheerioStatic, homepageSectionId: string): Part
         const title: string = $('img', manga).first().attr('alt')?.trim() ?? ''
         const subtitle: string = $('p.manga-list-1-item-subtitle', manga).text().trim()
 
-        if (!id || !title || !image || collectedIds.includes(id)) continue
+        if (!id || !title || collectedIds.includes(id)) continue
         mangaItems.push(App.createPartialSourceManga({
             image: image,
             title: title,

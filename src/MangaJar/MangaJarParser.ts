@@ -151,15 +151,14 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
             if (chapRegex && chapRegex[1]) subtitle = chapRegex[1]
             subtitle ? subtitle = 'Chapter ' + subtitle : ''
 
-            if (!id || !title) continue
-            if (collectedIds.includes(id)) continue
-
+            if (!id || !title || collectedIds.includes(id)) continue
             mangaArray.push(App.createPartialSourceManga({
                 image: image,
                 title: decodeHTMLEntity(title),
                 mangaId: id,
                 subtitle: subtitle
             }))
+            collectedIds.push(id)
         }
         section.sectionID.items = mangaArray
         sectionCallback(section.sectionID)

@@ -68,14 +68,14 @@ export const parseHomeSections = ($: CheerioStatic, OS_DOMAIN: string, sectionID
                 const title: string = $('a,text-white.text-decoration-none', item).text().trim()
                 const subtitle: string = $('i.bi.bi-images', item).parent().text().trim() + ' images'
 
-                if (!id || !title) continue
-                if (collectedIds.includes(id)) continue
+                if (!id || !title || collectedIds.includes(id)) continue
                 itemArray.push(App.createPartialSourceManga({
                     image: image,
                     title: decodeHTMLEntity(title),
                     mangaId: id,
                     subtitle: decodeHTMLEntity(subtitle)
                 }))
+                collectedIds.push(id)
             }
             break
 
@@ -87,14 +87,14 @@ export const parseHomeSections = ($: CheerioStatic, OS_DOMAIN: string, sectionID
                 const title: string = $('a,text-white.text-decoration-none', item).text().trim()
                 const subtitle: string = $('span.badge.bg-dark', item).first().text().trim()
 
-                if (!id || !title) continue
-                if (collectedIds.includes(id)) continue
+                if (!id || !title || collectedIds.includes(id)) continue
                 itemArray.push(App.createPartialSourceManga({
                     image: image,
                     title: decodeHTMLEntity(title),
                     mangaId: id,
                     subtitle: decodeHTMLEntity(subtitle)
                 }))
+                collectedIds.push(id)
             }
             break
 
@@ -106,14 +106,14 @@ export const parseHomeSections = ($: CheerioStatic, OS_DOMAIN: string, sectionID
                 const title: string = $('a,text-white.text-decoration-none', item).text().trim()
                 const subtitle: string = $('i.bi.bi-images', item).parent().text().trim() + ' images'
 
-                if (!id || !title) continue
-                if (collectedIds.includes(id)) continue
+                if (!id || !title || collectedIds.includes(id)) continue
                 itemArray.push(App.createPartialSourceManga({
                     image: image,
                     title: decodeHTMLEntity(title),
                     mangaId: id,
                     subtitle: decodeHTMLEntity(subtitle)
                 }))
+                collectedIds.push(id)
             }
             break
     }

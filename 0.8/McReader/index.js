@@ -1287,10 +1287,14 @@ const parseChapters = ($) => {
             continue;
         const datePieces = $('time.chapter-update', chapter).attr('datetime')?.split(',') ?? [];
         const date = new Date(String(`${datePieces[0]}, ${datePieces[1]}`));
-        const chapNumRegex = title.match(/(\d+\.?\d?)+/);
+        const chapNumRegex = title.match(/(\d+)(?:[-.]\d+)?/);
         let chapNum = 0;
-        if (chapNumRegex && chapNumRegex[1])
-            chapNum = Number(chapNumRegex[1]);
+        if (chapNumRegex && chapNumRegex[1]) {
+            let chapRegex = chapNumRegex[1];
+            if (chapRegex.includes("-"))
+                chapRegex = chapRegex.replace("-", ".");
+            chapNum = Number(chapRegex);
+        }
         chapters.push({
             id: chapterId,
             name: `Chapter ${chapNum}`,

@@ -15,7 +15,8 @@ import {
     HomeSectionType,
     ChapterProviding,
     MangaProviding,
-    Searchable
+    Searchable,
+    Tag
 } from '@paperback/types'
 
 import {
@@ -29,7 +30,7 @@ import {
 const OS_DOMAIN = 'https://ososedki.com'
 
 export const OsosedkiInfo: SourceInfo = {
-    version: '1.0.1',
+    version: '1.0.2',
     name: 'Ososedki',
     icon: 'icon.png',
     author: 'Netsky',
@@ -116,36 +117,12 @@ export class Ososedki implements Searchable, MangaProviding, ChapterProviding {
             },
             {
                 request: App.createRequest({
-                    url: `${OS_DOMAIN}/cosplays`,
-                    method: 'GET'
-                }),
-                sectionID: App.createHomeSection({
-                    id: 'cosplay',
-                    title: 'Cosplay Galleries',
-                    containsMoreItems: true,
-                    type: HomeSectionType.singleRowNormal
-                })
-            },
-            {
-                request: App.createRequest({
                     url: `${OS_DOMAIN}/top`,
                     method: 'GET'
                 }),
                 sectionID: App.createHomeSection({
                     id: 'top',
                     title: 'Top Galleries',
-                    containsMoreItems: true,
-                    type: HomeSectionType.singleRowNormal
-                })
-            },
-            {
-                request: App.createRequest({
-                    url: `${OS_DOMAIN}/random`,
-                    method: 'GET'
-                }),
-                sectionID: App.createHomeSection({
-                    id: 'random',
-                    title: 'Random Galleries',
                     containsMoreItems: true,
                     type: HomeSectionType.singleRowNormal
                 })
@@ -181,14 +158,8 @@ export class Ososedki implements Searchable, MangaProviding, ChapterProviding {
             case 'new':
                 param = `/?page=${page}`
                 break
-            case 'cosplay':
-                param = `/cosplays?page=${page}`
-                break
             case 'top':
                 param = `/top?page=${page}`
-                break
-            case 'random':
-                param = `/random?page=${page}`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
@@ -236,7 +207,7 @@ export class Ososedki implements Searchable, MangaProviding, ChapterProviding {
             // Tag Search
         } else {
             request = App.createRequest({
-                url: `${OS_DOMAIN}/category/${query?.includedTags?.map((x: any) => x.id)[0]}?page=${page}`,
+                url: `${OS_DOMAIN}/category/${query?.includedTags?.map((x: Tag) => x.id)[0]}?page=${page}`,
                 method: 'GET'
             })
         }

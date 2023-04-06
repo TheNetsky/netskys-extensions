@@ -1058,7 +1058,7 @@ const types_1 = require("@paperback/types");
 const OsosedkiParser_1 = require("./OsosedkiParser");
 const OS_DOMAIN = 'https://ososedki.com';
 exports.OsosedkiInfo = {
-    version: '1.0.1',
+    version: '1.0.2',
     name: 'Ososedki',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1137,36 +1137,12 @@ class Ososedki {
             },
             {
                 request: App.createRequest({
-                    url: `${OS_DOMAIN}/cosplays`,
-                    method: 'GET'
-                }),
-                sectionID: App.createHomeSection({
-                    id: 'cosplay',
-                    title: 'Cosplay Galleries',
-                    containsMoreItems: true,
-                    type: types_1.HomeSectionType.singleRowNormal
-                })
-            },
-            {
-                request: App.createRequest({
                     url: `${OS_DOMAIN}/top`,
                     method: 'GET'
                 }),
                 sectionID: App.createHomeSection({
                     id: 'top',
                     title: 'Top Galleries',
-                    containsMoreItems: true,
-                    type: types_1.HomeSectionType.singleRowNormal
-                })
-            },
-            {
-                request: App.createRequest({
-                    url: `${OS_DOMAIN}/random`,
-                    method: 'GET'
-                }),
-                sectionID: App.createHomeSection({
-                    id: 'random',
-                    title: 'Random Galleries',
                     containsMoreItems: true,
                     type: types_1.HomeSectionType.singleRowNormal
                 })
@@ -1195,14 +1171,8 @@ class Ososedki {
             case 'new':
                 param = `/?page=${page}`;
                 break;
-            case 'cosplay':
-                param = `/cosplays?page=${page}`;
-                break;
             case 'top':
                 param = `/top?page=${page}`;
-                break;
-            case 'random':
-                param = `/random?page=${page}`;
                 break;
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
@@ -1280,10 +1250,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseTags = exports.parseHomeSections = exports.parseChapterDetails = exports.parseChapters = exports.parseMangaDetails = void 0;
 const entities = require("entities");
 const parseMangaDetails = ($, mangaId) => {
-    const title = $('meta[property="og:description"]').attr('content')?.trim() ?? '';
-    const images = $('img', $('div.grid > div.grid-item'));
+    const images = $('div.thumbs', 'div.container-fluid');
+    const titleString = $('img', images.first()).attr('alt')?.trim() ?? '';
+    const split = titleString.split(' - ');
+    const title = split.slice(0, -1).join(' - ') || titleString;
     const description = `Gallery: ${title}\n\nImages: ${images.length - 1}`; // Remove last image since it's the telegram icon
-    const image = images.first().attr('src') ?? '';
+    const image = $('img', images.first()).attr('src') ?? '';
     return App.createSourceManga({
         id: mangaId,
         mangaInfo: App.createMangaInfo({
@@ -1308,7 +1280,7 @@ exports.parseChapters = parseChapters;
 const parseChapterDetails = ($, mangaId, chapterId) => {
     const pages = [];
     // Remove last image since it's the telegram icon
-    for (const img of $('div.grid-item', 'div.grid').toArray().slice(0, -1)) {
+    for (const img of $('div.thumbs', 'div.container-fluid').toArray().slice(0, -1)) {
         let image = $('img', img).attr('src') ?? '';
         if (!image)
             image = $(img).attr('data-src') ?? '';
@@ -1329,7 +1301,7 @@ const parseHomeSections = ($, OS_DOMAIN, sectionID) => {
     const itemArray = [];
     switch (sectionID) {
         case 'random':
-            for (const item of $('div.grid-item-more', 'div.grid-more').toArray()) {
+            for (const item of $('div.thumbs-more', 'div.grid-more').toArray()) {
                 const id = $('a', item).attr('href')?.split('/').pop();
                 const image = OS_DOMAIN + $('img', item).first().attr('src') ?? '';
                 const title = $('a,text-white.text-decoration-none', item).text().trim();
@@ -1346,7 +1318,7 @@ const parseHomeSections = ($, OS_DOMAIN, sectionID) => {
             }
             break;
         case 'cosplay':
-            for (const item of $('div.grid-item', 'div.grid').toArray()) {
+            for (const item of $('div.thumbs', 'div.container-fluid').toArray()) {
                 const id = $('a', item).attr('href')?.split('/').pop();
                 const image = OS_DOMAIN + $('img', item).first().attr('src') ?? '';
                 const title = $('a,text-white.text-decoration-none', item).text().trim();
@@ -1363,7 +1335,7 @@ const parseHomeSections = ($, OS_DOMAIN, sectionID) => {
             }
             break;
         default:
-            for (const item of $('div.grid-item', 'div.grid').toArray()) {
+            for (const item of $('div.thumbs', 'div.container-fluid').toArray()) {
                 const id = $('a', item).attr('href')?.split('/').pop();
                 const image = OS_DOMAIN + $('img', item).first().attr('src') ?? '';
                 const title = $('a,text-white.text-decoration-none', item).text().trim();

@@ -49,6 +49,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
             rating: Number(rating),
             status: status,
             author: author,
+            artist: author,
             tags: tagSections,
             desc: description
         })

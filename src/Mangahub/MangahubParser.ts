@@ -75,7 +75,7 @@ export const parseChapters = (data: any): Chapter[] => {
         chapters.push(App.createChapter({
             id: String(number),
             name: title,
-            langCode: 'ENG',
+            langCode: '🇬🇧',
             chapNum: number,
             time: date
         }))

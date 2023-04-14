@@ -90,7 +90,7 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
         chapters.push(App.createChapter({
             id: chapterId,
             name: decodeHTMLEntity(title),
-            langCode: 'ENG',
+            langCode: '🇬🇧',
             chapNum: isNaN(chapNum) ? 0 : chapNum,
             time: date
         }))

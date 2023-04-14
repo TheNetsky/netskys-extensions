@@ -69,7 +69,7 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
         chapters.push(App.createChapter({
             id,
             name: chapterName ? decodeHTMLEntity(chapterName) : 'Chapter ' + chapNum,
-            langCode: 'ENG',
+            langCode: '🇬🇧',
             chapNum: chapNum,
             time: date
         }))

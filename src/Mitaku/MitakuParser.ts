@@ -45,9 +45,8 @@ export const parseChapters = (mangaId: string): Chapter[] => {
     return [App.createChapter({
         id: mangaId,
         name: 'Gallery',
-        langCode: 'ENG',
-        chapNum: 1,
-        volume: 0
+        langCode: '🇬🇧',
+        chapNum: 1
     })]
 }
 

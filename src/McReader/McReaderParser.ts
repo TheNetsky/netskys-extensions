@@ -85,7 +85,7 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
         chapters.push({
             id: chapterId,
             name: `Chapter ${chapNum}`,
-            langCode: 'ENG',
+            langCode: '🇬🇧',
             chapNum: chapNum,
             time: date,
             sortingIndex

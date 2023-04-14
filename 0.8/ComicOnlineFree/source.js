@@ -1327,7 +1327,7 @@ const parseChapters = ($) => {
         chapters.push({
             id: chapterId,
             name: title,
-            langCode: 'ENG',
+            langCode: '🇬🇧',
             chapNum: chapNum,
             time: date,
             sortingIndex

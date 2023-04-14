@@ -1294,7 +1294,7 @@ const parseChapters = ($) => {
         chapters.push(App.createChapter({
             id: chapterId,
             name: title,
-            langCode: 'ENG',
+            langCode: '🇬🇧',
             chapNum: chapterNumber,
             time: date
         }));

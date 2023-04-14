@@ -1254,7 +1254,7 @@ const parseChapters = ($) => {
         chapters.push({
             id: chapterId,
             name: decodeHTMLEntity(title),
-            langCode: 'ENG',
+            langCode: '🇬🇧',
             chapNum: isNaN(chapNum) ? 0 : chapNum,
             time: date,
             sortingIndex

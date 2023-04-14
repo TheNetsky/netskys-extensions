@@ -1223,9 +1223,8 @@ const parseChapters = (mangaId) => {
     return [App.createChapter({
             id: mangaId,
             name: 'Gallery',
-            langCode: 'ENG',
-            chapNum: 1,
-            volume: 0
+            langCode: '🇬🇧',
+            chapNum: 1
         })];
 };
 exports.parseChapters = parseChapters;

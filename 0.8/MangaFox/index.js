@@ -713,7 +713,7 @@ const parseChapters = ($) => {
         chapters.push(App.createChapter({
             id: chapterId,
             name: title,
-            langCode: 'ENG',
+            langCode: '🇬🇧',
             chapNum: isNaN(chapNum) ? 0 : chapNum,
             volume: isNaN(volNum) ? 0 : volNum,
             time: date

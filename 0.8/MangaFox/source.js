@@ -684,6 +684,7 @@ const parseMangaDetails = ($, mangaId) => {
             rating: Number(rating),
             status: status,
             author: author,
+            artist: author,
             tags: tagSections,
             desc: description
         })

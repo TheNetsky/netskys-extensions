@@ -1245,6 +1245,7 @@ const parseMangaDetails = ($, mangaId) => {
             image: image,
             status: status,
             author: author,
+            artist: author,
             tags: tagSections,
             desc: description,
         })

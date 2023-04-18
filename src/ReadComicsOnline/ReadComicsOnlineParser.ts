@@ -45,7 +45,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
             author: author,
             artist: author,
             tags: tagSections,
-            desc: description,
+            desc: description
         })
     })
 }
@@ -72,7 +72,9 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
             langCode: '🇬🇧',
             chapNum: isNaN(chapNum) ? 0 : chapNum,
             time: date,
-            sortingIndex
+            sortingIndex,
+            volume: 0,
+            group: ''
         })
         sortingIndex--
     }
@@ -206,7 +208,7 @@ export const parseViewMore = ($: CheerioStatic): PartialSourceManga[] => {
     return comics
 }
 
-export const parseSearch = (data: any): PartialSourceManga[] => {
+export const parseSearch = (data: string): PartialSourceManga[] => {
     const comics: PartialSourceManga[] = []
     const collectedIds: string[] = []
 

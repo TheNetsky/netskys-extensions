@@ -13,7 +13,8 @@ import {
     SourceIntents,
     ChapterProviding,
     MangaProviding,
-    Searchable
+    SearchResultsProviding,
+    HomePageSectionsProviding
 } from '@paperback/types'
 
 import {
@@ -28,7 +29,7 @@ import {
 const HC_DOMAIN = 'https://hentai-cosplays.com'
 
 export const HentaiCosplayInfo: SourceInfo = {
-    version: '1.0.2',
+    version: '1.0.3',
     name: 'HentaiCosplay',
     icon: 'icon.png',
     author: 'Netsky',
@@ -45,7 +46,7 @@ export const HentaiCosplayInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class HentaiCosplay implements Searchable, MangaProviding, ChapterProviding {
+export class HentaiCosplay implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
 
     constructor(private cheerio: CheerioAPI) { }
 
@@ -120,19 +121,18 @@ export class HentaiCosplay implements Searchable, MangaProviding, ChapterProvidi
 
         switch (homepageSectionId) {
             case 'top_rated':
-                param = `/ranking/page/${page}`
+                param = `ranking/page/${page}`
                 break
             case 'new':
-                param = `/search${page == 1 ? '' : '/page/' + page}`
+                param = `search${page == 1 ? '' : '/page/' + page}`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
         }
 
         const request = App.createRequest({
-            url: HC_DOMAIN,
-            method: 'GET',
-            param
+            url: `${HC_DOMAIN}/${param}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -150,14 +150,10 @@ export class HentaiCosplay implements Searchable, MangaProviding, ChapterProvidi
     async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
         const page: number = metadata?.page ?? 1
 
-        let request
-        // Regular search
-        if (query.title) {
-            request = App.createRequest({
-                url: `${HC_DOMAIN}/search/keyword/${encodeURI(query.title ?? '')}/page/${page}`,
-                method: 'GET'
-            })
-        }
+        const request = App.createRequest({
+            url: `${HC_DOMAIN}/search/keyword/${encodeURI(query.title ?? '')}/page/${page}`,
+            method: 'GET'
+        })
 
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data as string)
@@ -171,7 +167,7 @@ export class HentaiCosplay implements Searchable, MangaProviding, ChapterProvidi
     }
 
     CloudFlareError(status: number): void {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${HentaiCosplay.name}> and press the cloud icon.`)
         }
     }

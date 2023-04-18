@@ -57,7 +57,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
             author: author,
             artist: author,
             tags: tagSections,
-            desc: description,
+            desc: description
         })
     })
 }
@@ -86,7 +86,7 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
     return chapters
 }
 
-export const parseChapterDetails = (data: any, mangaId: string, chapterId: string): ChapterDetails => {
+export const parseChapterDetails = (data: string, mangaId: string, chapterId: string): ChapterDetails => {
     const pages: string[] = []
     let images: string[] = []
 

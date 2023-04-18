@@ -12,9 +12,11 @@ import {
     SourceIntents,
     ChapterProviding,
     MangaProviding,
-    Searchable,
+    SearchResultsProviding,
     Response,
-    Request
+    Request,
+    HomePageSectionsProviding,
+    Tag
 } from '@paperback/types'
 
 import {
@@ -31,12 +33,12 @@ import {
 const MJ_DOMAIN = 'https://mangajar.com'
 
 export const MangaJarInfo: SourceInfo = {
-    version: '3.0.1',
+    version: '3.0.2',
     name: 'MangaJar',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from MangaJar.',
+    description: 'Extension that pulls manga from mangajar.com',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: MJ_DOMAIN,
     sourceTags: [
@@ -48,7 +50,7 @@ export const MangaJarInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class MangaJar implements Searchable, MangaProviding, ChapterProviding {
+export class MangaJar implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
 
     constructor(private cheerio: CheerioAPI) { }
 
@@ -72,9 +74,8 @@ export class MangaJar implements Searchable, MangaProviding, ChapterProviding {
 
     async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
-            url: `${MJ_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${MJ_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -83,15 +84,14 @@ export class MangaJar implements Searchable, MangaProviding, ChapterProviding {
     }
 
     async getChapters(mangaId: string): Promise<Chapter[]> {
-        let chapters: any = []
+        let chapters: Chapter[] = []
         let page = 1
         let isLast = false
 
         while (!isLast) {
             const request = App.createRequest({
-                url: `${MJ_DOMAIN}/manga/${mangaId}/chaptersList`,
-                method: 'GET',
-                param: `?infinite=1&page=${page++}`
+                url: `${MJ_DOMAIN}/manga/${mangaId}/chaptersList?infinite=1&page=${page++}`,
+                method: 'GET'
             })
 
             const response = await this.requestManager.schedule(request, 1)
@@ -131,25 +131,24 @@ export class MangaJar implements Searchable, MangaProviding, ChapterProviding {
 
         switch (homepageSectionId) {
             case 'hot_update':
-                param = `/manga?sortBy=-last_chapter_at&page=${page}`
+                param = `manga?sortBy=-last_chapter_at&page=${page}`
                 break
             case 'new_trending':
-                param = `/manga?sortBy=-year&page=${page}`
+                param = `manga?sortBy=-year&page=${page}`
                 break
             case 'popular_manga':
-                param = `/manga?sortBy=popular&page=${page}`
+                param = `manga?sortBy=popular&page=${page}`
                 break
             case 'new_manga':
-                param = `/manga?sortBy=-published_at&page=${page}`
+                param = `manga?sortBy=-published_at&page=${page}`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
         }
 
         const request = App.createRequest({
-            url: MJ_DOMAIN,
-            method: 'GET',
-            param
+            url: `${MJ_DOMAIN}/${param}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -168,9 +167,8 @@ export class MangaJar implements Searchable, MangaProviding, ChapterProviding {
 
         if (query.title) {
             const request = App.createRequest({
-                url: `${MJ_DOMAIN}/search?q=`,
-                method: 'GET',
-                param: `${encodeURI(query.title)}&page=${page}`
+                url: `${MJ_DOMAIN}/search?q=${encodeURI(query.title)}&page=${page}`,
+                method: 'GET'
             })
 
             const response = await this.requestManager.schedule(request, 1)
@@ -185,9 +183,8 @@ export class MangaJar implements Searchable, MangaProviding, ChapterProviding {
 
         } else {
             const request = App.createRequest({
-                url: MJ_DOMAIN,
-                method: 'GET',
-                param: `/genre/${query?.includedTags?.map((x: any) => x.id)[0]}?page=${page}`
+                url: `${MJ_DOMAIN}/genre/${query?.includedTags?.map((x: Tag) => x.id)[0]}?page=${page}`,
+                method: 'GET'
             })
 
             const response = await this.requestManager.schedule(request, 1)

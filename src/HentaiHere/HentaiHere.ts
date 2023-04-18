@@ -14,7 +14,9 @@ import {
     SourceIntents,
     MangaProviding,
     ChapterProviding,
-    Searchable
+    SearchResultsProviding,
+    Tag,
+    HomePageSectionsProviding
 } from '@paperback/types'
 
 import {
@@ -31,12 +33,12 @@ import {
 const HH_DOMAIN = 'https://hentaihere.com'
 
 export const HentaiHereInfo: SourceInfo = {
-    version: '3.0.1',
+    version: '3.0.2',
     name: 'HentaiHere',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from HentaiHere',
+    description: 'Extension that pulls manga from hentaihere.com',
     contentRating: ContentRating.ADULT,
     websiteBaseURL: HH_DOMAIN,
     sourceTags: [
@@ -48,10 +50,10 @@ export const HentaiHereInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class HentaiHere implements Searchable, MangaProviding, ChapterProviding {
+export class HentaiHere implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
 
     constructor(private cheerio: CheerioAPI) { }
-    
+
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15000,
@@ -106,7 +108,7 @@ export class HentaiHere implements Searchable, MangaProviding, ChapterProviding 
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        return parseChapterDetails(response.data, mangaId, chapterId)
+        return parseChapterDetails(response.data as string, mangaId, chapterId)
     }
 
     async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
@@ -127,22 +129,21 @@ export class HentaiHere implements Searchable, MangaProviding, ChapterProviding 
 
         switch (homepageSectionId) {
             case 'newest':
-                param = `/directory/newest?page=${page}`
+                param = `directory/newest?page=${page}`
                 break
             case 'trending':
-                param = `/directory/trending?page=${page}`
+                param = `directory/trending?page=${page}`
                 break
             case 'staff_pick':
-                param = `/directory/staff_pick?page=${page}`
+                param = `directory/staff_pick?page=${page}`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
         }
 
         const request = App.createRequest({
-            url: HH_DOMAIN,
-            method: 'GET',
-            param
+            url: `${HH_DOMAIN}/${param}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -174,15 +175,13 @@ export class HentaiHere implements Searchable, MangaProviding, ChapterProviding 
         let request
         if (query.title) {
             request = App.createRequest({
-                url: `${HH_DOMAIN}/search?s=`,
-                method: 'GET',
-                param: `${encodeURI(query.title)}&page=${page}`
+                url: `${HH_DOMAIN}/search?s=${encodeURI(query.title)}&page=${page}`,
+                method: 'GET'
             })
         } else {
             request = App.createRequest({
-                url: `${HH_DOMAIN}`,
-                method: 'GET',
-                param: `/search/${query?.includedTags?.map((x: any) => x.id)[0]}/most-popular?page=${page}`
+                url: `${HH_DOMAIN}/search/${query?.includedTags?.map((x: Tag) => x.id)[0]}/most-popular?page=${page}`,
+                method: 'GET'
             })
         }
 
@@ -198,7 +197,7 @@ export class HentaiHere implements Searchable, MangaProviding, ChapterProviding 
     }
 
     CloudFlareError(status: number): void {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${HentaiHere.name}> and press the cloud icon.`)
         }
     }

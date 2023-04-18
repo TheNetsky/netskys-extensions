@@ -14,7 +14,9 @@ import {
     SourceIntents,
     ChapterProviding,
     MangaProviding,
-    Searchable
+    SearchResultsProviding,
+    Tag,
+    HomePageSectionsProviding
 } from '@paperback/types'
 
 import {
@@ -33,12 +35,12 @@ import { URLBuilder } from './ComicOnlineFreeHelper'
 const COF_DOMAIN = 'https://comiconlinefree.net'
 
 export const ComicOnlineFreeInfo: SourceInfo = {
-    version: '1.1.2',
+    version: '1.1.3',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls comics from ComicOnlineFree.net',
+    description: 'Extension that pulls comics from comiconlinefree.net',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: COF_DOMAIN,
     sourceTags: [
@@ -50,7 +52,7 @@ export const ComicOnlineFreeInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class ComicOnlineFree implements Searchable, MangaProviding, ChapterProviding {
+export class ComicOnlineFree implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
 
     constructor(private cheerio: CheerioAPI) { }
 
@@ -132,19 +134,18 @@ export class ComicOnlineFree implements Searchable, MangaProviding, ChapterProvi
 
         switch (homepageSectionId) {
             case 'popular':
-                param = `/popular-comic/${page}`
+                param = `popular-comic/${page}`
                 break
             case 'hot':
-                param = `/hot-comic/${page}`
+                param = `hot-comic/${page}`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
         }
 
         const request = App.createRequest({
-            url: COF_DOMAIN,
-            method: 'GET',
-            param
+            url: `${COF_DOMAIN}/${param}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -176,7 +177,7 @@ export class ComicOnlineFree implements Searchable, MangaProviding, ChapterProvi
             .addPathComponent('advanced-search')
             .addQueryParameter('key', encodeURI(query?.title || ''))
             .addQueryParameter('page', page)
-            .addQueryParameter('wg', query.includedTags?.map((x: any) => x.id).join('%2C'))
+            .addQueryParameter('wg', query.includedTags?.map((x: Tag) => x.id).join('%2C'))
             .buildUrl()
 
         const request = App.createRequest({
@@ -195,7 +196,7 @@ export class ComicOnlineFree implements Searchable, MangaProviding, ChapterProvi
     }
 
     CloudFlareError(status: number): void {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${ComicOnlineFree.name}> and press the cloud icon.`)
         }
     }

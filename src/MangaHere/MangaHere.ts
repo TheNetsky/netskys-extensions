@@ -12,9 +12,11 @@ import {
     Request,
     Response,
     SourceIntents,
-    Searchable,
+    SearchResultsProviding,
     ChapterProviding,
-    MangaProviding
+    MangaProviding,
+    HomePageSectionsProviding,
+    Tag
 } from '@paperback/types'
 
 import {
@@ -33,12 +35,12 @@ import { URLBuilder } from './MangaHereHelper'
 const MH_DOMAIN = 'https://www.mangahere.cc'
 
 export const MangaHereInfo: SourceInfo = {
-    version: '3.0.3',
+    version: '3.0.4',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from MangaHere.',
+    description: 'Extension that pulls manga from mangahere.cc',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: MH_DOMAIN,
     sourceTags: [
@@ -50,7 +52,7 @@ export const MangaHereInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class MangaHere implements Searchable, MangaProviding, ChapterProviding {
+export class MangaHere implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
 
     constructor(private cheerio: CheerioAPI) { }
 
@@ -81,9 +83,8 @@ export class MangaHere implements Searchable, MangaProviding, ChapterProviding {
 
     async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
-            url: `${MH_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${MH_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -93,9 +94,8 @@ export class MangaHere implements Searchable, MangaProviding, ChapterProviding {
 
     async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = App.createRequest({
-            url: `${MH_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${MH_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -131,22 +131,21 @@ export class MangaHere implements Searchable, MangaProviding, ChapterProviding {
 
         switch (homepageSectionId) {
             case 'hot_release':
-                param = '/hot/'
+                param = 'hot'
                 break
             case 'new_manga':
-                param = `/directory/${page}.htm?news`
+                param = `directory/${page}.htm?news`
                 break
             case 'latest_updates':
-                param = `/latest/${page}`
+                param = `latest/${page}`
                 break
             default:
                 throw new Error(`Invalid homeSectionId | ${homepageSectionId}`)
         }
 
         const request = App.createRequest({
-            url: `${MH_DOMAIN}/`,
-            method: 'GET',
-            param
+            url: `${MH_DOMAIN}/${param}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -167,7 +166,7 @@ export class MangaHere implements Searchable, MangaProviding, ChapterProviding {
             .addPathComponent('search')
             .addQueryParameter('page', page)
             .addQueryParameter('title', encodeURI(query?.title || ''))
-            .addQueryParameter('genres', query.includedTags?.map((x: any) => x.id).join('%2C'))
+            .addQueryParameter('genres', query.includedTags?.map((x: Tag) => x.id).join('%2C'))
             .buildUrl()
 
         const request = App.createRequest({

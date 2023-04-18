@@ -92,7 +92,7 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
     return chapters
 }
 
-export const parseChapterDetails = (data: any, mangaId: string, chapterId: string): ChapterDetails => {
+export const parseChapterDetails = (data: string, mangaId: string, chapterId: string): ChapterDetails => {
     const pages: string[] = []
 
     let obj = /var rff_imageList = (.*);/.exec(data)?.[1] ?? '' // Get the data else return null.

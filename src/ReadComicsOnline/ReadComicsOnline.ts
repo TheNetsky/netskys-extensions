@@ -13,7 +13,8 @@ import {
     SourceIntents,
     ChapterProviding,
     MangaProviding,
-    Searchable
+    SearchResultsProviding,
+    HomePageSectionsProviding
 } from '@paperback/types'
 
 import {
@@ -29,12 +30,12 @@ import {
 const RCO_DOMAIN = 'https://readcomicsonline.ru'
 
 export const ReadComicsOnlineInfo: SourceInfo = {
-    version: '2.0.2',
+    version: '2.0.3',
     name: 'ReadComicsOnline',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls comics from ReadComicsOnline.ru.',
+    description: 'Extension that pulls comics from readcomicsonline.ru',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: RCO_DOMAIN,
     sourceTags: [
@@ -46,7 +47,7 @@ export const ReadComicsOnlineInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class ReadComicsOnline implements Searchable, MangaProviding, ChapterProviding {
+export class ReadComicsOnline implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
 
     constructor(private cheerio: CheerioAPI) { }
 
@@ -76,9 +77,8 @@ export class ReadComicsOnline implements Searchable, MangaProviding, ChapterProv
 
     async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
-            url: `${RCO_DOMAIN}/comic/`,
-            method: 'GET',
-            param: mangaId
+            url: `${RCO_DOMAIN}/comic/${mangaId}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -89,9 +89,8 @@ export class ReadComicsOnline implements Searchable, MangaProviding, ChapterProv
 
     async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = App.createRequest({
-            url: `${RCO_DOMAIN}/comic/`,
-            method: 'GET',
-            param: mangaId
+            url: `${RCO_DOMAIN}/comic/${mangaId}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -140,9 +139,8 @@ export class ReadComicsOnline implements Searchable, MangaProviding, ChapterProv
         }
 
         const request = App.createRequest({
-            url: `${RCO_DOMAIN}/filterList`,
-            method: 'GET',
-            param
+            url: `${RCO_DOMAIN}/filterList${param}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -165,7 +163,7 @@ export class ReadComicsOnline implements Searchable, MangaProviding, ChapterProv
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const manga = parseSearch(response.data)
+        const manga = parseSearch(response.data as string)
 
         return App.createPagedResults({
             results: manga
@@ -174,7 +172,7 @@ export class ReadComicsOnline implements Searchable, MangaProviding, ChapterProv
     }
 
     CloudFlareError(status: number): void {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${ReadComicsOnline.name}> and press the cloud icon.`)
         }
     }

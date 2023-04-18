@@ -15,8 +15,9 @@ import {
     HomeSectionType,
     ChapterProviding,
     MangaProviding,
-    Searchable,
-    Tag
+    SearchResultsProviding,
+    Tag,
+    HomePageSectionsProviding
 } from '@paperback/types'
 
 import {
@@ -30,12 +31,12 @@ import {
 const MT_DOMAIN = 'https://mitaku.net'
 
 export const MitakuInfo: SourceInfo = {
-    version: '1.0.0',
+    version: '1.0.1',
     name: 'Mitaku',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from Mitaku.net',
+    description: 'Extension that pulls manga from mitaku.net',
     contentRating: ContentRating.ADULT,
     websiteBaseURL: MT_DOMAIN,
     sourceTags: [
@@ -47,7 +48,7 @@ export const MitakuInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class Mitaku implements Searchable, MangaProviding, ChapterProviding {
+export class Mitaku implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
 
     constructor(private cheerio: CheerioAPI) { }
 
@@ -113,7 +114,7 @@ export class Mitaku implements Searchable, MangaProviding, ChapterProviding {
                     title: 'Cosplay Galleries',
                     containsMoreItems: true,
                     type: HomeSectionType.singleRowNormal
-                }),
+                })
             },
             {
                 request: App.createRequest({
@@ -168,20 +169,20 @@ export class Mitaku implements Searchable, MangaProviding, ChapterProviding {
 
         switch (homepageSectionId) {
             case 'cosplay':
-                param = `/category/ero-cosplay/page/${page}`
+                param = `category/ero-cosplay/page/${page}`
                 break
             case 'nude':
-                param = `/category/nude/page/${page}`
+                param = `category/nude/page/${page}`
                 break
             case 'sexy-set':
-                param = `/category/sexy-set/page/${page}`
+                param = `category/sexy-set/page/${page}`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
         }
 
         const request = App.createRequest({
-            url: MT_DOMAIN + param,
+            url: `${MT_DOMAIN}/${param}`,
             method: 'GET'
         })
 
@@ -251,7 +252,7 @@ export class Mitaku implements Searchable, MangaProviding, ChapterProviding {
     }
 
     CloudFlareError(status: number): void {
-        if (status > 400) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${Mitaku.name}> and press the cloud icon.`)
         }
     }

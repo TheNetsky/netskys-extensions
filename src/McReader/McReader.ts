@@ -14,7 +14,9 @@ import {
     SourceIntents,
     ChapterProviding,
     MangaProviding,
-    Searchable
+    SearchResultsProviding,
+    HomePageSectionsProviding,
+    Tag
 } from '@paperback/types'
 
 import {
@@ -31,7 +33,7 @@ import {
 const MCR_DOMAIN = 'https://www.mangageko.com'
 
 export const McReaderInfo: SourceInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -48,7 +50,7 @@ export const McReaderInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class McReader implements Searchable, MangaProviding, ChapterProviding {
+export class McReader implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
 
     constructor(private cheerio: CheerioAPI) { }
 
@@ -130,21 +132,20 @@ export class McReader implements Searchable, MangaProviding, ChapterProviding {
 
         switch (homepageSectionId) {
             case 'most_viewed':
-                param = `/browse-comics/?results=${page}&filter=views`
+                param = `browse-comics/?results=${page}&filter=views`
                 break
             case 'updated':
-                param = `/browse-comics/?results=${page}&filter=Updated`
+                param = `browse-comics/?results=${page}&filter=Updated`
                 break
             case 'new':
-                param = `/browse-comics/?results=${page}&filter=New`
+                param = `browse-comics/?results=${page}&filter=New`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
         }
         const request = App.createRequest({
-            url: MCR_DOMAIN,
-            method: 'GET',
-            param
+            url: `${MCR_DOMAIN}/${param}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -184,16 +185,15 @@ export class McReader implements Searchable, MangaProviding, ChapterProviding {
             // Tag Search
         } else {
             request = App.createRequest({
-                url: `${MCR_DOMAIN}/browse-comics/`,
-                method: 'GET',
-                param: `?genre=${query?.includedTags?.map((x: any) => x.id)[0]}&results=${page}`
+                url: `${MCR_DOMAIN}/browse-comics?genre=${query?.includedTags?.map((x: Tag) => x.id)[0]}&results=${page}`,
+                method: 'GET'
             })
         }
 
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data as string)
         const manga = parseSearch($)
-        
+
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
         return App.createPagedResults({
             results: manga,
@@ -202,7 +202,7 @@ export class McReader implements Searchable, MangaProviding, ChapterProviding {
     }
 
     CloudFlareError(status: number): void {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${McReader.name}> and press the cloud icon.`)
         }
     }

@@ -14,7 +14,9 @@ import {
     SourceIntents,
     ChapterProviding,
     MangaProviding,
-    Searchable
+    SearchResultsProviding,
+    Tag,
+    HomePageSectionsProviding
 } from '@paperback/types'
 
 import {
@@ -30,7 +32,7 @@ import {
 const MH_DOMAIN = 'https://mangahasu.se'
 
 export const MangaHasuInfo: SourceInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'MangaHasu',
     icon: 'icon.png',
     author: 'Netsky',
@@ -47,7 +49,7 @@ export const MangaHasuInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class MangaHasu implements Searchable, MangaProviding, ChapterProviding {
+export class MangaHasu implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
 
     constructor(private cheerio: CheerioAPI) { }
 
@@ -129,16 +131,15 @@ export class MangaHasu implements Searchable, MangaProviding, ChapterProviding {
 
         switch (homepageSectionId) {
             case 'update':
-                param = `/latest-releases.html?page=${page}`
+                param = `latest-releases.html?page=${page}`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
         }
 
         const request = App.createRequest({
-            url: MH_DOMAIN,
-            method: 'GET',
-            param
+            url: `${MH_DOMAIN}/${param}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -178,7 +179,7 @@ export class MangaHasu implements Searchable, MangaProviding, ChapterProviding {
             // Tag Search
         } else {
             request = App.createRequest({
-                url: `${MH_DOMAIN}/${query?.includedTags?.map((x: any) => x.id)[0]}?page=${page}`,
+                url: `${MH_DOMAIN}/${query?.includedTags?.map((x: Tag) => x.id)[0]}?page=${page}`,
                 method: 'GET'
             })
         }
@@ -195,7 +196,7 @@ export class MangaHasu implements Searchable, MangaProviding, ChapterProviding {
     }
 
     CloudFlareError(status: number): void {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${MangaHasu.name}> and press the cloud icon.`)
         }
     }

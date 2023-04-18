@@ -78,7 +78,7 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
         let chapNum = 0
         if (chapNumRegex && chapNumRegex[1]) {
             let chapRegex = chapNumRegex[1]
-            if (chapRegex.includes("-")) chapRegex = chapRegex.replace("-", ".")
+            if (chapRegex.includes('-')) chapRegex = chapRegex.replace('-', '.')
             chapNum = Number(chapRegex)
         }
 
@@ -88,7 +88,9 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
             langCode: '🇬🇧',
             chapNum: chapNum,
             time: date,
-            sortingIndex
+            sortingIndex,
+            volume: 0,
+            group: ''
         })
         sortingIndex--
     }

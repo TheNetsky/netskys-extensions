@@ -17,7 +17,8 @@ import {
     SourceIntents,
     ChapterProviding,
     MangaProviding,
-    Searchable
+    SearchResultsProviding,
+    HomePageSectionsProviding
 } from '@paperback/types'
 
 import {
@@ -33,12 +34,12 @@ const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql'
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub'
 
 export const MangahubInfo: SourceInfo = {
-    version: '3.0.5',
+    version: '3.0.6',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from Mangahub.',
+    description: 'Extension that pulls manga from mangahub.io',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: MH_DOMAIN,
     sourceTags: [
@@ -58,7 +59,7 @@ export const MangahubInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class Mangahub implements Searchable, MangaProviding, ChapterProviding {
+export class Mangahub implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
 
     requestManager = App.createRequestManager({
         requestsPerSecond: 2,
@@ -164,10 +165,10 @@ export class Mangahub implements Searchable, MangaProviding, ChapterProviding {
             }
         })
 
-        const response: any = await this.requestManager.schedule(request, 1)
+        const response = await this.requestManager.schedule(request, 1)
         let data
         try {
-            data = JSON.parse(response.data)
+            data = JSON.parse(response.data as string)
         } catch (e) {
             throw new Error(`${e}`)
         }
@@ -208,11 +209,11 @@ export class Mangahub implements Searchable, MangaProviding, ChapterProviding {
             }
         })
 
-        const response: any = await this.requestManager.schedule(request, 1)
+        const response = await this.requestManager.schedule(request, 1)
 
         let data
         try {
-            data = JSON.parse(response.data)
+            data = JSON.parse(response.data as string)
         } catch (e) {
             throw new Error(`${e}`)
         }
@@ -254,11 +255,11 @@ export class Mangahub implements Searchable, MangaProviding, ChapterProviding {
             }
         })
 
-        const response: any = await this.requestManager.schedule(request, 1)
+        const response = await this.requestManager.schedule(request, 1)
 
         let data
         try {
-            data = JSON.parse(response.data)
+            data = JSON.parse(response.data as string)
         } catch (e) {
             // Silently log errors
             console.log(`${e}`)
@@ -274,7 +275,7 @@ export class Mangahub implements Searchable, MangaProviding, ChapterProviding {
         try {
             const parsedPages = JSON.parse(data.data.chapter.pages)
             for (const img of parsedPages.i) {
-                pages.push(`${MH_CDN_DOMAIN}/${parsedPages.p}${img}` )
+                pages.push(`${MH_CDN_DOMAIN}/${parsedPages.p}${img}`)
             }
 
         } catch (e) {
@@ -316,10 +317,10 @@ export class Mangahub implements Searchable, MangaProviding, ChapterProviding {
             }
         })
 
-        const response: any = await this.requestManager.schedule(request, 1)
+        const response = await this.requestManager.schedule(request, 1)
         let data
         try {
-            data = JSON.parse(response.data)
+            data = JSON.parse(response.data as string)
         } catch (e) {
             throw new Error(`${e}`)
         }
@@ -396,10 +397,10 @@ export class Mangahub implements Searchable, MangaProviding, ChapterProviding {
             }`
             }
         })
-        const response: any = await this.requestManager.schedule(request, 1)
+        const response = await this.requestManager.schedule(request, 1)
 
         try {
-            const data = JSON.parse(response.data)
+            const data = JSON.parse(response.data as string)
             parseHomeSections(data, sectionCallback)
         } catch (e) {
             throw new Error(`${e}`)
@@ -466,11 +467,11 @@ export class Mangahub implements Searchable, MangaProviding, ChapterProviding {
             }
         })
 
-        const response: any = await this.requestManager.schedule(request, 1)
+        const response = await this.requestManager.schedule(request, 1)
 
         let data
         try {
-            data = JSON.parse(response.data)
+            data = JSON.parse(response.data as string)
         } catch (e) {
             throw new Error(`${e}`)
         }
@@ -485,7 +486,7 @@ export class Mangahub implements Searchable, MangaProviding, ChapterProviding {
 
     async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
         const offset: number = metadata?.offset ?? 0
-        const searchTag: any = query?.includedTags?.map((x: any) => x.id)
+        const searchTag = query?.includedTags?.map((x: Tag) => x.id)
 
         const requests = [
             //No Alt Titles
@@ -563,10 +564,10 @@ export class Mangahub implements Searchable, MangaProviding, ChapterProviding {
         let manga: PartialSourceManga[] = []
 
         for (const req of requests) {
-            promises.push(this.requestManager.schedule(req.request, 1).then((response: any) => {
+            promises.push(this.requestManager.schedule(req.request, 1).then((response) => {
                 let data
                 try {
-                    data = JSON.parse(response.data)
+                    data = JSON.parse(response.data as string)
                 } catch (e) {
                     throw new Error(`${e}`)
                 }

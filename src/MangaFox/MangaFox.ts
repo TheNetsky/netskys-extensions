@@ -14,7 +14,9 @@ import {
     SourceIntents,
     ChapterProviding,
     MangaProviding,
-    Searchable
+    SearchResultsProviding,
+    Tag,
+    HomePageSectionsProviding
 } from '@paperback/types'
 
 import {
@@ -33,12 +35,12 @@ import { URLBuilder } from './MangaFoxHelper'
 const FF_DOMAIN = 'https://fanfox.net'
 
 export const MangaFoxInfo: SourceInfo = {
-    version: '3.0.4',
+    version: '3.0.5',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from MangaHere.',
+    description: 'Extension that pulls manga from fanfox.net',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: FF_DOMAIN,
     sourceTags: [
@@ -50,7 +52,7 @@ export const MangaFoxInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class MangaFox implements Searchable, MangaProviding, ChapterProviding {
+export class MangaFox implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
 
     constructor(private cheerio: CheerioAPI) { }
 
@@ -81,9 +83,8 @@ export class MangaFox implements Searchable, MangaProviding, ChapterProviding {
 
     async getMangaDetails(mangaId: string): Promise<SourceManga> {
         const request = App.createRequest({
-            url: `${FF_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${FF_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -93,9 +94,8 @@ export class MangaFox implements Searchable, MangaProviding, ChapterProviding {
 
     async getChapters(mangaId: string): Promise<Chapter[]> {
         const request = App.createRequest({
-            url: `${FF_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${FF_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -131,22 +131,21 @@ export class MangaFox implements Searchable, MangaProviding, ChapterProviding {
 
         switch (homepageSectionId) {
             case 'hot_release':
-                param = '/hot/'
+                param = 'hot'
                 break
             case 'new_manga':
-                param = `/directory/${page}.html?news`
+                param = `directory/${page}.html?news`
                 break
             case 'latest_updates':
-                param = `/releases/${page}.html`
+                param = `releases/${page}.html`
                 break
             default:
                 throw new Error(`Invalid homeSectionId | ${homepageSectionId}`)
         }
 
         const request = App.createRequest({
-            url: `${FF_DOMAIN}/`,
-            method: 'GET',
-            param
+            url: `${FF_DOMAIN}/${param}`,
+            method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
@@ -167,7 +166,7 @@ export class MangaFox implements Searchable, MangaProviding, ChapterProviding {
             .addPathComponent('search')
             .addQueryParameter('page', page)
             .addQueryParameter('title', encodeURI(query?.title || ''))
-            .addQueryParameter('genres', query.includedTags?.map((x: any) => x.id).join('%2C'))
+            .addQueryParameter('genres', query.includedTags?.map((x: Tag) => x.id).join('%2C'))
             .buildUrl()
 
         const request = App.createRequest({

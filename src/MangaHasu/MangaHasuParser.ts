@@ -92,7 +92,8 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
             chapNum: chapNum,
             volume: volNum,
             time: date,
-            sortingIndex
+            sortingIndex,
+            group: ''
         })
         sortingIndex--
     }

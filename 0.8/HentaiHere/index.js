@@ -1440,12 +1440,12 @@ const types_1 = require("@paperback/types");
 const HentaiHereParser_1 = require("./HentaiHereParser");
 const HH_DOMAIN = 'https://hentaihere.com';
 exports.HentaiHereInfo = {
-    version: '3.0.1',
+    version: '3.0.2',
     name: 'HentaiHere',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from HentaiHere',
+    description: 'Extension that pulls manga from hentaihere.com',
     contentRating: types_1.ContentRating.ADULT,
     websiteBaseURL: HH_DOMAIN,
     sourceTags: [
@@ -1524,21 +1524,20 @@ class HentaiHere {
         let param = '';
         switch (homepageSectionId) {
             case 'newest':
-                param = `/directory/newest?page=${page}`;
+                param = `directory/newest?page=${page}`;
                 break;
             case 'trending':
-                param = `/directory/trending?page=${page}`;
+                param = `directory/trending?page=${page}`;
                 break;
             case 'staff_pick':
-                param = `/directory/staff_pick?page=${page}`;
+                param = `directory/staff_pick?page=${page}`;
                 break;
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
         }
         const request = App.createRequest({
-            url: HH_DOMAIN,
-            method: 'GET',
-            param
+            url: `${HH_DOMAIN}/${param}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1564,16 +1563,14 @@ class HentaiHere {
         let request;
         if (query.title) {
             request = App.createRequest({
-                url: `${HH_DOMAIN}/search?s=`,
-                method: 'GET',
-                param: `${encodeURI(query.title)}&page=${page}`
+                url: `${HH_DOMAIN}/search?s=${encodeURI(query.title)}&page=${page}`,
+                method: 'GET'
             });
         }
         else {
             request = App.createRequest({
-                url: `${HH_DOMAIN}`,
-                method: 'GET',
-                param: `/search/${query?.includedTags?.map((x) => x.id)[0]}/most-popular?page=${page}`
+                url: `${HH_DOMAIN}/search/${query?.includedTags?.map((x) => x.id)[0]}/most-popular?page=${page}`,
+                method: 'GET'
             });
         }
         const response = await this.requestManager.schedule(request, 1);
@@ -1586,7 +1583,7 @@ class HentaiHere {
         });
     }
     CloudFlareError(status) {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${HentaiHere.name}> and press the cloud icon.`);
         }
     }

@@ -1440,12 +1440,12 @@ const types_1 = require("@paperback/types");
 const MangaKatanaParser_1 = require("./MangaKatanaParser");
 const MK_DOMAIN = 'https://mangakatana.com';
 exports.MangaKatanaInfo = {
-    version: '3.0.1',
+    version: '3.0.2',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from MangaKatana.',
+    description: 'Extension that pulls manga from mangakatana.com',
     contentRating: types_1.ContentRating.MATURE,
     websiteBaseURL: MK_DOMAIN,
     sourceTags: [
@@ -1482,9 +1482,8 @@ class MangaKatana {
     getMangaShareUrl(mangaId) { return `${MK_DOMAIN}/manga/${mangaId}`; }
     async getMangaDetails(mangaId) {
         const request = App.createRequest({
-            url: `${MK_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${MK_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -1492,9 +1491,8 @@ class MangaKatana {
     }
     async getChapters(mangaId) {
         const request = App.createRequest({
-            url: `${MK_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${MK_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -1531,18 +1529,17 @@ class MangaKatana {
         let param = '';
         switch (homepageSectionId) {
             case 'hot_manga':
-                param = `/new-manga/page/${page}`;
+                param = `new-manga/page/${page}`;
                 break;
             case 'latest_updates':
-                param = `/latest/page/${page}`;
+                param = `latest/page/${page}`;
                 break;
             default:
                 throw new Error(`Invalid homeSectionId | ${homepageSectionId}`);
         }
         const request = App.createRequest({
-            url: MK_DOMAIN,
-            method: 'GET',
-            param
+            url: `${MK_DOMAIN}/${param}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -1558,16 +1555,14 @@ class MangaKatana {
         let request;
         if (query.title) {
             request = App.createRequest({
-                url: MK_DOMAIN,
-                method: 'GET',
-                param: `/page/${page}?search=${encodeURI(query.title)}&search_by=book_name`
+                url: `${MK_DOMAIN}/page/${page}?search=${encodeURI(query.title)}&search_by=book_name`,
+                method: 'GET'
             });
         }
         else {
             request = App.createRequest({
-                url: MK_DOMAIN,
-                method: 'GET',
-                param: `/genre/${query?.includedTags?.map((x) => x.id)[0]}/page/${page}`
+                url: `${MK_DOMAIN}/genre/${query?.includedTags?.map((x) => x.id)[0]}/page/${page}`,
+                method: 'GET'
             });
         }
         const response = await this.requestManager.schedule(request, 1);
@@ -1629,7 +1624,7 @@ const parseMangaDetails = ($, mangaId) => {
             author: author,
             artist: author,
             tags: tagSections,
-            desc: description,
+            desc: description
         })
     });
 };

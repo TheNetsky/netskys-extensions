@@ -1440,12 +1440,12 @@ const types_1 = require("@paperback/types");
 const OsosedkiParser_1 = require("./OsosedkiParser");
 const OS_DOMAIN = 'https://ososedki.com';
 exports.OsosedkiInfo = {
-    version: '1.0.2',
+    version: '1.0.3',
     name: 'Ososedki',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from Ososedki.com',
+    description: 'Extension that pulls manga from ososedki.com',
     contentRating: types_1.ContentRating.ADULT,
     websiteBaseURL: OS_DOMAIN,
     sourceTags: [
@@ -1515,7 +1515,7 @@ class Ososedki {
                     title: 'New Galleries',
                     containsMoreItems: true,
                     type: types_1.HomeSectionType.singleRowNormal
-                }),
+                })
             },
             {
                 request: App.createRequest({
@@ -1551,16 +1551,16 @@ class Ososedki {
         let param = '';
         switch (homepageSectionId) {
             case 'new':
-                param = `/?page=${page}`;
+                param = `?page=${page}`;
                 break;
             case 'top':
-                param = `/top?page=${page}`;
+                param = `top?page=${page}`;
                 break;
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
         }
         const request = App.createRequest({
-            url: OS_DOMAIN + param,
+            url: `${OS_DOMAIN}/${param}`,
             method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
@@ -1609,7 +1609,7 @@ class Ososedki {
         });
     }
     CloudFlareError(status) {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${Ososedki.name}> and press the cloud icon.`);
         }
     }

@@ -466,12 +466,12 @@ const MangaHereParser_1 = require("./MangaHereParser");
 const MangaHereHelper_1 = require("./MangaHereHelper");
 const MH_DOMAIN = 'https://www.mangahere.cc';
 exports.MangaHereInfo = {
-    version: '3.0.3',
+    version: '3.0.4',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from MangaHere.',
+    description: 'Extension that pulls manga from mangahere.cc',
     contentRating: types_1.ContentRating.MATURE,
     websiteBaseURL: MH_DOMAIN,
     sourceTags: [
@@ -511,9 +511,8 @@ class MangaHere {
     getMangaShareUrl(mangaId) { return `${MH_DOMAIN}/manga/${mangaId}`; }
     async getMangaDetails(mangaId) {
         const request = App.createRequest({
-            url: `${MH_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${MH_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -521,9 +520,8 @@ class MangaHere {
     }
     async getChapters(mangaId) {
         const request = App.createRequest({
-            url: `${MH_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${MH_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -552,21 +550,20 @@ class MangaHere {
         let param = '';
         switch (homepageSectionId) {
             case 'hot_release':
-                param = '/hot/';
+                param = 'hot';
                 break;
             case 'new_manga':
-                param = `/directory/${page}.htm?news`;
+                param = `directory/${page}.htm?news`;
                 break;
             case 'latest_updates':
-                param = `/latest/${page}`;
+                param = `latest/${page}`;
                 break;
             default:
                 throw new Error(`Invalid homeSectionId | ${homepageSectionId}`);
         }
         const request = App.createRequest({
-            url: `${MH_DOMAIN}/`,
-            method: 'GET',
-            param
+            url: `${MH_DOMAIN}/${param}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -694,7 +691,7 @@ const parseMangaDetails = ($, mangaId) => {
             author: author,
             artist: author,
             tags: tagSections,
-            desc: description,
+            desc: description
         })
     });
 };

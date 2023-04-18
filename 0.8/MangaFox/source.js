@@ -466,12 +466,12 @@ const MangaFoxParser_1 = require("./MangaFoxParser");
 const MangaFoxHelper_1 = require("./MangaFoxHelper");
 const FF_DOMAIN = 'https://fanfox.net';
 exports.MangaFoxInfo = {
-    version: '3.0.4',
+    version: '3.0.5',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from MangaHere.',
+    description: 'Extension that pulls manga from fanfox.net',
     contentRating: types_1.ContentRating.MATURE,
     websiteBaseURL: FF_DOMAIN,
     sourceTags: [
@@ -511,9 +511,8 @@ class MangaFox {
     getMangaShareUrl(mangaId) { return `${FF_DOMAIN}/manga/${mangaId}`; }
     async getMangaDetails(mangaId) {
         const request = App.createRequest({
-            url: `${FF_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${FF_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -521,9 +520,8 @@ class MangaFox {
     }
     async getChapters(mangaId) {
         const request = App.createRequest({
-            url: `${FF_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${FF_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -552,21 +550,20 @@ class MangaFox {
         let param = '';
         switch (homepageSectionId) {
             case 'hot_release':
-                param = '/hot/';
+                param = 'hot';
                 break;
             case 'new_manga':
-                param = `/directory/${page}.html?news`;
+                param = `directory/${page}.html?news`;
                 break;
             case 'latest_updates':
-                param = `/releases/${page}.html`;
+                param = `releases/${page}.html`;
                 break;
             default:
                 throw new Error(`Invalid homeSectionId | ${homepageSectionId}`);
         }
         const request = App.createRequest({
-            url: `${FF_DOMAIN}/`,
-            method: 'GET',
-            param
+            url: `${FF_DOMAIN}/${param}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);

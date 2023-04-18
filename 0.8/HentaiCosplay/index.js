@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const HentaiCosplayParser_1 = require("./HentaiCosplayParser");
 const HC_DOMAIN = 'https://hentai-cosplays.com';
 exports.HentaiCosplayInfo = {
-    version: '1.0.2',
+    version: '1.0.3',
     name: 'HentaiCosplay',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1520,18 +1520,17 @@ class HentaiCosplay {
         let param = '';
         switch (homepageSectionId) {
             case 'top_rated':
-                param = `/ranking/page/${page}`;
+                param = `ranking/page/${page}`;
                 break;
             case 'new':
-                param = `/search${page == 1 ? '' : '/page/' + page}`;
+                param = `search${page == 1 ? '' : '/page/' + page}`;
                 break;
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
         }
         const request = App.createRequest({
-            url: HC_DOMAIN,
-            method: 'GET',
-            param
+            url: `${HC_DOMAIN}/${param}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1545,14 +1544,10 @@ class HentaiCosplay {
     }
     async getSearchResults(query, metadata) {
         const page = metadata?.page ?? 1;
-        let request;
-        // Regular search
-        if (query.title) {
-            request = App.createRequest({
-                url: `${HC_DOMAIN}/search/keyword/${encodeURI(query.title ?? '')}/page/${page}`,
-                method: 'GET'
-            });
-        }
+        const request = App.createRequest({
+            url: `${HC_DOMAIN}/search/keyword/${encodeURI(query.title ?? '')}/page/${page}`,
+            method: 'GET'
+        });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
         const manga = (0, HentaiCosplayParser_1.parseViewMore)($);
@@ -1563,7 +1558,7 @@ class HentaiCosplay {
         });
     }
     CloudFlareError(status) {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${HentaiCosplay.name}> and press the cloud icon.`);
         }
     }

@@ -1440,12 +1440,12 @@ const types_1 = require("@paperback/types");
 const ReadComicsOnlineParser_1 = require("./ReadComicsOnlineParser");
 const RCO_DOMAIN = 'https://readcomicsonline.ru';
 exports.ReadComicsOnlineInfo = {
-    version: '2.0.2',
+    version: '2.0.3',
     name: 'ReadComicsOnline',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls comics from ReadComicsOnline.ru.',
+    description: 'Extension that pulls comics from readcomicsonline.ru',
     contentRating: types_1.ContentRating.MATURE,
     websiteBaseURL: RCO_DOMAIN,
     sourceTags: [
@@ -1482,9 +1482,8 @@ class ReadComicsOnline {
     getMangaShareUrl(mangaId) { return `${RCO_DOMAIN}/comic/${mangaId}`; }
     async getMangaDetails(mangaId) {
         const request = App.createRequest({
-            url: `${RCO_DOMAIN}/comic/`,
-            method: 'GET',
-            param: mangaId
+            url: `${RCO_DOMAIN}/comic/${mangaId}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1493,9 +1492,8 @@ class ReadComicsOnline {
     }
     async getChapters(mangaId) {
         const request = App.createRequest({
-            url: `${RCO_DOMAIN}/comic/`,
-            method: 'GET',
-            param: mangaId
+            url: `${RCO_DOMAIN}/comic/${mangaId}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1536,9 +1534,8 @@ class ReadComicsOnline {
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
         }
         const request = App.createRequest({
-            url: `${RCO_DOMAIN}/filterList`,
-            method: 'GET',
-            param
+            url: `${RCO_DOMAIN}/filterList${param}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1563,7 +1560,7 @@ class ReadComicsOnline {
         });
     }
     CloudFlareError(status) {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${ReadComicsOnline.name}> and press the cloud icon.`);
         }
     }
@@ -1616,7 +1613,7 @@ const parseMangaDetails = ($, mangaId) => {
             author: author,
             artist: author,
             tags: tagSections,
-            desc: description,
+            desc: description
         })
     });
 };
@@ -1639,7 +1636,9 @@ const parseChapters = ($) => {
             langCode: '🇬🇧',
             chapNum: isNaN(chapNum) ? 0 : chapNum,
             time: date,
-            sortingIndex
+            sortingIndex,
+            volume: 0,
+            group: ''
         });
         sortingIndex--;
     }

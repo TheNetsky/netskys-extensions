@@ -1440,12 +1440,12 @@ const types_1 = require("@paperback/types");
 const MitakuParser_1 = require("./MitakuParser");
 const MT_DOMAIN = 'https://mitaku.net';
 exports.MitakuInfo = {
-    version: '1.0.0',
+    version: '1.0.1',
     name: 'Mitaku',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from Mitaku.net',
+    description: 'Extension that pulls manga from mitaku.net',
     contentRating: types_1.ContentRating.ADULT,
     websiteBaseURL: MT_DOMAIN,
     sourceTags: [
@@ -1515,7 +1515,7 @@ class Mitaku {
                     title: 'Cosplay Galleries',
                     containsMoreItems: true,
                     type: types_1.HomeSectionType.singleRowNormal
-                }),
+                })
             },
             {
                 request: App.createRequest({
@@ -1563,19 +1563,19 @@ class Mitaku {
         let param = '';
         switch (homepageSectionId) {
             case 'cosplay':
-                param = `/category/ero-cosplay/page/${page}`;
+                param = `category/ero-cosplay/page/${page}`;
                 break;
             case 'nude':
-                param = `/category/nude/page/${page}`;
+                param = `category/nude/page/${page}`;
                 break;
             case 'sexy-set':
-                param = `/category/sexy-set/page/${page}`;
+                param = `category/sexy-set/page/${page}`;
                 break;
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
         }
         const request = App.createRequest({
-            url: MT_DOMAIN + param,
+            url: `${MT_DOMAIN}/${param}`,
             method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
@@ -1633,7 +1633,7 @@ class Mitaku {
         });
     }
     CloudFlareError(status) {
-        if (status > 400) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${Mitaku.name}> and press the cloud icon.`);
         }
     }

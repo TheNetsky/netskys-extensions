@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const McReaderParser_1 = require("./McReaderParser");
 const MCR_DOMAIN = 'https://www.mangageko.com';
 exports.McReaderInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1527,21 +1527,20 @@ class McReader {
         let param = '';
         switch (homepageSectionId) {
             case 'most_viewed':
-                param = `/browse-comics/?results=${page}&filter=views`;
+                param = `browse-comics/?results=${page}&filter=views`;
                 break;
             case 'updated':
-                param = `/browse-comics/?results=${page}&filter=Updated`;
+                param = `browse-comics/?results=${page}&filter=Updated`;
                 break;
             case 'new':
-                param = `/browse-comics/?results=${page}&filter=New`;
+                param = `browse-comics/?results=${page}&filter=New`;
                 break;
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
         }
         const request = App.createRequest({
-            url: MCR_DOMAIN,
-            method: 'GET',
-            param
+            url: `${MCR_DOMAIN}/${param}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1575,9 +1574,8 @@ class McReader {
         }
         else {
             request = App.createRequest({
-                url: `${MCR_DOMAIN}/browse-comics/`,
-                method: 'GET',
-                param: `?genre=${query?.includedTags?.map((x) => x.id)[0]}&results=${page}`
+                url: `${MCR_DOMAIN}/browse-comics?genre=${query?.includedTags?.map((x) => x.id)[0]}&results=${page}`,
+                method: 'GET'
             });
         }
         const response = await this.requestManager.schedule(request, 1);
@@ -1590,7 +1588,7 @@ class McReader {
         });
     }
     CloudFlareError(status) {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${McReader.name}> and press the cloud icon.`);
         }
     }
@@ -1673,8 +1671,8 @@ const parseChapters = ($) => {
         let chapNum = 0;
         if (chapNumRegex && chapNumRegex[1]) {
             let chapRegex = chapNumRegex[1];
-            if (chapRegex.includes("-"))
-                chapRegex = chapRegex.replace("-", ".");
+            if (chapRegex.includes('-'))
+                chapRegex = chapRegex.replace('-', '.');
             chapNum = Number(chapRegex);
         }
         chapters.push({
@@ -1683,7 +1681,9 @@ const parseChapters = ($) => {
             langCode: '🇬🇧',
             chapNum: chapNum,
             time: date,
-            sortingIndex
+            sortingIndex,
+            volume: 0,
+            group: ''
         });
         sortingIndex--;
     }

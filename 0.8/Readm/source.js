@@ -1440,12 +1440,12 @@ const types_1 = require("@paperback/types");
 const ReadmParser_1 = require("./ReadmParser");
 const RM_DOMAIN = 'https://readm.org';
 exports.ReadmInfo = {
-    version: '2.1.2',
+    version: '2.1.3',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from Readm.',
+    description: 'Extension that pulls manga from readm.org',
     contentRating: types_1.ContentRating.MATURE,
     websiteBaseURL: RM_DOMAIN,
     sourceTags: [
@@ -1486,9 +1486,8 @@ class Readm {
     getMangaShareUrl(mangaId) { return `${RM_DOMAIN}/manga/${mangaId}`; }
     async getMangaDetails(mangaId) {
         const request = App.createRequest({
-            url: `${RM_DOMAIN}/manga/`,
+            url: `${RM_DOMAIN}/manga/${mangaId}`,
             method: 'GET',
-            param: mangaId,
             headers: {
                 'content-type': 'application/x-www-form-urlencoded'
             }
@@ -1500,9 +1499,8 @@ class Readm {
     }
     async getChapters(mangaId) {
         const request = App.createRequest({
-            url: `${RM_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${RM_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1511,9 +1509,8 @@ class Readm {
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
-            url: `${RM_DOMAIN}/manga/${mangaId}/${chapterId}`,
-            method: 'GET',
-            param: '/all-pages'
+            url: `${RM_DOMAIN}/manga/${mangaId}/${chapterId}/all-pages`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1545,18 +1542,17 @@ class Readm {
         let param = '';
         switch (homepageSectionId) {
             case 'popular_manga':
-                param = `/popular-manga/${page}`;
+                param = `popular-manga/${page}`;
                 break;
             case 'latest_updates':
-                param = `/latest-releases/${page}`;
+                param = `latest-releases/${page}`;
                 break;
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
         }
         const request = App.createRequest({
-            url: RM_DOMAIN,
-            method: 'GET',
-            param
+            url: `${RM_DOMAIN}/${param}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1632,7 +1628,7 @@ class Readm {
         }
     }
     CloudFlareError(status) {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${Readm.name}> and press the cloud icon.`);
         }
     }

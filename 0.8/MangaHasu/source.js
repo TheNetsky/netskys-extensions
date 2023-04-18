@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const MangaHasuParser_1 = require("./MangaHasuParser");
 const MH_DOMAIN = 'https://mangahasu.se';
 exports.MangaHasuInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'MangaHasu',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1527,15 +1527,14 @@ class MangaHasu {
         let param = '';
         switch (homepageSectionId) {
             case 'update':
-                param = `/latest-releases.html?page=${page}`;
+                param = `latest-releases.html?page=${page}`;
                 break;
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
         }
         const request = App.createRequest({
-            url: MH_DOMAIN,
-            method: 'GET',
-            param
+            url: `${MH_DOMAIN}/${param}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1583,7 +1582,7 @@ class MangaHasu {
         });
     }
     CloudFlareError(status) {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${MangaHasu.name}> and press the cloud icon.`);
         }
     }
@@ -1678,7 +1677,8 @@ const parseChapters = ($) => {
             chapNum: chapNum,
             volume: volNum,
             time: date,
-            sortingIndex
+            sortingIndex,
+            group: ''
         });
         sortingIndex--;
     }

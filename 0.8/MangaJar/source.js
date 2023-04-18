@@ -1440,12 +1440,12 @@ const types_1 = require("@paperback/types");
 const MangaJarParser_1 = require("./MangaJarParser");
 const MJ_DOMAIN = 'https://mangajar.com';
 exports.MangaJarInfo = {
-    version: '3.0.1',
+    version: '3.0.2',
     name: 'MangaJar',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from MangaJar.',
+    description: 'Extension that pulls manga from mangajar.com',
     contentRating: types_1.ContentRating.MATURE,
     websiteBaseURL: MJ_DOMAIN,
     sourceTags: [
@@ -1479,9 +1479,8 @@ class MangaJar {
     getMangaShareUrl(mangaId) { return `${MJ_DOMAIN}/manga/${mangaId}`; }
     async getMangaDetails(mangaId) {
         const request = App.createRequest({
-            url: `${MJ_DOMAIN}/manga/`,
-            method: 'GET',
-            param: mangaId
+            url: `${MJ_DOMAIN}/manga/${mangaId}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -1493,9 +1492,8 @@ class MangaJar {
         let isLast = false;
         while (!isLast) {
             const request = App.createRequest({
-                url: `${MJ_DOMAIN}/manga/${mangaId}/chaptersList`,
-                method: 'GET',
-                param: `?infinite=1&page=${page++}`
+                url: `${MJ_DOMAIN}/manga/${mangaId}/chaptersList?infinite=1&page=${page++}`,
+                method: 'GET'
             });
             const response = await this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -1527,24 +1525,23 @@ class MangaJar {
         let param = '';
         switch (homepageSectionId) {
             case 'hot_update':
-                param = `/manga?sortBy=-last_chapter_at&page=${page}`;
+                param = `manga?sortBy=-last_chapter_at&page=${page}`;
                 break;
             case 'new_trending':
-                param = `/manga?sortBy=-year&page=${page}`;
+                param = `manga?sortBy=-year&page=${page}`;
                 break;
             case 'popular_manga':
-                param = `/manga?sortBy=popular&page=${page}`;
+                param = `manga?sortBy=popular&page=${page}`;
                 break;
             case 'new_manga':
-                param = `/manga?sortBy=-published_at&page=${page}`;
+                param = `manga?sortBy=-published_at&page=${page}`;
                 break;
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
         }
         const request = App.createRequest({
-            url: MJ_DOMAIN,
-            method: 'GET',
-            param
+            url: `${MJ_DOMAIN}/${param}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
@@ -1559,9 +1556,8 @@ class MangaJar {
         const page = metadata?.page ?? 1;
         if (query.title) {
             const request = App.createRequest({
-                url: `${MJ_DOMAIN}/search?q=`,
-                method: 'GET',
-                param: `${encodeURI(query.title)}&page=${page}`
+                url: `${MJ_DOMAIN}/search?q=${encodeURI(query.title)}&page=${page}`,
+                method: 'GET'
             });
             const response = await this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);
@@ -1574,9 +1570,8 @@ class MangaJar {
         }
         else {
             const request = App.createRequest({
-                url: MJ_DOMAIN,
-                method: 'GET',
-                param: `/genre/${query?.includedTags?.map((x) => x.id)[0]}?page=${page}`
+                url: `${MJ_DOMAIN}/genre/${query?.includedTags?.map((x) => x.id)[0]}?page=${page}`,
+                method: 'GET'
             });
             const response = await this.requestManager.schedule(request, 1);
             const $ = this.cheerio.load(response.data);

@@ -1441,12 +1441,12 @@ const ComicOnlineFreeParser_1 = require("./ComicOnlineFreeParser");
 const ComicOnlineFreeHelper_1 = require("./ComicOnlineFreeHelper");
 const COF_DOMAIN = 'https://comiconlinefree.net';
 exports.ComicOnlineFreeInfo = {
-    version: '1.1.2',
+    version: '1.1.3',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls comics from ComicOnlineFree.net',
+    description: 'Extension that pulls comics from comiconlinefree.net',
     contentRating: types_1.ContentRating.MATURE,
     websiteBaseURL: COF_DOMAIN,
     sourceTags: [
@@ -1528,18 +1528,17 @@ class ComicOnlineFree {
         let param = '';
         switch (homepageSectionId) {
             case 'popular':
-                param = `/popular-comic/${page}`;
+                param = `popular-comic/${page}`;
                 break;
             case 'hot':
-                param = `/hot-comic/${page}`;
+                param = `hot-comic/${page}`;
                 break;
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
         }
         const request = App.createRequest({
-            url: COF_DOMAIN,
-            method: 'GET',
-            param
+            url: `${COF_DOMAIN}/${param}`,
+            method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
@@ -1582,7 +1581,7 @@ class ComicOnlineFree {
         });
     }
     CloudFlareError(status) {
-        if (status == 503) {
+        if (status == 503 || status == 403) {
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${ComicOnlineFree.name}> and press the cloud icon.`);
         }
     }
@@ -1712,7 +1711,9 @@ const parseChapters = ($) => {
             langCode: '🇬🇧',
             chapNum: chapNum,
             time: date,
-            sortingIndex
+            sortingIndex,
+            volume: 0,
+            group: ''
         });
         sortingIndex--;
     }

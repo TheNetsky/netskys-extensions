@@ -1442,12 +1442,12 @@ const MH_DOMAIN = 'https://mangahub.io';
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub';
 exports.MangahubInfo = {
-    version: '3.0.5',
+    version: '3.0.6',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from Mangahub.',
+    description: 'Extension that pulls manga from mangahub.io',
     contentRating: types_1.ContentRating.MATURE,
     websiteBaseURL: MH_DOMAIN,
     sourceTags: [

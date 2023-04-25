@@ -225,7 +225,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         const parseImage = getImageSrc($('img', manga))
         const image: string = parseImage ? (RM_DOMAIN + parseImage) : ''
 
-        let subtitle: string = $('div.poster-subject > ul.chapters > li', manga).first().text().trim()
+        let subtitle: string = $('ul.chapters > li', manga).first().text().trim()
         subtitle = subtitle ? ('Chapter ' + subtitle) : ''
 
         if (!id || !title) continue
@@ -285,12 +285,15 @@ export const parseViewMore = ($: CheerioStatic, homepageSectionId: string): Part
             const parseImage = getImageSrc($('img', m))
             const image: string = parseImage ? (RM_DOMAIN + parseImage) : ''
 
+            let subtitle: string = $('ul.chapters > li', m).first().text().trim()
+            subtitle = subtitle ? ('Chapter ' + subtitle) : ''
+
             if (!id || !title) continue
             manga.push(App.createPartialSourceManga({
                 image,
                 title: decodeHTMLEntity(title),
                 mangaId: id,
-                subtitle: undefined
+                subtitle: subtitle
             }))
         }
     }

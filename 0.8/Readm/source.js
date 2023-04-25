@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const ReadmParser_1 = require("./ReadmParser");
 const RM_DOMAIN = 'https://readm.org';
 exports.ReadmInfo = {
-    version: '2.1.3',
+    version: '2.1.4',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1840,7 +1840,7 @@ const parseHomeSections = ($, sectionCallback) => {
         const id = $('a', manga).attr('href')?.split('/').pop() ?? '';
         const parseImage = getImageSrc($('img', manga));
         const image = parseImage ? (RM_DOMAIN + parseImage) : '';
-        let subtitle = $('div.poster-subject > ul.chapters > li', manga).first().text().trim();
+        let subtitle = $('ul.chapters > li', manga).first().text().trim();
         subtitle = subtitle ? ('Chapter ' + subtitle) : '';
         if (!id || !title)
             continue;
@@ -1897,13 +1897,15 @@ const parseViewMore = ($, homepageSectionId) => {
             const id = $('a', m).attr('href')?.split('/').pop() ?? '';
             const parseImage = getImageSrc($('img', m));
             const image = parseImage ? (RM_DOMAIN + parseImage) : '';
+            let subtitle = $('ul.chapters > li', m).first().text().trim();
+            subtitle = subtitle ? ('Chapter ' + subtitle) : '';
             if (!id || !title)
                 continue;
             manga.push(App.createPartialSourceManga({
                 image,
                 title: decodeHTMLEntity(title),
                 mangaId: id,
-                subtitle: undefined
+                subtitle: subtitle
             }));
         }
     }

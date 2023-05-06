@@ -1,41 +1,32 @@
 {
   "name": "netskys-extensions",
-  "version": "2.0.0",
-  "description": "Netsky's extensions for 0.6!",
+  "version": "6.6.6",
+  "repositoryName": "Netsky's Dev Branch",
+  "description": "Why are you using this?",
   "main": "index.js",
   "scripts": {
-    "bundle": "paperback bundle",
-    "serve": "paperback serve",
-    "test": "node_modules/.bin/mocha --timeout 300000 -r ts-node/register src/**/*.test.ts"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Paperback-iOS/extensions-official.git"
+    "bundle": "npx paperback bundle",
+    "serve": "npx paperback serve",
+    "test": "npx paperback test",
+    "nodemon": "nodemon"
   },
   "author": "Netsky",
   "license": "GPL-3.0-or-later",
-  "bugs": {
-    "url": "https://github.com/Paperback-iOS/extensions-official/issues"
-  },
-  "homepage": "https://github.com/Paperback-iOS/extensions-official#readme",
   "devDependencies": {
-    "@types/chai": "^4.2.21",
-    "@types/chai-as-promised": "^7.1.4",
+    "@tsconfig/recommended": "^1.0.1",
     "@types/cheerio": "^0.22.21",
-    "@types/mocha": "^9.0.0",
-    "@typescript-eslint/eslint-plugin": "^4.25.0",
-    "@typescript-eslint/parser": "^4.25.0",
-    "chai": "^4.3.4",
-    "chai-as-promised": "^7.1.1",
+    "@typescript-eslint/eslint-plugin": "^5.1.0",
+    "@typescript-eslint/parser": "^5.57.1",
     "eslint": "^7.27.0",
     "eslint-plugin-modules-newline": "^0.0.6",
-    "mocha": "^9.1.1",
-    "typescript": "^4.3.2"
+    "typescript": "^4.9.5"
   },
   "dependencies": {
-    "entities": "^3.0.1",
-    "paperback-cli": "^2.0.0-alpha.10",
-    "paperback-extensions-common": "^5.0.0-alpha.4",
+    "@paperback/toolchain": "^0.8.0-alpha.47",
+    "@paperback/types": "^0.8.0-alpha.47",
+    "cheerio": "^1.0.0-rc.12",
+    "entities": "^4.4.0",
+    "nodemon": "^2.0.22",
     "ts-node": "^10.2.1"
   }
 }

@@ -14,10 +14,7 @@ import {
     BTLanguages
 } from './BatoToHelper'
 
-import {
-    AES,
-    enc
-} from 'crypto-js'
+const CryptoJS = require('./external/crypto.min.js') // 4.1.1
 
 import entities = require('entities')
 
@@ -138,7 +135,7 @@ export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId
     const batoPass = eval(script.match(/const\s+batoPass\s*=\s*(.*?);/)?.[1] ?? '').toString()
     const batoWord = (script.match(/const\s+batoWord\s*=\s*"(.*)";/)?.[1] ?? '')
     const imgList = JSON.parse(script.match(/const\s+imgHttpLis\s*=\s*(.*?);/)?.[1] ?? '')
-    const tknList = JSON.parse(AES.decrypt(batoWord, batoPass).toString(enc.Utf8))
+    const tknList = JSON.parse(CryptoJS.AES.decrypt(batoWord, batoPass).toString(CryptoJS.enc.Utf8))
 
     for (let i = 0; i < Math.min(imgList.length, tknList.length); i++) {
         pages.push(`${imgList[i]}?${tknList[i]}`)

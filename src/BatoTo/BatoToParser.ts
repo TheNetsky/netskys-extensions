@@ -14,7 +14,7 @@ import {
     BTLanguages
 } from './BatoToHelper'
 
-const CryptoJS = require('./crypto-js.min.js') // 4.1.1
+const CryptoJS = require('./external/crypto-js.min.js') // 4.1.1
 
 import entities = require('entities')
 

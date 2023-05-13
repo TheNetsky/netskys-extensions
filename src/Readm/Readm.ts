@@ -33,7 +33,7 @@ import {
 const RM_DOMAIN = 'https://readm.org'
 
 export const ReadmInfo: SourceInfo = {
-    version: '2.1.4',
+    version: '2.1.5',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -210,7 +210,7 @@ export class Readm implements SearchResultsProviding, MangaProviding, ChapterPro
                     continue
                 }
 
-                const id: string = m.url.replace('/manga/', '')
+                const id: string = m.url.split('/').pop().split('?')[0]
                 const image: string = RM_DOMAIN + m.image
                 const title: string = m.title
 

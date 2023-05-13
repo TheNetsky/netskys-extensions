@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const ReadmParser_1 = require("./ReadmParser");
 const RM_DOMAIN = 'https://readm.org';
 exports.ReadmInfo = {
-    version: '2.1.4',
+    version: '2.1.5',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1594,7 +1594,7 @@ class Readm {
                     console.log('Missing URL or Title property in manga object!');
                     continue;
                 }
-                const id = m.url.replace('/manga/', '');
+                const id = m.url.split('/').pop().split('?')[0];
                 const image = RM_DOMAIN + m.image;
                 const title = m.title;
                 if (!id || !title)

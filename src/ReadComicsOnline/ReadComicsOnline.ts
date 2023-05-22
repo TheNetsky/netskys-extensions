@@ -30,7 +30,7 @@ import {
 const RCO_DOMAIN = 'https://readcomicsonline.ru'
 
 export const ReadComicsOnlineInfo: SourceInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'ReadComicsOnline',
     icon: 'icon.png',
     author: 'Netsky',
@@ -96,7 +96,7 @@ export class ReadComicsOnline implements SearchResultsProviding, MangaProviding,
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data as string)
-        return parseChapters($)
+        return parseChapters($, mangaId)
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {

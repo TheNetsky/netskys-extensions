@@ -35,7 +35,7 @@ import { URLBuilder } from './ComicOnlineFreeHelper'
 const COF_DOMAIN = 'https://comiconlinefree.net'
 
 export const ComicOnlineFreeInfo: SourceInfo = {
-    version: '1.1.3',
+    version: '1.1.4',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',
@@ -99,7 +99,7 @@ export class ComicOnlineFree implements SearchResultsProviding, MangaProviding, 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data as string)
-        return parseChapters($)
+        return parseChapters($, mangaId)
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
@@ -200,7 +200,6 @@ export class ComicOnlineFree implements SearchResultsProviding, MangaProviding, 
             throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${ComicOnlineFree.name}> and press the cloud icon.`)
         }
     }
-
 
     async getCloudflareBypassRequestAsync(): Promise<Request> {
         return App.createRequest({

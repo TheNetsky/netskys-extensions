@@ -74,6 +74,11 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
             time: date
         }))
     }
+
+    if (chapters.length == 0) {
+        throw new Error(`Couldn't find any chapters for mangaId: ${mangaId}!`)
+    }
+
     return chapters
 }
 

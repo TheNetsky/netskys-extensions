@@ -35,7 +35,7 @@ import { URLBuilder } from './MangaHereHelper'
 const MH_DOMAIN = 'https://www.mangahere.cc'
 
 export const MangaHereInfo: SourceInfo = {
-    version: '3.0.4',
+    version: '3.0.5',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -67,8 +67,7 @@ export class MangaHere implements SearchResultsProviding, MangaProviding, Chapte
                         'referer': `${MH_DOMAIN}/`,
                         'user-agent': await this.requestManager.getDefaultUserAgent()
                     }
-                },
-                request.cookies = [
+                }, request.cookies = [
                     App.createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })
                 ]
                 return request
@@ -100,7 +99,7 @@ export class MangaHere implements SearchResultsProviding, MangaProviding, Chapte
 
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data as string)
-        return parseChapters($)
+        return parseChapters($, mangaId)
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {

@@ -32,7 +32,7 @@ import {
 const MH_DOMAIN = 'https://mangahasu.se'
 
 export const MangaHasuInfo: SourceInfo = {
-    version: '2.0.4',
+    version: '2.0.5',
     name: 'MangaHasu',
     icon: 'icon.png',
     author: 'Netsky',
@@ -96,7 +96,7 @@ export class MangaHasu implements SearchResultsProviding, MangaProviding, Chapte
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data as string)
-        return parseChapters($)
+        return parseChapters($, mangaId)
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {

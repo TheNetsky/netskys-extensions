@@ -34,7 +34,7 @@ const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql'
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub'
 
 export const MangahubInfo: SourceInfo = {
-    version: '3.0.6',
+    version: '3.0.7',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -220,7 +220,7 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
 
         if (!data.data?.manga) throw new Error(`Failed to parse manga property from data object mangaId:${mangaId}`)
         if (data.data.manga.chapters?.length == 0) throw new Error(`Failed to parse chapters property from manga object mangaId:${mangaId}`)
-        return parseChapters(data.data.manga.chapters)
+        return parseChapters(data.data.manga.chapters, mangaId)
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {

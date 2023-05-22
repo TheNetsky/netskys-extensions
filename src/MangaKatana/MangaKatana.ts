@@ -33,7 +33,7 @@ import {
 const MK_DOMAIN = 'https://mangakatana.com'
 
 export const MangaKatanaInfo: SourceInfo = {
-    version: '3.0.2',
+    version: '3.0.3',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
@@ -95,7 +95,7 @@ export class MangaKatana implements SearchResultsProviding, MangaProviding, Chap
 
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data as string)
-        return parseChapters($)
+        return parseChapters($, mangaId)
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {

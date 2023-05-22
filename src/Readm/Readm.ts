@@ -33,7 +33,7 @@ import {
 const RM_DOMAIN = 'https://readm.org'
 
 export const ReadmInfo: SourceInfo = {
-    version: '2.1.5',
+    version: '2.1.6',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -104,7 +104,7 @@ export class Readm implements SearchResultsProviding, MangaProviding, ChapterPro
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data as string)
-        return parseChapters($)
+        return parseChapters($, mangaId)
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {

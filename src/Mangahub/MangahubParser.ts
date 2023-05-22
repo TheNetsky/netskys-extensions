@@ -64,7 +64,7 @@ export const parseMangaDetails = (data: any, mangaId: string): SourceManga => {
     })
 }
 
-export const parseChapters = (data: any): Chapter[] => {
+export const parseChapters = (data: any, mangaId: string): Chapter[] => {
     const chapters: Chapter[] = []
 
     for (const chapter of data) {
@@ -80,6 +80,11 @@ export const parseChapters = (data: any): Chapter[] => {
             time: date
         }))
     }
+
+    if (chapters.length == 0) {
+        throw new Error(`Couldn't find any chapters for mangaId: ${mangaId}!`)
+    }
+
     return chapters
 }
 

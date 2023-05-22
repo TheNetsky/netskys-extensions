@@ -35,7 +35,7 @@ import { URLBuilder } from './MangaFoxHelper'
 const FF_DOMAIN = 'https://fanfox.net'
 
 export const MangaFoxInfo: SourceInfo = {
-    version: '3.0.5',
+    version: '3.0.6',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -67,8 +67,7 @@ export class MangaFox implements SearchResultsProviding, MangaProviding, Chapter
                         'referer': `${FF_DOMAIN}/`,
                         'user-agent': await this.requestManager.getDefaultUserAgent()
                     }
-                },
-                request.cookies = [
+                }, request.cookies = [
                     App.createCookie({ name: 'isAdult', value: '1', domain: 'fanfox.net' })
                 ]
                 return request
@@ -100,7 +99,7 @@ export class MangaFox implements SearchResultsProviding, MangaProviding, Chapter
 
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data as string)
-        return parseChapters($)
+        return parseChapters($, mangaId)
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {

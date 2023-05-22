@@ -55,7 +55,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     })
 }
 
-export const parseChapters = ($: CheerioStatic): Chapter[] => {
+export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
     const chapters: Chapter[] = []
 
     for (const chapter of $('div#chapterlist ul li').children('a').toArray()) {
@@ -87,6 +87,11 @@ export const parseChapters = ($: CheerioStatic): Chapter[] => {
             time: date
         }))
     }
+
+    if (chapters.length == 0) {
+        throw new Error(`Couldn't find any chapters for mangaId: ${mangaId}!`)
+    }
+
     return chapters
 }
 

@@ -33,7 +33,7 @@ import {
 const MCR_DOMAIN = 'https://www.mangageko.com'
 
 export const McReaderInfo: SourceInfo = {
-    version: '2.0.4',
+    version: '2.0.5',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -97,7 +97,7 @@ export class McReader implements SearchResultsProviding, MangaProviding, Chapter
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data as string)
-        return parseChapters($)
+        return parseChapters($, mangaId)
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {

@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const MangaJarParser_1 = require("./MangaJarParser");
 const MJ_DOMAIN = 'https://mangajar.com';
 exports.MangaJarInfo = {
-    version: '3.0.2',
+    version: '3.0.3',
     name: 'MangaJar',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1658,6 +1658,9 @@ const parseChapters = ($, mangaId) => {
             chapNum: chapNum,
             time: date
         }));
+    }
+    if (chapters.length == 0) {
+        throw new Error(`Couldn't find any chapters for mangaId: ${mangaId}!`);
     }
     return chapters;
 };

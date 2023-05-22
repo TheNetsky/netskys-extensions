@@ -466,7 +466,7 @@ const MangaFoxParser_1 = require("./MangaFoxParser");
 const MangaFoxHelper_1 = require("./MangaFoxHelper");
 const FF_DOMAIN = 'https://fanfox.net';
 exports.MangaFoxInfo = {
-    version: '3.0.5',
+    version: '3.0.6',
     name: 'MangaFox',
     icon: 'icon.png',
     author: 'Netsky',
@@ -496,10 +496,9 @@ class MangaFox {
                             'referer': `${FF_DOMAIN}/`,
                             'user-agent': await this.requestManager.getDefaultUserAgent()
                         }
-                    },
-                        request.cookies = [
-                            App.createCookie({ name: 'isAdult', value: '1', domain: 'fanfox.net' })
-                        ];
+                    }, request.cookies = [
+                        App.createCookie({ name: 'isAdult', value: '1', domain: 'fanfox.net' })
+                    ];
                     return request;
                 },
                 interceptResponse: async (response) => {
@@ -525,7 +524,7 @@ class MangaFox {
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
-        return (0, MangaFoxParser_1.parseChapters)($);
+        return (0, MangaFoxParser_1.parseChapters)($, mangaId);
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
@@ -698,7 +697,7 @@ const parseMangaDetails = ($, mangaId) => {
     });
 };
 exports.parseMangaDetails = parseMangaDetails;
-const parseChapters = ($) => {
+const parseChapters = ($, mangaId) => {
     const chapters = [];
     for (const chapter of $('div#chapterlist ul li').children('a').toArray()) {
         const title = $('p.title3', chapter).html() ?? '';
@@ -726,6 +725,9 @@ const parseChapters = ($) => {
             volume: isNaN(volNum) ? 0 : volNum,
             time: date
         }));
+    }
+    if (chapters.length == 0) {
+        throw new Error(`Couldn't find any chapters for mangaId: ${mangaId}!`);
     }
     return chapters;
 };

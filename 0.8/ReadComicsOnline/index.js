@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const ReadComicsOnlineParser_1 = require("./ReadComicsOnlineParser");
 const RCO_DOMAIN = 'https://readcomicsonline.ru';
 exports.ReadComicsOnlineInfo = {
-    version: '2.0.3',
+    version: '2.0.4',
     name: 'ReadComicsOnline',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1498,7 +1498,7 @@ class ReadComicsOnline {
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
         const $ = this.cheerio.load(response.data);
-        return (0, ReadComicsOnlineParser_1.parseChapters)($);
+        return (0, ReadComicsOnlineParser_1.parseChapters)($, mangaId);
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
@@ -1618,7 +1618,7 @@ const parseMangaDetails = ($, mangaId) => {
     });
 };
 exports.parseMangaDetails = parseMangaDetails;
-const parseChapters = ($) => {
+const parseChapters = ($, mangaId) => {
     const chapters = [];
     let sortingIndex = 0;
     for (const chapter of $('li', 'ul.chapters').toArray()) {
@@ -1641,6 +1641,9 @@ const parseChapters = ($) => {
             group: ''
         });
         sortingIndex--;
+    }
+    if (chapters.length == 0) {
+        throw new Error(`Couldn't find any chapters for mangaId: ${mangaId}!`);
     }
     return chapters.map(chapter => {
         chapter.sortingIndex += chapters.length;

@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const MangaKatanaParser_1 = require("./MangaKatanaParser");
 const MK_DOMAIN = 'https://mangakatana.com';
 exports.MangaKatanaInfo = {
-    version: '3.0.2',
+    version: '3.0.3',
     name: 'MangaKatana',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1496,7 +1496,7 @@ class MangaKatana {
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
-        return (0, MangaKatanaParser_1.parseChapters)($);
+        return (0, MangaKatanaParser_1.parseChapters)($, mangaId);
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
@@ -1629,7 +1629,7 @@ const parseMangaDetails = ($, mangaId) => {
     });
 };
 exports.parseMangaDetails = parseMangaDetails;
-const parseChapters = ($) => {
+const parseChapters = ($, mangaId) => {
     const chapters = [];
     for (const elem of $('tr:has(.chapter)').toArray()) {
         const title = $('a', elem).text();
@@ -1648,6 +1648,9 @@ const parseChapters = ($) => {
             chapNum: isNaN(chapNum) ? 0 : chapNum,
             time: date
         }));
+    }
+    if (chapters.length == 0) {
+        throw new Error(`Couldn't find any chapters for mangaId: ${mangaId}!`);
     }
     return chapters;
 };

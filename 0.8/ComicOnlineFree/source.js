@@ -1441,7 +1441,7 @@ const ComicOnlineFreeParser_1 = require("./ComicOnlineFreeParser");
 const ComicOnlineFreeHelper_1 = require("./ComicOnlineFreeHelper");
 const COF_DOMAIN = 'https://comiconlinefree.net';
 exports.ComicOnlineFreeInfo = {
-    version: '1.1.3',
+    version: '1.1.4',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1499,7 +1499,7 @@ class ComicOnlineFree {
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
         const $ = this.cheerio.load(response.data);
-        return (0, ComicOnlineFreeParser_1.parseChapters)($);
+        return (0, ComicOnlineFreeParser_1.parseChapters)($, mangaId);
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
@@ -1692,7 +1692,7 @@ const parseMangaDetails = ($, mangaId) => {
     });
 };
 exports.parseMangaDetails = parseMangaDetails;
-const parseChapters = ($) => {
+const parseChapters = ($, mangaId) => {
     const chapters = [];
     let sortingIndex = 0;
     for (const chapter of $('li', 'ul.basic-list').toArray()) {
@@ -1716,6 +1716,9 @@ const parseChapters = ($) => {
             group: ''
         });
         sortingIndex--;
+    }
+    if (chapters.length == 0) {
+        throw new Error(`Couldn't find any chapters for mangaId: ${mangaId}!`);
     }
     return chapters.map(chapter => {
         chapter.sortingIndex += chapters.length;

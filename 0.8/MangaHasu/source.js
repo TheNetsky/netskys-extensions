@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const MangaHasuParser_1 = require("./MangaHasuParser");
 const MH_DOMAIN = 'https://mangahasu.se';
 exports.MangaHasuInfo = {
-    version: '2.0.4',
+    version: '2.0.5',
     name: 'MangaHasu',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1498,7 +1498,7 @@ class MangaHasu {
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
         const $ = this.cheerio.load(response.data);
-        return (0, MangaHasuParser_1.parseChapters)($);
+        return (0, MangaHasuParser_1.parseChapters)($, mangaId);
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
@@ -1653,7 +1653,7 @@ const parseMangaDetails = ($, mangaId) => {
     });
 };
 exports.parseMangaDetails = parseMangaDetails;
-const parseChapters = ($) => {
+const parseChapters = ($, mangaId) => {
     const chapters = [];
     let sortingIndex = 0;
     for (const chapter of $('tr', 'div.list-chapter').toArray()) {
@@ -1681,6 +1681,9 @@ const parseChapters = ($) => {
             group: ''
         });
         sortingIndex--;
+    }
+    if (chapters.length == 0) {
+        throw new Error(`Couldn't find any chapters for mangaId: ${mangaId}!`);
     }
     return chapters.map(chapter => {
         chapter.sortingIndex += chapters.length;

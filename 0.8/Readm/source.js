@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const ReadmParser_1 = require("./ReadmParser");
 const RM_DOMAIN = 'https://readm.org';
 exports.ReadmInfo = {
-    version: '2.1.5',
+    version: '2.1.6',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1505,7 +1505,7 @@ class Readm {
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
         const $ = this.cheerio.load(response.data);
-        return (0, ReadmParser_1.parseChapters)($);
+        return (0, ReadmParser_1.parseChapters)($, mangaId);
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
@@ -1701,7 +1701,7 @@ const parseMangaDetails = ($, mangaId) => {
     });
 };
 exports.parseMangaDetails = parseMangaDetails;
-const parseChapters = ($) => {
+const parseChapters = ($, mangaId) => {
     const chapters = [];
     for (const chapter of $('div.season_start').toArray()) {
         const title = $('h6.truncate', chapter).first().text().trim() ?? '';
@@ -1724,6 +1724,9 @@ const parseChapters = ($) => {
             chapNum: isNaN(chapNum) ? 0 : chapNum,
             time: date
         }));
+    }
+    if (chapters.length == 0) {
+        throw new Error(`Couldn't find any chapters for mangaId: ${mangaId}!`);
     }
     return chapters;
 };

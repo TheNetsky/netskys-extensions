@@ -466,7 +466,7 @@ const MangaHereParser_1 = require("./MangaHereParser");
 const MangaHereHelper_1 = require("./MangaHereHelper");
 const MH_DOMAIN = 'https://www.mangahere.cc';
 exports.MangaHereInfo = {
-    version: '3.0.4',
+    version: '3.0.5',
     name: 'MangaHere',
     icon: 'icon.png',
     author: 'Netsky',
@@ -496,10 +496,9 @@ class MangaHere {
                             'referer': `${MH_DOMAIN}/`,
                             'user-agent': await this.requestManager.getDefaultUserAgent()
                         }
-                    },
-                        request.cookies = [
-                            App.createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })
-                        ];
+                    }, request.cookies = [
+                        App.createCookie({ name: 'isAdult', value: '1', domain: 'www.mangahere.cc' })
+                    ];
                     return request;
                 },
                 interceptResponse: async (response) => {
@@ -525,7 +524,7 @@ class MangaHere {
         });
         const response = await this.requestManager.schedule(request, 1);
         const $ = this.cheerio.load(response.data);
-        return (0, MangaHereParser_1.parseChapters)($);
+        return (0, MangaHereParser_1.parseChapters)($, mangaId);
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
@@ -696,7 +695,7 @@ const parseMangaDetails = ($, mangaId) => {
     });
 };
 exports.parseMangaDetails = parseMangaDetails;
-const parseChapters = ($) => {
+const parseChapters = ($, mangaId) => {
     const chapters = [];
     for (const chapter of $('div#chapterlist ul li').children('a').toArray()) {
         const title = $('p.title3', chapter).html() ?? '';
@@ -724,6 +723,9 @@ const parseChapters = ($) => {
             volume: isNaN(volNum) ? 0 : volNum,
             time: date
         }));
+    }
+    if (chapters.length == 0) {
+        throw new Error(`Couldn't find any chapters for mangaId: ${mangaId}!`);
     }
     return chapters;
 };

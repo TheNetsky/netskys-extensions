@@ -1442,7 +1442,7 @@ const MH_DOMAIN = 'https://mangahub.io';
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub';
 exports.MangahubInfo = {
-    version: '3.0.6',
+    version: '3.0.7',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1618,7 +1618,7 @@ class Mangahub {
             throw new Error(`Failed to parse manga property from data object mangaId:${mangaId}`);
         if (data.data.manga.chapters?.length == 0)
             throw new Error(`Failed to parse chapters property from manga object mangaId:${mangaId}`);
-        return (0, MangahubParser_1.parseChapters)(data.data.manga.chapters);
+        return (0, MangahubParser_1.parseChapters)(data.data.manga.chapters, mangaId);
     }
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
@@ -2043,7 +2043,7 @@ const parseMangaDetails = (data, mangaId) => {
     });
 };
 exports.parseMangaDetails = parseMangaDetails;
-const parseChapters = (data) => {
+const parseChapters = (data, mangaId) => {
     const chapters = [];
     for (const chapter of data) {
         const number = chapter.number;
@@ -2056,6 +2056,9 @@ const parseChapters = (data) => {
             chapNum: number,
             time: date
         }));
+    }
+    if (chapters.length == 0) {
+        throw new Error(`Couldn't find any chapters for mangaId: ${mangaId}!`);
     }
     return chapters;
 };

@@ -1442,7 +1442,7 @@ const MH_DOMAIN = 'https://mangahub.io';
 const MH_API_DOMAIN = 'https://api.mghubcdn.com/graphql';
 const MH_CDN_DOMAIN = 'https://img.mghubcdn.com/file/imghub';
 exports.MangahubInfo = {
-    version: '3.0.7',
+    version: '3.0.8',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1499,19 +1499,7 @@ class Mangahub {
         });
         this.stateManager = App.createSourceStateManager();
         this.getMhubAccess = async () => {
-            const cookies = this.requestManager?.cookieStore?.getAllCookies() ?? [];
-            let key;
-            for (const cookieRaw of cookies) {
-                const cookie = cookieRaw;
-                const cName = cookie.name;
-                if (cName == 'mhub_access') {
-                    key = cookie.value;
-                    break;
-                }
-            }
-            if (!key)
-                throw new Error('MISSING MANGAHUB KEY:\nDo the Cloudflare bypass by pressing the cloud icon!');
-            return key;
+            return await this.stateManager.retrieve('mhub_key');
         };
         this.getUserAgent = async () => {
             const storedUserAgent = await this.stateManager.retrieve('userAgent');
@@ -1661,6 +1649,7 @@ class Mangahub {
             console.log(`${e}`);
         }
         if (data?.errors) {
+            await this.refreshAPIKey();
             throw new Error('API LIMIT EXCEEDED!\nTry doing to CloudFlare again bypass or come back later!');
         }
         if (!data.data?.chapter?.pages)
@@ -1974,8 +1963,6 @@ class Mangahub {
     async getCloudflareBypassRequestAsync() {
         // Remove stored UserAgent
         await this.stateManager.store('userAgent', 'null');
-        // Clear old cookies
-        this.requestManager?.cookieStore?.getAllCookies().forEach(x => { this.requestManager?.cookieStore?.removeCookie(x); });
         return App.createRequest({
             url: `${MH_DOMAIN}/chapter/the-last-human/chapter-1?reloadKey=1`,
             method: 'GET',
@@ -1984,6 +1971,35 @@ class Mangahub {
                 'user-agent': await this.getUserAgent()
             }
         });
+    }
+    async refreshAPIKey() {
+        // Reset stored access key
+        await this.stateManager.store('mhub_key', 'mhub_access=; Max-Age=0; Path=/');
+        // Delete cookies
+        this.requestManager?.cookieStore?.getAllCookies().forEach(x => { this.requestManager?.cookieStore?.removeCookie(x); });
+        // Request new access token
+        const request = App.createRequest({
+            url: `${MH_DOMAIN}/chapter/the-last-human/chapter-1?reloadKey=1`,
+            method: 'GET',
+            headers: {
+                'referer': `${MH_DOMAIN}/`,
+                'user-agent': await this.getUserAgent(),
+                'cookie': await this.stateManager.retrieve('mhub_key')
+            }
+        });
+        const response = await this.requestManager.schedule(request, 1);
+        const cookieHeaders = response.headers['Set-Cookie'];
+        let mhub_key = '';
+        if (cookieHeaders) {
+            const match = /mhub_access=([^;]+)/.exec(cookieHeaders);
+            if (match) {
+                const mhubAccess = match[1] ?? '';
+                mhub_key = mhubAccess;
+            }
+        }
+        const now = Date.now();
+        const expires = now + 2 * 60 * 60 * 24 * 31;
+        await this.stateManager.store('mhub_key', `mhub_access=${mhub_key}; Max-Age=${expires}; Path=/`);
     }
 }
 exports.Mangahub = Mangahub;

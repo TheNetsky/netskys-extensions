@@ -41,12 +41,7 @@ export const MangaKatanaInfo: SourceInfo = {
     description: 'Extension that pulls manga from mangakatana.com',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: MK_DOMAIN,
-    sourceTags: [
-        {
-            text: 'Notifications',
-            type: BadgeColor.GREEN
-        }
-    ],
+    sourceTags: [],
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 

@@ -41,16 +41,7 @@ export const ReadmInfo: SourceInfo = {
     description: 'Extension that pulls manga from readm.org',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: RM_DOMAIN,
-    sourceTags: [
-        {
-            text: 'Notifications',
-            type: BadgeColor.GREEN
-        },
-        {
-            text: 'Cloudflare',
-            type: BadgeColor.RED
-        }
-    ],
+    sourceTags: [],
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 

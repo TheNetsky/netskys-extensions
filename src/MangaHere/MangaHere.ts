@@ -43,12 +43,7 @@ export const MangaHereInfo: SourceInfo = {
     description: 'Extension that pulls manga from mangahere.cc',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: MH_DOMAIN,
-    sourceTags: [
-        {
-            text: 'Notifications',
-            type: BadgeColor.GREEN
-        }
-    ],
+    sourceTags: [],
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 

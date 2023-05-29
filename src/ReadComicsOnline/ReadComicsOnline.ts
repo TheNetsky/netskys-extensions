@@ -38,12 +38,7 @@ export const ReadComicsOnlineInfo: SourceInfo = {
     description: 'Extension that pulls comics from readcomicsonline.ru',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: RCO_DOMAIN,
-    sourceTags: [
-        {
-            text: 'Notifications',
-            type: BadgeColor.GREEN
-        }
-    ],
+    sourceTags: [],
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 

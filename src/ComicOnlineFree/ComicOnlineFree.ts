@@ -43,12 +43,7 @@ export const ComicOnlineFreeInfo: SourceInfo = {
     description: 'Extension that pulls comics from comiconlinefree.net',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: COF_DOMAIN,
-    sourceTags: [
-        {
-            text: 'Notifications',
-            type: BadgeColor.GREEN
-        }
-    ],
+    sourceTags: [],
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 

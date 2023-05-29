@@ -41,12 +41,7 @@ export const MangaJarInfo: SourceInfo = {
     description: 'Extension that pulls manga from mangajar.com',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: MJ_DOMAIN,
-    sourceTags: [
-        {
-            text: 'Notifications',
-            type: BadgeColor.GREEN
-        }
-    ],
+    sourceTags: [],
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 

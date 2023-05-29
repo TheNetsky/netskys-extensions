@@ -43,12 +43,7 @@ export const MangaFoxInfo: SourceInfo = {
     description: 'Extension that pulls manga from fanfox.net',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: FF_DOMAIN,
-    sourceTags: [
-        {
-            text: 'Notifications',
-            type: BadgeColor.GREEN
-        }
-    ],
+    sourceTags: [],
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 

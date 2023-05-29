@@ -41,12 +41,7 @@ export const McReaderInfo: SourceInfo = {
     description: 'Extension that pulls manga from mcreader.net (Manga-Raw.club)',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: MCR_DOMAIN,
-    sourceTags: [
-        {
-            text: 'Notifications',
-            type: BadgeColor.GREEN
-        }
-    ],
+    sourceTags: [],
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 

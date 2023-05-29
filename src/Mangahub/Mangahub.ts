@@ -43,14 +43,6 @@ export const MangahubInfo: SourceInfo = {
     websiteBaseURL: MH_DOMAIN,
     sourceTags: [
         {
-            text: 'Notifications',
-            type: BadgeColor.GREEN
-        },
-        {
-            text: 'Cloudlare',
-            type: BadgeColor.RED
-        },
-        {
             text: 'Buggy',
             type: BadgeColor.RED
         }

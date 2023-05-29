@@ -1448,12 +1448,7 @@ exports.MangaHasuInfo = {
     description: 'Extension that pulls manga from mangahasu.se',
     contentRating: types_1.ContentRating.MATURE,
     websiteBaseURL: MH_DOMAIN,
-    sourceTags: [
-        {
-            text: 'Notifications',
-            type: types_1.BadgeColor.GREEN
-        }
-    ],
+    sourceTags: [],
     intents: types_1.SourceIntents.MANGA_CHAPTERS | types_1.SourceIntents.HOMEPAGE_SECTIONS | types_1.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 };
 class MangaHasu {

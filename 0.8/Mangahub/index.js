@@ -1452,14 +1452,6 @@ exports.MangahubInfo = {
     websiteBaseURL: MH_DOMAIN,
     sourceTags: [
         {
-            text: 'Notifications',
-            type: types_1.BadgeColor.GREEN
-        },
-        {
-            text: 'Cloudlare',
-            type: types_1.BadgeColor.RED
-        },
-        {
             text: 'Buggy',
             type: types_1.BadgeColor.RED
         }

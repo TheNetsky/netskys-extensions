@@ -29,7 +29,7 @@ import {
 const HC_DOMAIN = 'https://hentai-cosplays.com'
 
 export const HentaiCosplayInfo: SourceInfo = {
-    version: '1.0.4',
+    version: '1.0.5',
     name: 'HentaiCosplay',
     icon: 'icon.png',
     author: 'Netsky',
@@ -61,6 +61,7 @@ export class HentaiCosplay implements SearchResultsProviding, MangaProviding, Ch
                         'referer': `${HC_DOMAIN}/`
                     }
                 }
+                request.url = request.url.replace(/^http:/, 'https:')
                 return request
             },
             interceptResponse: async (response: Response): Promise<Response> => {

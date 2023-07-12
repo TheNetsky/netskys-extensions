@@ -29,7 +29,7 @@ import {
 const HC_DOMAIN = 'https://hentai-cosplays.com'
 
 export const HentaiCosplayInfo: SourceInfo = {
-    version: '1.0.3',
+    version: '1.0.4',
     name: 'HentaiCosplay',
     icon: 'icon.png',
     author: 'Netsky',
@@ -58,8 +58,7 @@ export class HentaiCosplay implements SearchResultsProviding, MangaProviding, Ch
                 request.headers = {
                     ...(request.headers ?? {}),
                     ...{
-                        'referer': `${HC_DOMAIN}/`,
-                        'user-agent': await this.requestManager.getDefaultUserAgent()
+                        'referer': `${HC_DOMAIN}/`
                     }
                 }
                 return request
@@ -177,8 +176,7 @@ export class HentaiCosplay implements SearchResultsProviding, MangaProviding, Ch
             url: HC_DOMAIN,
             method: 'GET',
             headers: {
-                'referer': `${HC_DOMAIN}/`,
-                'user-agent': await this.requestManager.getDefaultUserAgent()
+                'referer': `${HC_DOMAIN}/`
             }
         })
     }

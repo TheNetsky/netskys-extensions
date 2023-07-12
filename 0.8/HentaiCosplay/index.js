@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const HentaiCosplayParser_1 = require("./HentaiCosplayParser");
 const HC_DOMAIN = 'https://hentai-cosplays.com';
 exports.HentaiCosplayInfo = {
-    version: '1.0.3',
+    version: '1.0.4',
     name: 'HentaiCosplay',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1467,8 +1467,7 @@ class HentaiCosplay {
                     request.headers = {
                         ...(request.headers ?? {}),
                         ...{
-                            'referer': `${HC_DOMAIN}/`,
-                            'user-agent': await this.requestManager.getDefaultUserAgent()
+                            'referer': `${HC_DOMAIN}/`
                         }
                     };
                     return request;
@@ -1567,8 +1566,7 @@ class HentaiCosplay {
             url: HC_DOMAIN,
             method: 'GET',
             headers: {
-                'referer': `${HC_DOMAIN}/`,
-                'user-agent': await this.requestManager.getDefaultUserAgent()
+                'referer': `${HC_DOMAIN}/`
             }
         });
     }

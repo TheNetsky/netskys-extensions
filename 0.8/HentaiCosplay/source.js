@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const HentaiCosplayParser_1 = require("./HentaiCosplayParser");
 const HC_DOMAIN = 'https://hentai-cosplays.com';
 exports.HentaiCosplayInfo = {
-    version: '1.0.4',
+    version: '1.0.5',
     name: 'HentaiCosplay',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1470,6 +1470,7 @@ class HentaiCosplay {
                             'referer': `${HC_DOMAIN}/`
                         }
                     };
+                    request.url = request.url.replace(/^http:/, 'https:');
                     return request;
                 },
                 interceptResponse: async (response) => {

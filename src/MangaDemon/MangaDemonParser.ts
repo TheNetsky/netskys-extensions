@@ -129,7 +129,7 @@ export const parseChapterDetails = async ($: CheerioStatic, mangaId: string, cha
     // If loadMore is present, make request to load the other images
     if (loadMoreId) {
         const request = App.createRequest({
-            url: `https://mangademon.org/loaadchpa.php?chapter=${loadMoreId}`,
+            url: `https://manga-demon.org/loaadchpa.php?chapter=${loadMoreId}`,
             method: 'GET'
         })
 

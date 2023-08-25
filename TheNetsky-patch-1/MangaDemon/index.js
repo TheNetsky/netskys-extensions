@@ -1706,7 +1706,7 @@ const parseChapterDetails = async ($, mangaId, chapterId, cheerio, requestManage
     // If loadMore is present, make request to load the other images
     if (loadMoreId) {
         const request = App.createRequest({
-            url: `https://mangademon.org/loaadchpa.php?chapter=${loadMoreId}`,
+            url: `https://manga-demon.org/loaadchpa.php?chapter=${loadMoreId}`,
             method: 'GET'
         });
         const response = await requestManager.schedule(request, 1);

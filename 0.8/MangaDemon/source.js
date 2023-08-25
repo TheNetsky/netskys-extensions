@@ -1438,9 +1438,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MangaDemon = exports.MangaDemonInfo = void 0;
 const types_1 = require("@paperback/types");
 const MangaDemonParser_1 = require("./MangaDemonParser");
-const MD_DOMAIN = 'https://mangademon.org';
+const MD_DOMAIN = 'https://manga-demon.org';
 exports.MangaDemonInfo = {
-    version: '1.0.0',
+    version: '1.0.1',
     name: 'MangaDemon',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1706,7 +1706,7 @@ const parseChapterDetails = async ($, mangaId, chapterId, cheerio, requestManage
     // If loadMore is present, make request to load the other images
     if (loadMoreId) {
         const request = App.createRequest({
-            url: `https://mangademon.org/loaadchpa.php?chapter=${loadMoreId}`,
+            url: `https://manga-demon.org/loaadchpa.php?chapter=${loadMoreId}`,
             method: 'GET'
         });
         const response = await requestManager.schedule(request, 1);

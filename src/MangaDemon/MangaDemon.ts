@@ -32,7 +32,7 @@ import {
 const MD_DOMAIN = 'https://mangademon.org'
 
 export const MangaDemonInfo: SourceInfo = {
-    version: '1.0.2',
+    version: '1.0.3',
     name: 'MangaDemon',
     icon: 'icon.png',
     author: 'Netsky',
@@ -97,7 +97,7 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = App.createRequest({
             // Lmao, garbage site
-            url: `${MD_DOMAIN}/manga/${mangaId.replace('-raw', '')}/chapter/${chapterId}`,
+            url: `${MD_DOMAIN}/manga/${mangaId.substring(0, mangaId.lastIndexOf('-'))}/chapter/${chapterId}`,
             method: 'GET'
         })
 

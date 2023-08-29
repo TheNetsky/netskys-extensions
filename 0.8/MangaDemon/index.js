@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const MangaDemonParser_1 = require("./MangaDemonParser");
 const MD_DOMAIN = 'https://mangademon.org';
 exports.MangaDemonInfo = {
-    version: '1.0.2',
+    version: '1.0.3',
     name: 'MangaDemon',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1498,7 +1498,7 @@ class MangaDemon {
     async getChapterDetails(mangaId, chapterId) {
         const request = App.createRequest({
             // Lmao, garbage site
-            url: `${MD_DOMAIN}/manga/${mangaId.replace('-raw', '')}/chapter/${chapterId}`,
+            url: `${MD_DOMAIN}/manga/${mangaId.substring(0, mangaId.lastIndexOf('-'))}/chapter/${chapterId}`,
             method: 'GET'
         });
         const response = await this.requestManager.schedule(request, 1);

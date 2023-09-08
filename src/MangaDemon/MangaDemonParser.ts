@@ -12,6 +12,8 @@ import {
 
 import entities = require('entities')
 
+const MD_DOMAIN = 'https://manga-demon.org'
+
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
 
     const image = $('img', 'figure.cover').attr('src') ?? ''
@@ -129,7 +131,7 @@ export const parseChapterDetails = async ($: CheerioStatic, mangaId: string, cha
     // If loadMore is present, make request to load the other images
     if (loadMoreId) {
         const request = App.createRequest({
-            url: `https://mangademon.org/loaadchpa.php?chapter=${loadMoreId}`,
+            url: `${MD_DOMAIN}/loaadchpa.php?chapter=${loadMoreId}`,
             method: 'GET'
         })
 

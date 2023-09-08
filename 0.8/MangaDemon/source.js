@@ -1438,9 +1438,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MangaDemon = exports.MangaDemonInfo = void 0;
 const types_1 = require("@paperback/types");
 const MangaDemonParser_1 = require("./MangaDemonParser");
-const MD_DOMAIN = 'https://mangademon.org';
+const MD_DOMAIN = 'https://manga-demon.org';
 exports.MangaDemonInfo = {
-    version: '1.0.3',
+    version: '1.0.4',
     name: 'MangaDemon',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1601,6 +1601,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseSearch = exports.parseTags = exports.parseViewMore = exports.parseHomeSections = exports.parseChapterDetails = exports.parseChapters = exports.parseMangaDetails = void 0;
 const types_1 = require("@paperback/types");
 const entities = require("entities");
+const MD_DOMAIN = 'https://manga-demon.org';
 const parseMangaDetails = ($, mangaId) => {
     const image = $('img', 'figure.cover').attr('src') ?? '';
     const titles = [(decodeHTMLEntity($('img', 'figure.cover').attr('alt') ?? ''?.trim() ?? ''))];
@@ -1706,7 +1707,7 @@ const parseChapterDetails = async ($, mangaId, chapterId, cheerio, requestManage
     // If loadMore is present, make request to load the other images
     if (loadMoreId) {
         const request = App.createRequest({
-            url: `https://mangademon.org/loaadchpa.php?chapter=${loadMoreId}`,
+            url: `${MD_DOMAIN}/loaadchpa.php?chapter=${loadMoreId}`,
             method: 'GET'
         });
         const response = await requestManager.schedule(request, 1);

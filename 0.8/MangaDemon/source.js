@@ -1438,9 +1438,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MangaDemon = exports.MangaDemonInfo = void 0;
 const types_1 = require("@paperback/types");
 const MangaDemonParser_1 = require("./MangaDemonParser");
-const MD_DOMAIN = 'https://manga-demon.org';
+const MD_DOMAIN = 'https://demoncomics.org';
 exports.MangaDemonInfo = {
-    version: '1.0.4',
+    version: '1.0.5',
     name: 'MangaDemon',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1601,7 +1601,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseSearch = exports.parseTags = exports.parseViewMore = exports.parseHomeSections = exports.parseChapterDetails = exports.parseChapters = exports.parseMangaDetails = void 0;
 const types_1 = require("@paperback/types");
 const entities = require("entities");
-const MD_DOMAIN = 'https://manga-demon.org';
+const MD_DOMAIN = 'https://demoncomics.org';
 const parseMangaDetails = ($, mangaId) => {
     const image = $('img', 'figure.cover').attr('src') ?? '';
     const titles = [(decodeHTMLEntity($('img', 'figure.cover').attr('alt') ?? ''?.trim() ?? ''))];

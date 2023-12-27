@@ -12,7 +12,7 @@ import {
 
 import entities = require('entities')
 
-const MD_DOMAIN = 'https://manga-demon.org'
+const MD_DOMAIN = 'https://demoncomics.org'
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
 

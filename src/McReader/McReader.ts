@@ -7,7 +7,6 @@ import {
     PagedResults,
     SourceInfo,
     ContentRating,
-    BadgeColor,
     Request,
     Response,
     TagSection,
@@ -30,10 +29,10 @@ import {
     parseTags
 } from './McReaderParser'
 
-const MCR_DOMAIN = 'https://www.mangageko.com'
+const MCR_DOMAIN = 'https://www.mgeko.com'
 
 export const McReaderInfo: SourceInfo = {
-    version: '2.0.5',
+    version: '2.0.6',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',

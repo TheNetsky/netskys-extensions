@@ -1439,9 +1439,9 @@ exports.ComicOnlineFree = exports.ComicOnlineFreeInfo = void 0;
 const types_1 = require("@paperback/types");
 const ComicOnlineFreeParser_1 = require("./ComicOnlineFreeParser");
 const ComicOnlineFreeHelper_1 = require("./ComicOnlineFreeHelper");
-const COF_DOMAIN = 'https://comiconlinefree.org';
+const COF_DOMAIN = 'https://comiconlinefree.me';
 exports.ComicOnlineFreeInfo = {
-    version: '1.1.6',
+    version: '1.1.7',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',

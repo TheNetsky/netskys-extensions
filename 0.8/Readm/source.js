@@ -1438,9 +1438,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Readm = exports.ReadmInfo = void 0;
 const types_1 = require("@paperback/types");
 const ReadmParser_1 = require("./ReadmParser");
-const RM_DOMAIN = 'https://readm.org';
+const RM_DOMAIN = 'https://readm.today';
 exports.ReadmInfo = {
-    version: '2.1.6',
+    version: '2.1.7',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',

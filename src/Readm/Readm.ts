@@ -30,10 +30,10 @@ import {
     parseViewMore
 } from './ReadmParser'
 
-const RM_DOMAIN = 'https://readm.org'
+const RM_DOMAIN = 'https://readm.today'
 
 export const ReadmInfo: SourceInfo = {
-    version: '2.1.6',
+    version: '2.1.7',
     name: 'Readm',
     icon: 'icon.png',
     author: 'Netsky',

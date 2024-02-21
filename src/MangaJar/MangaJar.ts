@@ -30,10 +30,10 @@ import {
     parseViewMore
 } from './MangaJarParser'
 
-const MJ_DOMAIN = 'https://mangajar.com'
+const MJ_DOMAIN = 'https://mangajar.pro'
 
 export const MangaJarInfo: SourceInfo = {
-    version: '3.0.3',
+    version: '3.0.4',
     name: 'MangaJar',
     icon: 'icon.png',
     author: 'Netsky',

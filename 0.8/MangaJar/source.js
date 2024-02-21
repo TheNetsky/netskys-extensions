@@ -1438,9 +1438,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MangaJar = exports.MangaJarInfo = void 0;
 const types_1 = require("@paperback/types");
 const MangaJarParser_1 = require("./MangaJarParser");
-const MJ_DOMAIN = 'https://mangajar.com';
+const MJ_DOMAIN = 'https://mangajar.pro';
 exports.MangaJarInfo = {
-    version: '3.0.3',
+    version: '3.0.4',
     name: 'MangaJar',
     icon: 'icon.png',
     author: 'Netsky',

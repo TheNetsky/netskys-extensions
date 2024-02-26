@@ -28,15 +28,15 @@ import {
     parseTags
 } from './MangaDemonParser'
 
-const MD_DOMAIN = 'https://demoncomics.org'
+const MD_DOMAIN = 'https://demontoon.com'
 
 export const MangaDemonInfo: SourceInfo = {
-    version: '1.0.5',
+    version: '1.0.6',
     name: 'MangaDemon',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from mangademon.org',
+    description: 'Extension that pulls manga from demontoon.com',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: MD_DOMAIN,
     sourceTags: [],

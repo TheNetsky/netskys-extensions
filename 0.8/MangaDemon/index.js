@@ -1438,14 +1438,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MangaDemon = exports.MangaDemonInfo = void 0;
 const types_1 = require("@paperback/types");
 const MangaDemonParser_1 = require("./MangaDemonParser");
-const MD_DOMAIN = 'https://demoncomics.org';
+const MD_DOMAIN = 'https://demontoon.com';
 exports.MangaDemonInfo = {
-    version: '1.0.5',
+    version: '1.0.6',
     name: 'MangaDemon',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from mangademon.org',
+    description: 'Extension that pulls manga from demontoon.com',
     contentRating: types_1.ContentRating.MATURE,
     websiteBaseURL: MD_DOMAIN,
     sourceTags: [],

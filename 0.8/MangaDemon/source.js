@@ -1438,14 +1438,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MangaDemon = exports.MangaDemonInfo = void 0;
 const types_1 = require("@paperback/types");
 const MangaDemonParser_1 = require("./MangaDemonParser");
-const MD_DOMAIN = 'https://demontoon.com';
+const MD_DOMAIN = 'https://demonreader.org';
 exports.MangaDemonInfo = {
     version: '1.0.6',
     name: 'MangaDemon',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from demontoon.com',
+    description: 'Extension that pulls manga from demonreader.org',
     contentRating: types_1.ContentRating.MATURE,
     websiteBaseURL: MD_DOMAIN,
     sourceTags: [],
@@ -1454,6 +1454,7 @@ exports.MangaDemonInfo = {
 class MangaDemon {
     constructor(cheerio) {
         this.cheerio = cheerio;
+        this.baseUrl = MD_DOMAIN;
         this.requestManager = App.createRequestManager({
             requestsPerSecond: 4,
             requestTimeout: 15000,
@@ -1504,7 +1505,7 @@ class MangaDemon {
         const response = await this.requestManager.schedule(request, 1);
         this.CloudFlareError(response.status);
         const $ = this.cheerio.load(response.data);
-        return await (0, MangaDemonParser_1.parseChapterDetails)($, mangaId, chapterId, this.cheerio, this.requestManager);
+        return await (0, MangaDemonParser_1.parseChapterDetails)($, this, mangaId, chapterId, this.cheerio, this.requestManager);
     }
     async getHomePageSections(sectionCallback) {
         const request = App.createRequest({
@@ -1601,7 +1602,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseSearch = exports.parseTags = exports.parseViewMore = exports.parseHomeSections = exports.parseChapterDetails = exports.parseChapters = exports.parseMangaDetails = void 0;
 const types_1 = require("@paperback/types");
 const entities = require("entities");
-const MD_DOMAIN = 'https://demoncomics.org';
 const parseMangaDetails = ($, mangaId) => {
     const image = $('img', 'figure.cover').attr('src') ?? '';
     const titles = [(decodeHTMLEntity($('img', 'figure.cover').attr('alt') ?? ''?.trim() ?? ''))];
@@ -1685,7 +1685,7 @@ const parseChapters = ($, mangaId) => {
     });
 };
 exports.parseChapters = parseChapters;
-const parseChapterDetails = async ($, mangaId, chapterId, cheerio, requestManager) => {
+const parseChapterDetails = async ($, source, mangaId, chapterId, cheerio, requestManager) => {
     const pages = [];
     const scriptRegex = decodeHTMLEntity($.html()).match(/loaadchppa\('([\w\d]+)'\)/);
     let loadMoreId = '';
@@ -1707,7 +1707,7 @@ const parseChapterDetails = async ($, mangaId, chapterId, cheerio, requestManage
     // If loadMore is present, make request to load the other images
     if (loadMoreId) {
         const request = App.createRequest({
-            url: `${MD_DOMAIN}/loaadchpa.php?chapter=${loadMoreId}`,
+            url: `${source.baseUrl}/loaadchpa.php?chapter=${loadMoreId}`,
             method: 'GET'
         });
         const response = await requestManager.schedule(request, 1);

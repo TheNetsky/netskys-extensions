@@ -12,7 +12,6 @@ import {
 
 import entities = require('entities')
 
-const MD_DOMAIN = 'https://demoncomics.org'
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
 
@@ -107,7 +106,7 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
     })
 }
 
-export const parseChapterDetails = async ($: CheerioStatic, mangaId: string, chapterId: string, cheerio: CheerioAPI, requestManager: RequestManager): Promise<ChapterDetails> => {
+export const parseChapterDetails = async ($: CheerioStatic, source: any, mangaId: string, chapterId: string, cheerio: CheerioAPI, requestManager: RequestManager): Promise<ChapterDetails> => {
     const pages: string[] = []
 
     const scriptRegex = decodeHTMLEntity($.html()).match(/loaadchppa\('([\w\d]+)'\)/)
@@ -131,7 +130,7 @@ export const parseChapterDetails = async ($: CheerioStatic, mangaId: string, cha
     // If loadMore is present, make request to load the other images
     if (loadMoreId) {
         const request = App.createRequest({
-            url: `${MD_DOMAIN}/loaadchpa.php?chapter=${loadMoreId}`,
+            url: `${source.baseUrl}/loaadchpa.php?chapter=${loadMoreId}`,
             method: 'GET'
         })
 

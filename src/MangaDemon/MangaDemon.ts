@@ -28,15 +28,15 @@ import {
     parseTags
 } from './MangaDemonParser'
 
-const MD_DOMAIN = 'https://demoncomics.org'
+const MD_DOMAIN = 'https://demonreader.org'
 
 export const MangaDemonInfo: SourceInfo = {
-    version: '1.0.5',
+    version: '1.0.6',
     name: 'MangaDemon',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from mangademon.org',
+    description: 'Extension that pulls manga from demonreader.org',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: MD_DOMAIN,
     sourceTags: [],
@@ -44,6 +44,8 @@ export const MangaDemonInfo: SourceInfo = {
 }
 
 export class MangaDemon implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
+
+    baseUrl = MD_DOMAIN
 
     constructor(private cheerio: CheerioAPI) { }
 
@@ -103,7 +105,7 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data as string)
-        return await parseChapterDetails($, mangaId, chapterId, this.cheerio, this.requestManager)
+        return await parseChapterDetails($, this, mangaId, chapterId, this.cheerio, this.requestManager)
     }
 
     async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {

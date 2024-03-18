@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const MitakuParser_1 = require("./MitakuParser");
 const MT_DOMAIN = 'https://mitaku.net';
 exports.MitakuInfo = {
-    version: '1.0.1',
+    version: '1.0.2',
     name: 'Mitaku',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1656,11 +1656,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.isLastPage = exports.parseHomeSections = exports.parseChapterDetails = exports.parseChapters = exports.parseMangaDetails = void 0;
 const entities = require("entities");
 const parseMangaDetails = ($, mangaId) => {
-    const images = $('img', 'div.msacwl-slider-wrap');
+    const images = parseImages($);
     const title = decodeHTMLEntity($('h1.entry-title').first().text().trim());
     const artist = decodeHTMLEntity($('p:contains(Cosplayer:)').text().trim().replace('Cosplayer:', '').trim());
     const description = `Cosplayer: ${artist}\n\nGallery: ${title}\n\nImages: ${images.length}`;
-    const image = images.first().attr('data-src') ?? '';
     const arrayTags = [];
     for (const tag of $('a', 'span.tag-links').toArray()) {
         const id = $(tag).attr('href')?.split('/tag/')[1]?.replace(/\//g, '');
@@ -1677,7 +1676,7 @@ const parseMangaDetails = ($, mangaId) => {
             artist: artist,
             author: artist,
             status: 'Completed',
-            image: encodeURI(image),
+            image: encodeURI(images[0] ?? ''),
             desc: description,
             tags: tagSections
         })
@@ -1694,20 +1693,10 @@ const parseChapters = (mangaId) => {
 };
 exports.parseChapters = parseChapters;
 const parseChapterDetails = ($, mangaId, chapterId) => {
-    const pages = [];
-    // Remove last image since it's the telegram icon
-    for (const img of $('img', 'div.msacwl-slider-wrap').toArray()) {
-        let image = $(img).attr('data-src') ?? '';
-        if (!image)
-            image = $(img).attr('data-mfp-src') ?? '';
-        if (!image)
-            continue;
-        pages.push(encodeURI(image));
-    }
     const chapterDetails = App.createChapterDetails({
         id: chapterId,
         mangaId: mangaId,
-        pages: pages
+        pages: parseImages($)
     });
     return chapterDetails;
 };
@@ -1736,6 +1725,20 @@ const parseHomeSections = ($) => {
 exports.parseHomeSections = parseHomeSections;
 const decodeHTMLEntity = (str) => {
     return entities.decodeHTML(str);
+};
+const parseImages = ($) => {
+    const images = [];
+    for (const img of $('a', 'div.msacwl-slider-wrap').toArray()) {
+        let image = $(img).attr('src');
+        if (!image)
+            image = $(img).attr('data-mfp-src');
+        if (!image)
+            image = $(img).attr('data-lazy');
+        if (!image)
+            continue;
+        images.push(image);
+    }
+    return images;
 };
 const isLastPage = ($) => {
     let isLast = true;

@@ -31,7 +31,7 @@ import {
 const MT_DOMAIN = 'https://mitaku.net'
 
 export const MitakuInfo: SourceInfo = {
-    version: '1.0.1',
+    version: '1.0.2',
     name: 'Mitaku',
     icon: 'icon.png',
     author: 'Netsky',

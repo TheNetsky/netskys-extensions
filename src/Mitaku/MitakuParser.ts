@@ -10,12 +10,11 @@ import {
 import entities = require('entities')
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
-    const images = $('img', 'div.msacwl-slider-wrap')
+    const images = parseImages($)
 
     const title = decodeHTMLEntity($('h1.entry-title').first().text().trim())
     const artist = decodeHTMLEntity($('p:contains(Cosplayer:)').text().trim().replace('Cosplayer:', '').trim())
     const description = `Cosplayer: ${artist}\n\nGallery: ${title}\n\nImages: ${images.length}`
-    const image = images.first().attr('data-src') ?? ''
 
 
     const arrayTags: Tag[] = []
@@ -34,7 +33,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
             artist: artist,
             author: artist,
             status: 'Completed',
-            image: encodeURI(image),
+            image: encodeURI(images[0] ?? ''),
             desc: description,
             tags: tagSections
         })
@@ -51,20 +50,11 @@ export const parseChapters = (mangaId: string): Chapter[] => {
 }
 
 export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId: string): ChapterDetails => {
-    const pages: string[] = []
-
-    // Remove last image since it's the telegram icon
-    for (const img of $('img', 'div.msacwl-slider-wrap').toArray()) {
-        let image = $(img).attr('data-src') ?? ''
-        if (!image) image = $(img).attr('data-mfp-src') ?? ''
-        if (!image) continue
-        pages.push(encodeURI(image))
-    }
-
+   
     const chapterDetails = App.createChapterDetails({
         id: chapterId,
         mangaId: mangaId,
-        pages: pages
+        pages: parseImages($)
     })
     return chapterDetails
 }
@@ -95,6 +85,21 @@ export const parseHomeSections = ($: CheerioStatic): PartialSourceManga[] => {
 
 const decodeHTMLEntity = (str: string): string => {
     return entities.decodeHTML(str)
+}
+
+const parseImages = ($: CheerioStatic): string[] => {
+    const images: string[] = []
+    for (const img of $('a', 'div.msacwl-slider-wrap').toArray()) {
+
+        let image = $(img).attr('src')
+        if (!image) image = $(img).attr('data-mfp-src')
+        if (!image) image = $(img).attr('data-lazy')
+
+        if (!image) continue
+        images.push(image)
+    }
+
+    return images
 }
 
 export const isLastPage = ($: CheerioStatic): boolean => {

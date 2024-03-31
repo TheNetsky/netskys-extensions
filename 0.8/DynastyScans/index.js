@@ -464,7 +464,7 @@ exports.DynastyScans = exports.DynastyScansInfo = void 0;
 const types_1 = require("@paperback/types");
 const DS_DOMAIN = 'https://dynasty-scans.com';
 exports.DynastyScansInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'Dynasty Scans',
     icon: 'icon.png',
     author: 'Netsky',
@@ -658,7 +658,7 @@ class DynastyScans {
                 case 'recently_added_doujin':
                     for (const item of items.filter(x => !x.series).slice(0, 10)) {
                         const id = item.tags.find(t => t.type == 'Doujin');
-                        if (!id)
+                        if (!id?.permalink)
                             continue;
                         sectionItems.push(App.createPartialSourceManga({
                             mangaId: `doujins/${id?.permalink}`,
@@ -671,7 +671,7 @@ class DynastyScans {
                 case 'recently_added_series': // Series only
                     for (const item of items.filter(x => x.series).slice(0, 10)) {
                         const id = item.tags.find(t => t.type == 'Series');
-                        if (!id)
+                        if (!id?.permalink)
                             continue;
                         sectionItems.push(App.createPartialSourceManga({
                             mangaId: `series/${id?.permalink}`,
@@ -686,10 +686,14 @@ class DynastyScans {
                         let id = '';
                         if (item.series) {
                             const sId = item.tags.find(t => t.type == 'Series');
+                            if (!sId?.permalink)
+                                continue;
                             id = `series/${sId?.permalink}`;
                         }
                         else {
                             const dId = item.tags.find(t => t.type == 'Doujin');
+                            if (!dId?.permalink)
+                                continue;
                             id = `doujins/${dId?.permalink}`;
                         }
                         if (!id)
@@ -721,7 +725,7 @@ class DynastyScans {
             case 'recently_added_doujin':
                 for (const item of items.filter(x => !x.series)) {
                     const id = item.tags.find(t => t.type == 'Doujin');
-                    if (!id)
+                    if (!id?.permalink)
                         continue;
                     sectionItems.push(App.createPartialSourceManga({
                         mangaId: `doujins/${id?.permalink}`,
@@ -734,7 +738,7 @@ class DynastyScans {
             case 'recently_added_series': // Series only
                 for (const item of items.filter(x => x.series)) {
                     const id = item.tags.find(t => t.type == 'Series');
-                    if (!id)
+                    if (!id?.permalink)
                         continue;
                     sectionItems.push(App.createPartialSourceManga({
                         mangaId: `series/${id?.permalink}`,
@@ -854,13 +858,18 @@ class DynastyScans {
     }
     async getOrSetThumbnail(method, mangaId, coverURL) {
         async function fetchThumbnail(global) {
-            const request = App.createRequest({
-                url: `${DS_DOMAIN}/${mangaId}.json`,
-                method: 'GET'
-            });
-            const response = await global.requestManager.schedule(request, 1);
-            const data = (typeof response.data === 'string') ? JSON.parse(response.data) : response.data;
-            return data.cover ? DS_DOMAIN + data.cover : '';
+            try {
+                const request = App.createRequest({
+                    url: `${DS_DOMAIN}/${mangaId}.json`,
+                    method: 'GET'
+                });
+                const response = await global.requestManager.schedule(request, 1);
+                const data = (typeof response.data === 'string') ? JSON.parse(response.data) : response.data;
+                return data.cover ? DS_DOMAIN + data.cover : '';
+            }
+            catch (error) {
+                throw new Error(error);
+            }
         }
         const hasCover = await this.stateManager.retrieve(mangaId) ?? '';
         let cover = '';

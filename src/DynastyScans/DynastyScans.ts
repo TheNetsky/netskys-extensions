@@ -30,7 +30,7 @@ import {
 const DS_DOMAIN = 'https://dynasty-scans.com'
 
 export const DynastyScansInfo: SourceInfo = {
-    version: '2.0.0',
+    version: '2.0.1',
     name: 'Dynasty Scans',
     icon: 'icon.png',
     author: 'Netsky',
@@ -252,7 +252,7 @@ export class DynastyScans implements SearchResultsProviding, MangaProviding, Cha
                     for (const item of items.filter(x => !x.series).slice(0, 10)) {
                         const id = item.tags.find(t => t.type == 'Doujin')
 
-                        if (!id) continue
+                        if (!id?.permalink) continue
                         sectionItems.push(App.createPartialSourceManga({
                             mangaId: `doujins/${id?.permalink}`,
                             image: await this.getOrSetThumbnail('FETCH', `doujins/${id?.permalink}`),
@@ -266,7 +266,7 @@ export class DynastyScans implements SearchResultsProviding, MangaProviding, Cha
                     for (const item of items.filter(x => x.series).slice(0, 10)) {
                         const id = item.tags.find(t => t.type == 'Series')
 
-                        if (!id) continue
+                        if (!id?.permalink) continue
                         sectionItems.push(App.createPartialSourceManga({
                             mangaId: `series/${id?.permalink}`,
                             image: await this.getOrSetThumbnail('FETCH', `series/${id?.permalink}`),
@@ -280,9 +280,11 @@ export class DynastyScans implements SearchResultsProviding, MangaProviding, Cha
                         let id = ''
                         if (item.series) {
                             const sId = item.tags.find(t => t.type == 'Series')
+                            if (!sId?.permalink) continue
                             id = `series/${sId?.permalink}`
                         } else {
                             const dId = item.tags.find(t => t.type == 'Doujin')
+                            if (!dId?.permalink) continue
                             id = `doujins/${dId?.permalink}`
                         }
 
@@ -323,7 +325,7 @@ export class DynastyScans implements SearchResultsProviding, MangaProviding, Cha
                 for (const item of items.filter(x => !x.series)) {
                     const id = item.tags.find(t => t.type == 'Doujin')
 
-                    if (!id) continue
+                    if (!id?.permalink) continue
                     sectionItems.push(App.createPartialSourceManga({
                         mangaId: `doujins/${id?.permalink}`,
                         image: await this.getOrSetThumbnail('GET', `doujins/${id?.permalink}`),
@@ -337,7 +339,7 @@ export class DynastyScans implements SearchResultsProviding, MangaProviding, Cha
                 for (const item of items.filter(x => x.series)) {
                     const id = item.tags.find(t => t.type == 'Series')
 
-                    if (!id) continue
+                    if (!id?.permalink) continue
                     sectionItems.push(App.createPartialSourceManga({
                         mangaId: `series/${id?.permalink}`,
                         image: await this.getOrSetThumbnail('GET', `series/${id?.permalink}`),
@@ -484,15 +486,20 @@ export class DynastyScans implements SearchResultsProviding, MangaProviding, Cha
     async getOrSetThumbnail(method: 'GET' | 'SET' | 'FETCH', mangaId: string, coverURL?: string): Promise<string> {
 
         async function fetchThumbnail(global: any) {
-            const request = App.createRequest({
-                url: `${DS_DOMAIN}/${mangaId}.json`, // series/alice_quartet or doujins/alice_quartet
-                method: 'GET'
-            })
+            try {
+                const request = App.createRequest({
+                    url: `${DS_DOMAIN}/${mangaId}.json`, // series/alice_quartet or doujins/alice_quartet
+                    method: 'GET'
+                })
 
-            const response = await global.requestManager.schedule(request, 1)
-            const data: Doujin | Series = (typeof response.data === 'string') ? JSON.parse(response.data) : response.data
+                const response = await global.requestManager.schedule(request, 1)
+                const data: Doujin | Series = (typeof response.data === 'string') ? JSON.parse(response.data) : response.data
 
-            return data.cover ? DS_DOMAIN + data.cover : ''
+                return data.cover ? DS_DOMAIN + data.cover : ''
+
+            } catch (error) {
+                throw new Error(error as string)
+            }
         }
 
         const hasCover = await this.stateManager.retrieve(mangaId) as string ?? ''
@@ -520,6 +527,7 @@ export class DynastyScans implements SearchResultsProviding, MangaProviding, Cha
                 await this.stateManager.store(mangaId, cover)
                 break
         }
+
         return cover
     }
 }

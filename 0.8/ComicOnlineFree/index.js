@@ -1441,7 +1441,7 @@ const ComicOnlineFreeParser_1 = require("./ComicOnlineFreeParser");
 const ComicOnlineFreeHelper_1 = require("./ComicOnlineFreeHelper");
 const COF_DOMAIN = 'https://comiconlinefree.me';
 exports.ComicOnlineFreeInfo = {
-    version: '1.1.7',
+    version: '1.1.8',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1523,10 +1523,7 @@ class ComicOnlineFree {
         let param = '';
         switch (homepageSectionId) {
             case 'popular':
-                param = `popular-comic/${page}`;
-                break;
-            case 'hot':
-                param = `hot-comic/${page}`;
+                param = `popular-comic${page == 1 ? '' : `/${page}`}`;
                 break;
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist');
@@ -1744,12 +1741,6 @@ const parseHomeSections = ($, sectionCallback) => {
         containsMoreItems: true,
         type: types_1.HomeSectionType.singleRowLarge
     });
-    const hotSection = App.createHomeSection({
-        id: 'hot',
-        title: 'Hot Comics',
-        containsMoreItems: true,
-        type: types_1.HomeSectionType.singleRowNormal
-    });
     const updateSection = App.createHomeSection({
         id: 'update',
         title: 'Latest Updates Comics',
@@ -1759,7 +1750,10 @@ const parseHomeSections = ($, sectionCallback) => {
     // Popular
     const popularSection_Array = [];
     for (const manga of $('li.list-top-movie-item', 'div.right-box-content').toArray()) {
-        const image = $('img', manga).attr('src') ?? '';
+        let image = $('div.list-top-movie-item-thumb', manga).attr('style') ?? '';
+        const urlRegex = image.match(/url\(['"]?(.*?)['"]?\)/);
+        if (urlRegex && urlRegex[1])
+            image = urlRegex[1];
         const title = $('span.list-top-movie-item-vn', manga).text().trim() ?? '';
         const id = $('a', manga).attr('href')?.split('/').pop()?.trim();
         let subtitle = $('a.chapter', manga).text() ?? '';
@@ -1778,7 +1772,7 @@ const parseHomeSections = ($, sectionCallback) => {
     // Update
     const updateSection_Array = [];
     for (const manga of $('li.manga-box', 'ul.home-list').toArray()) {
-        const image = $('img', manga).attr('data-original') ?? '';
+        const image = $('img', manga).attr('src') ?? '';
         const title = $('img', manga).attr('alt')?.trim() ?? '';
         const id = $('a', manga).attr('href')?.split('/').pop()?.trim();
         let subtitle = $('div.detail > a', manga).text().trim();
@@ -1794,32 +1788,13 @@ const parseHomeSections = ($, sectionCallback) => {
     }
     updateSection.items = updateSection_Array;
     sectionCallback(updateSection);
-    // Hot
-    const hotSection_Array = [];
-    for (const manga of $('li.manga-box.hotbox', 'ul.home-list').toArray()) {
-        const image = $('img', manga).attr('data-original') ?? '';
-        const title = $('img', manga).attr('alt')?.trim() ?? '';
-        const id = $('a', manga).attr('href')?.split('/').pop()?.trim();
-        let subtitle = $('div.detail > a', manga).text().trim();
-        subtitle = subtitle.substring(subtitle.indexOf('#'))?.trim();
-        if (!id || !title)
-            continue;
-        hotSection_Array.push(App.createPartialSourceManga({
-            image: image,
-            title: decodeHTMLEntity(title),
-            mangaId: id,
-            subtitle: decodeHTMLEntity(subtitle)
-        }));
-    }
-    hotSection.items = hotSection_Array;
-    sectionCallback(hotSection);
 };
 exports.parseHomeSections = parseHomeSections;
 const parseViewMore = ($) => {
     const manga = [];
     const collectedIds = [];
-    for (const obj of $('div.manga-box', 'div.home-list').toArray()) {
-        const image = $('img', obj).attr('data-original') ?? '';
+    for (const obj of $('div.manga-box', 'div.container').toArray()) {
+        const image = $('img', obj).attr('src') ?? '';
         const title = $('img', obj).attr('alt')?.trim() ?? '';
         const id = $('a', obj).attr('href')?.split('/').pop()?.trim();
         let subtitle = $('div.detail > a', obj).first().text().trim();
@@ -1854,7 +1829,7 @@ const parseSearch = ($) => {
     const mangas = [];
     for (const obj of $('div.manga-box', 'div.result-left').toArray()) {
         const id = $('a', obj).attr('href')?.split('/').pop()?.trim();
-        const image = $('img', obj).attr('data-original') ?? '';
+        const image = $('img', obj).attr('src') ?? '';
         const title = $('img', obj).attr('alt')?.trim() ?? '';
         const subtitle = $('div.detail', obj).first().text().trim();
         if (!id || !title)

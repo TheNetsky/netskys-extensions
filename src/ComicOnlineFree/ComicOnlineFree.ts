@@ -35,7 +35,7 @@ import { URLBuilder } from './ComicOnlineFreeHelper'
 const COF_DOMAIN = 'https://comiconlinefree.me'
 
 export const ComicOnlineFreeInfo: SourceInfo = {
-    version: '1.1.7',
+    version: '1.1.8',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',
@@ -129,10 +129,7 @@ export class ComicOnlineFree implements SearchResultsProviding, MangaProviding, 
 
         switch (homepageSectionId) {
             case 'popular':
-                param = `popular-comic/${page}`
-                break
-            case 'hot':
-                param = `hot-comic/${page}`
+                param = `popular-comic${page == 1 ? '' : `/${page}`}`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')

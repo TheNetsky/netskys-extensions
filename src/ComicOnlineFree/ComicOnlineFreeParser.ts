@@ -127,13 +127,6 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
         type: HomeSectionType.singleRowLarge
     })
 
-    const hotSection = App.createHomeSection({
-        id: 'hot',
-        title: 'Hot Comics',
-        containsMoreItems: true,
-        type: HomeSectionType.singleRowNormal
-    })
-
     const updateSection = App.createHomeSection({
         id: 'update',
         title: 'Latest Updates Comics',
@@ -144,7 +137,12 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     // Popular
     const popularSection_Array: PartialSourceManga[] = []
     for (const manga of $('li.list-top-movie-item', 'div.right-box-content').toArray()) {
-        const image: string = $('img', manga).attr('src') ?? ''
+        let image: string = $('div.list-top-movie-item-thumb', manga).attr('style') ?? ''
+
+        const urlRegex = image.match(/url\(['"]?(.*?)['"]?\)/)
+
+        if (urlRegex && urlRegex[1]) image = urlRegex[1]
+
         const title: string = $('span.list-top-movie-item-vn', manga).text().trim() ?? ''
         const id = $('a', manga).attr('href')?.split('/').pop()?.trim()
 
@@ -165,7 +163,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     // Update
     const updateSection_Array: PartialSourceManga[] = []
     for (const manga of $('li.manga-box', 'ul.home-list').toArray()) {
-        const image: string = $('img', manga).attr('data-original') ?? ''
+        const image: string = $('img', manga).attr('src') ?? ''
         const title: string = $('img', manga).attr('alt')?.trim() ?? ''
         const id = $('a', manga).attr('href')?.split('/').pop()?.trim()
 
@@ -182,36 +180,15 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     }
     updateSection.items = updateSection_Array
     sectionCallback(updateSection)
-
-    // Hot
-    const hotSection_Array: PartialSourceManga[] = []
-    for (const manga of $('li.manga-box.hotbox', 'ul.home-list').toArray()) {
-        const image: string = $('img', manga).attr('data-original') ?? ''
-        const title: string = $('img', manga).attr('alt')?.trim() ?? ''
-        const id = $('a', manga).attr('href')?.split('/').pop()?.trim()
-
-        let subtitle: string = $('div.detail > a', manga).text().trim()
-        subtitle = subtitle.substring(subtitle.indexOf('#'))?.trim()
-
-        if (!id || !title) continue
-        hotSection_Array.push(App.createPartialSourceManga({
-            image: image,
-            title: decodeHTMLEntity(title),
-            mangaId: id,
-            subtitle: decodeHTMLEntity(subtitle)
-        }))
-    }
-    hotSection.items = hotSection_Array
-    sectionCallback(hotSection)
 }
 
 export const parseViewMore = ($: CheerioStatic): PartialSourceManga[] => {
     const manga: PartialSourceManga[] = []
     const collectedIds: string[] = []
 
-    for (const obj of $('div.manga-box', 'div.home-list').toArray()) {
+    for (const obj of $('div.manga-box', 'div.container').toArray()) {
 
-        const image: string = $('img', obj).attr('data-original') ?? ''
+        const image: string = $('img', obj).attr('src') ?? ''
         const title: string = $('img', obj).attr('alt')?.trim() ?? ''
         const id = $('a', obj).attr('href')?.split('/').pop()?.trim()
 
@@ -250,7 +227,7 @@ export const parseSearch = ($: CheerioStatic): PartialSourceManga[] => {
 
     for (const obj of $('div.manga-box', 'div.result-left').toArray()) {
         const id = $('a', obj).attr('href')?.split('/').pop()?.trim()
-        const image: string = $('img', obj).attr('data-original') ?? ''
+        const image: string = $('img', obj).attr('src') ?? ''
         const title: string = $('img', obj).attr('alt')?.trim() ?? ''
         const subtitle: string = $('div.detail', obj).first().text().trim()
 

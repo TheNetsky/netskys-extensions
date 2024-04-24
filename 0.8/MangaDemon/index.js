@@ -1438,9 +1438,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MangaDemon = exports.MangaDemonInfo = void 0;
 const types_1 = require("@paperback/types");
 const MangaDemonParser_1 = require("./MangaDemonParser");
-const MD_DOMAIN = 'https://demonreader.org';
+const MD_DOMAIN = 'https://comicdemons.com';
 exports.MangaDemonInfo = {
-    version: '1.0.6',
+    version: '1.0.7',
     name: 'MangaDemon',
     icon: 'icon.png',
     author: 'Netsky',

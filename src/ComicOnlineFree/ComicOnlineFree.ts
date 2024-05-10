@@ -32,10 +32,10 @@ import {
 
 import { URLBuilder } from './ComicOnlineFreeHelper'
 
-const COF_DOMAIN = 'https://comiconlinefree.me'
+const COF_DOMAIN = 'https://readcomic.net'
 
 export const ComicOnlineFreeInfo: SourceInfo = {
-    version: '1.1.8',
+    version: '1.1.9',
     name: 'ComicOnlineFree',
     icon: 'icon.png',
     author: 'Netsky',

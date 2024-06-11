@@ -1440,7 +1440,7 @@ const types_1 = require("@paperback/types");
 const MitakuParser_1 = require("./MitakuParser");
 const MT_DOMAIN = 'https://mitaku.net';
 exports.MitakuInfo = {
-    version: '1.0.2',
+    version: '1.0.3',
     name: 'Mitaku',
     icon: 'icon.png',
     author: 'Netsky',
@@ -1707,7 +1707,7 @@ const parseHomeSections = ($) => {
     for (const item of $('article', 'div#content').toArray()) {
         const postId = $(item).attr('id');
         const id = postId?.split('post-').pop();
-        const image = $('img', item).first().attr('data-src') ?? '';
+        const image = getImageSrc($('img', item).first()) ?? '';
         const title = $('h2.entry-title', item).text().trim();
         const subtitle = $('span.tag-links > a', item).toArray().map(x => $(x).text().trim()).join(', ');
         if (!id || isNaN(Number(id)) || !title || collectedIds.includes(id))
@@ -1739,6 +1739,28 @@ const parseImages = ($) => {
         images.push(image);
     }
     return images;
+};
+const getImageSrc = (imageObj) => {
+    let image;
+    if ((typeof imageObj?.attr('data-src')) != 'undefined') {
+        image = imageObj?.attr('data-src');
+    }
+    else if ((typeof imageObj?.attr('data-lazy-src')) != 'undefined') {
+        image = imageObj?.attr('data-lazy-src');
+    }
+    else if ((typeof imageObj?.attr('srcset')) != 'undefined') {
+        image = imageObj?.attr('srcset')?.split(' ')[0] ?? '';
+    }
+    else if ((typeof imageObj?.attr('src')) != 'undefined') {
+        image = imageObj?.attr('src');
+    }
+    else if ((typeof imageObj?.attr('data-cfsrc')) != 'undefined') {
+        image = imageObj?.attr('data-cfsrc');
+    }
+    else {
+        image = '';
+    }
+    return encodeURI(decodeURI(decodeHTMLEntity(image?.trim() ?? '')));
 };
 const isLastPage = ($) => {
     let isLast = true;

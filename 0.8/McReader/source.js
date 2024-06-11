@@ -1438,9 +1438,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.McReader = exports.McReaderInfo = void 0;
 const types_1 = require("@paperback/types");
 const McReaderParser_1 = require("./McReaderParser");
-const MCR_DOMAIN = 'https://www.mgeko.com';
+const MCR_DOMAIN = 'https://www.mgeko.cc';
 exports.McReaderInfo = {
-    version: '2.0.6',
+    version: '2.0.8',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',

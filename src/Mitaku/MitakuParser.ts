@@ -50,7 +50,7 @@ export const parseChapters = (mangaId: string): Chapter[] => {
 }
 
 export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId: string): ChapterDetails => {
-   
+
     const chapterDetails = App.createChapterDetails({
         id: chapterId,
         mangaId: mangaId,
@@ -66,7 +66,7 @@ export const parseHomeSections = ($: CheerioStatic): PartialSourceManga[] => {
     for (const item of $('article', 'div#content').toArray()) {
         const postId = $(item).attr('id')
         const id = postId?.split('post-').pop()
-        const image: string = $('img', item).first().attr('data-src') ?? ''
+        const image: string = getImageSrc($('img', item).first()) ?? ''
         const title: string = $('h2.entry-title', item).text().trim()
         const subtitle: string = $('span.tag-links > a', item).toArray().map(x => $(x).text().trim()).join(', ')
 
@@ -100,6 +100,29 @@ const parseImages = ($: CheerioStatic): string[] => {
     }
 
     return images
+}
+
+const getImageSrc = (imageObj: Cheerio): string => {
+    let image: string | undefined
+    if ((typeof imageObj?.attr('data-src')) != 'undefined') {
+        image = imageObj?.attr('data-src')
+    }
+    else if ((typeof imageObj?.attr('data-lazy-src')) != 'undefined') {
+        image = imageObj?.attr('data-lazy-src')
+    }
+    else if ((typeof imageObj?.attr('srcset')) != 'undefined') {
+        image = imageObj?.attr('srcset')?.split(' ')[0] ?? ''
+    }
+    else if ((typeof imageObj?.attr('src')) != 'undefined') {
+        image = imageObj?.attr('src')
+    }
+    else if ((typeof imageObj?.attr('data-cfsrc')) != 'undefined') {
+        image = imageObj?.attr('data-cfsrc')
+    } else {
+        image = ''
+    }
+
+    return encodeURI(decodeURI(decodeHTMLEntity(image?.trim() ?? '')))
 }
 
 export const isLastPage = ($: CheerioStatic): boolean => {

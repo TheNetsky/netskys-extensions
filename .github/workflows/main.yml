@@ -11,24 +11,24 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x] 
+        node-version: [20.x] 
 
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.1.2
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v2.1.2
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: ${{ matrix.node-version }}
       
       - name: Extract branch name
         shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        run: echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
         id: extract_branch
 
       - name: Checkout existing bundles
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.1.2
         continue-on-error: true
         with:
           ref: gh-pages
@@ -38,7 +38,7 @@ jobs:
       - run: npm run bundle -- --folder=${{ steps.extract_branch.outputs.branch }}
 
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@4.1.0
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
           branch: gh-pages
           folder: bundles

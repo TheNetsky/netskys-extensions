@@ -65,13 +65,13 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     })
 }
 
-export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
+export const parseChapters = ($: CheerioStatic, mangaId: string, baseURL: string): Chapter[] => {
     const chapters: Chapter[] = []
     let sortingIndex = 0
 
     for (const chapter of $('tr', 'div.list-chapter').toArray()) {
         const title = decodeHTMLEntity($('td.name > a', chapter).children().remove().end().text().trim())
-        const chapterId = $('a', chapter).attr('href')?.replace('https://mangahasu.se/', '') ?? ''
+        const chapterId = $('a', chapter).attr('href')?.replace(baseURL + '/', '') ?? ''
 
         if (!chapterId || !title) continue
 

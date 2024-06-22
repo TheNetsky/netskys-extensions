@@ -7,7 +7,6 @@ import {
     PagedResults,
     SourceInfo,
     ContentRating,
-    BadgeColor,
     Request,
     Response,
     TagSection,
@@ -29,10 +28,10 @@ import {
     parseTags
 } from './MangaHasuParser'
 
-const MH_DOMAIN = 'https://mangahasu.se'
+const MH_DOMAIN = 'https://mangahasu.me'
 
 export const MangaHasuInfo: SourceInfo = {
-    version: '2.0.5',
+    version: '2.0.6',
     name: 'MangaHasu',
     icon: 'icon.png',
     author: 'Netsky',
@@ -91,7 +90,7 @@ export class MangaHasu implements SearchResultsProviding, MangaProviding, Chapte
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = this.cheerio.load(response.data as string)
-        return parseChapters($, mangaId)
+        return parseChapters($, mangaId, MH_DOMAIN)
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {

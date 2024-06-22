@@ -510,14 +510,14 @@ var source = (() => {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       exports.BadgeColor = void 0;
-      var BadgeColor2;
-      (function(BadgeColor3) {
-        BadgeColor3["BLUE"] = "default";
-        BadgeColor3["GREEN"] = "success";
-        BadgeColor3["GREY"] = "info";
-        BadgeColor3["YELLOW"] = "warning";
-        BadgeColor3["RED"] = "danger";
-      })(BadgeColor2 = exports.BadgeColor || (exports.BadgeColor = {}));
+      var BadgeColor;
+      (function(BadgeColor2) {
+        BadgeColor2["BLUE"] = "default";
+        BadgeColor2["GREEN"] = "success";
+        BadgeColor2["GREY"] = "info";
+        BadgeColor2["YELLOW"] = "warning";
+        BadgeColor2["RED"] = "danger";
+      })(BadgeColor = exports.BadgeColor || (exports.BadgeColor = {}));
     }
   });
 
@@ -1502,12 +1502,12 @@ var source = (() => {
       })
     });
   };
-  var parseChapters = ($, mangaId) => {
+  var parseChapters = ($, mangaId, baseURL) => {
     const chapters = [];
     let sortingIndex = 0;
     for (const chapter of $("tr", "div.list-chapter").toArray()) {
       const title = decodeHTMLEntity($("td.name > a", chapter).children().remove().end().text().trim());
-      const chapterId = $("a", chapter).attr("href")?.replace("https://mangahasu.se/", "") ?? "";
+      const chapterId = $("a", chapter).attr("href")?.replace(baseURL + "/", "") ?? "";
       if (!chapterId || !title) continue;
       const date = new Date($("td.date-updated", chapter).text().trim());
       const chapNumRegex = title.match(/chapter\s(\d+\.?\d*|\.\d+)/i);
@@ -1663,9 +1663,9 @@ var source = (() => {
   };
 
   // src/MangaHasu/MangaHasu.ts
-  var MH_DOMAIN = "https://mangahasu.se";
+  var MH_DOMAIN = "https://mangahasu.me";
   var MangaHasuInfo = {
-    version: "2.0.5",
+    version: "2.0.6",
     name: "MangaHasu",
     icon: "icon.png",
     author: "Netsky",
@@ -1720,7 +1720,7 @@ var source = (() => {
       const response = await this.requestManager.schedule(request, 1);
       this.CloudFlareError(response.status);
       const $ = this.cheerio.load(response.data);
-      return parseChapters($, mangaId);
+      return parseChapters($, mangaId, MH_DOMAIN);
     }
     async getChapterDetails(mangaId, chapterId) {
       const request = App.createRequest({

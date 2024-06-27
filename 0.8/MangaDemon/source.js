@@ -1722,9 +1722,9 @@ var source = (() => {
   };
 
   // src/MangaDemon/MangaDemon.ts
-  var MD_DOMAIN = "https://comicdemons.com";
+  var MD_DOMAIN = "https://mgdemon.org";
   var MangaDemonInfo = {
-    version: "1.0.7",
+    version: "1.0.8",
     name: "MangaDemon",
     icon: "icon.png",
     author: "Netsky",

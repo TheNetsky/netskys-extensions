@@ -1,6 +1,5 @@
-function compat() {
 "use strict";
-var source = (() => {
+var _Sources = (() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -1793,4 +1792,4 @@ Please go to the homepage of <${_ReadComicsOnline.name}> and press the cloud ico
   };
   return __toCommonJS(ReadComicsOnline_exports);
 })();
-return source;} this.Sources = compat(); if (typeof exports === 'object' && typeof module !== 'undefined') {module.exports = this.Sources;}
+this.Sources = _Sources; if (typeof exports === 'object' && typeof module !== 'undefined') {module.exports.Sources = this.Sources;}

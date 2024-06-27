@@ -1,6 +1,5 @@
-function compat() {
 "use strict";
-var source = (() => {
+var _Sources = (() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -1722,9 +1721,9 @@ var source = (() => {
   };
 
   // src/MangaDemon/MangaDemon.ts
-  var MD_DOMAIN = "https://comicdemons.com";
+  var MD_DOMAIN = "https://mgdemon.org";
   var MangaDemonInfo = {
-    version: "1.0.7",
+    version: "1.0.8",
     name: "MangaDemon",
     icon: "icon.png",
     author: "Netsky",
@@ -1880,4 +1879,4 @@ Please go to the homepage of <${_MangaDemon.name}> and press the cloud icon.`);
   };
   return __toCommonJS(MangaDemon_exports);
 })();
-return source;} this.Sources = compat(); if (typeof exports === 'object' && typeof module !== 'undefined') {module.exports = this.Sources;}
+this.Sources = _Sources; if (typeof exports === 'object' && typeof module !== 'undefined') {module.exports.Sources = this.Sources;}

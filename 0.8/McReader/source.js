@@ -1642,11 +1642,10 @@ var _Sources = (() => {
   };
   var parseTags = ($) => {
     const arrayTags = [];
-    for (const tag of $("label.checkbox-inline", "div.container").toArray()) {
-      const label = $(tag).text().trim() ?? "";
-      const id = $("input", tag).attr("value") ?? "";
-      if (!id || !label) continue;
-      arrayTags.push({ id, label });
+    for (const tag of $(".proplist a").toArray()) {
+      const title = $(tag).attr("title") ?? "";
+      if (!title) continue;
+      arrayTags.push({ id: title, label: title });
     }
     const tagSections = [App.createTagSection({ id: "0", label: "genres", tags: arrayTags.map((x) => App.createTag(x)) })];
     return tagSections;
@@ -1693,7 +1692,7 @@ var _Sources = (() => {
   // src/McReader/McReader.ts
   var MCR_DOMAIN = "https://www.mgeko.cc";
   var McReaderInfo = {
-    version: "2.0.8",
+    version: "2.0.9",
     name: "McReader",
     icon: "icon.png",
     author: "Netsky",

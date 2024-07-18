@@ -232,12 +232,11 @@ export const parseViewMore = ($: CheerioStatic): PartialSourceManga[] => {
 
 export const parseTags = ($: CheerioStatic): TagSection[] => {
     const arrayTags: Tag[] = []
-    for (const tag of $('label.checkbox-inline', 'div.container').toArray()) {
-        const label = $(tag).text().trim() ?? ''
-        const id = $('input', tag).attr('value') ?? ''
+    for (const tag of $('.proplist a').toArray()) {
+        const title = $(tag).attr('title') ?? ''
 
-        if (!id || !label) continue
-        arrayTags.push({ id: id, label: label })
+        if (!title) continue
+        arrayTags.push({ id: title, label: title })
     }
     const tagSections: TagSection[] = [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })]
     return tagSections

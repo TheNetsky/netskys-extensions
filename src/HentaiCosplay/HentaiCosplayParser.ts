@@ -4,10 +4,12 @@ import {
     HomeSection,
     SourceManga,
     PartialSourceManga,
-    HomeSectionType
+    HomeSectionType,
+    Tag,
+    TagSection
 } from '@paperback/types'
 
-import entities = require('entities')
+import { decode as decodeHTMLEntity } from 'html-entities'
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
     const title: string = decodeHTMLEntity($('span#title > h2').text().trim())
@@ -15,12 +17,22 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     const image = $('img', $('div.icon-overlay')).first().attr('src') ?? ''
     const description = `Gallery: ${title}`
 
+    const arrayTags: Tag[] = []
+    for (const tag of $('span', 'p#detail_tag').toArray()) {
+        const id = $('a', tag).attr('href')?.trim().replace(/\/$/, '').split('/').pop()
+
+        if (!id) continue
+        arrayTags.push({ id: id, label: id })
+    }
+    const tagSections: TagSection[] = [App.createTagSection({ id: '0', label: 'tags', tags: arrayTags.map(x => App.createTag(x)) })]
+
     return App.createSourceManga({
         id: mangaId,
         mangaInfo: App.createMangaInfo({
             titles: [title],
             image: image,
             status: 'Completed',
+            tags: tagSections,
             desc: description
         })
     })
@@ -72,7 +84,15 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
                 type: HomeSectionType.singleRowLarge
             }),
             selector: $('ul#image-list').get(1)
-
+        },
+        {
+            sectionID: App.createHomeSection({
+                id: 'recently_viewed',
+                title: 'Recently Viewed Galleries',
+                containsMoreItems: true,
+                type: HomeSectionType.singleRowLarge
+            }),
+            selector: $('ul#image-list').get(0)
         }
     ]
 
@@ -125,6 +145,18 @@ export const parseViewMore = ($: CheerioStatic): PartialSourceManga[] => {
     return manga
 }
 
+export const parseTags = ($: CheerioStatic): TagSection[] => {
+    const arrayTags: Tag[] = []
+    for (const tag of $('#tags li').toArray()) {
+        const id = $('a', tag).attr('href')?.trim().replace(/\/$/, '').split('/').pop()
+
+        if (!id) continue
+        arrayTags.push({ id: id, label: id })
+    }
+    const tagSections: TagSection[] = [App.createTagSection({ id: '0', label: 'tags', tags: arrayTags.map(x => App.createTag(x)) })]
+    return tagSections
+}
+
 export const isLastPage = ($: CheerioStatic): boolean => {
     let isLast = false
 
@@ -132,8 +164,4 @@ export const isLastPage = ($: CheerioStatic): boolean => {
     if (!lastPage) isLast = true
 
     return isLast
-}
-
-const decodeHTMLEntity = (str: string): string => {
-    return entities.decodeHTML(str)
 }

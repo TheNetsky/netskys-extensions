@@ -7,7 +7,7 @@ import {
     TagSection
 } from '@paperback/types'
 
-import entities = require('entities')
+import { decode as decodeHTMLEntity } from 'html-entities'
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
     const images = $('div.thumbs', 'div.container-fluid')
@@ -136,9 +136,4 @@ export const parseTags = ($: CheerioStatic): TagSection[] => {
     }
     const tagSections: TagSection[] = [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })]
     return tagSections
-}
-
-
-const decodeHTMLEntity = (str: string): string => {
-    return entities.decodeHTML(str)
 }

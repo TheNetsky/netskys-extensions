@@ -9,7 +9,7 @@ import {
     HomeSectionType
 } from '@paperback/types'
 
-import entities = require('entities')
+import { decode as decodeHTMLEntity } from 'html-entities'
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
     const titles: string[] = []
@@ -241,10 +241,6 @@ export const parseSearch = ($: CheerioStatic): PartialSourceManga[] => {
         }))
     }
     return mangas
-}
-
-const decodeHTMLEntity = (str: string): string => {
-    return entities.decodeHTML(str)
 }
 
 export const isLastPage = ($: CheerioStatic): boolean => {

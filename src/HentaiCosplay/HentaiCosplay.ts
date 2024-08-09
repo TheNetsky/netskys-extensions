@@ -14,7 +14,9 @@ import {
     ChapterProviding,
     MangaProviding,
     SearchResultsProviding,
-    HomePageSectionsProviding
+    HomePageSectionsProviding,
+    TagSection,
+    Tag
 } from '@paperback/types'
 
 import {
@@ -23,18 +25,19 @@ import {
     parseChapters,
     parseHomeSections,
     parseMangaDetails,
-    parseViewMore
+    parseViewMore,
+    parseTags
 } from './HentaiCosplayParser'
 
-const HC_DOMAIN = 'https://hentai-cosplays.com'
+const HC_DOMAIN = 'https://hentai-cosplay-xxx.com'
 
 export const HentaiCosplayInfo: SourceInfo = {
-    version: '1.0.5',
+    version: '1.1.0',
     name: 'HentaiCosplay',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from hentai-cosplay.com',
+    description: 'Extension that pulls manga from hentai-cosplay-xxx.com',
     contentRating: ContentRating.ADULT,
     websiteBaseURL: HC_DOMAIN,
     sourceTags: [
@@ -126,6 +129,9 @@ export class HentaiCosplay implements SearchResultsProviding, MangaProviding, Ch
             case 'new':
                 param = `search${page == 1 ? '' : '/page/' + page}`
                 break
+            case 'recently_viewed':
+                param = `recently/page/${page}`
+                break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
         }
@@ -147,13 +153,32 @@ export class HentaiCosplay implements SearchResultsProviding, MangaProviding, Ch
         })
     }
 
+    async getSearchTags(): Promise<TagSection[]> {
+        const request = App.createRequest({
+            url: `${HC_DOMAIN}/ranking-tag`,
+            method: 'GET'
+        })
+
+        const response = await this.requestManager.schedule(request, 1)
+        const $ = this.cheerio.load(response.data as string)
+        return parseTags($)
+    }
+
     async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
         const page: number = metadata?.page ?? 1
 
-        const request = App.createRequest({
-            url: `${HC_DOMAIN}/search/keyword/${encodeURI(query.title ?? '')}/page/${page}`,
-            method: 'GET'
-        })
+        let request
+        if (query.title) {
+            request = App.createRequest({
+                url: `${HC_DOMAIN}/search/keyword/${encodeURI(query.title ?? '')}/page/${page}`,
+                method: 'GET'
+            })
+        } else {
+            request = App.createRequest({
+                url: `${HC_DOMAIN}/search/tag/${query?.includedTags?.map((x: Tag) => x.id)[0]}/page/${page}`,
+                method: 'GET'
+            })
+        }
 
         const response = await this.requestManager.schedule(request, 1)
         const $ = this.cheerio.load(response.data as string)

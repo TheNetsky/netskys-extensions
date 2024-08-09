@@ -8,7 +8,7 @@ import {
     HomeSectionType
 } from '@paperback/types'
 
-import entities = require('entities')
+import { decode as decodeHTMLEntity } from 'html-entities'
 
 const MH_CDN_THUMBS_DOMAIN = 'https://thumb.mghcdn.com'
 
@@ -221,8 +221,4 @@ export const parseSearch = (data: any): PartialSourceManga[] => {
         collectedIds.push(manga.id)
     }
     return searchResults
-}
-
-const decodeHTMLEntity = (str: string): string => {
-    return entities.decodeHTML(str)
 }

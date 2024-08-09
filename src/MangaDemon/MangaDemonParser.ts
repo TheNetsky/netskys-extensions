@@ -10,7 +10,7 @@ import {
     RequestManager
 } from '@paperback/types'
 
-import entities = require('entities')
+import { decode as decodeHTMLEntity } from 'html-entities'
 
 
 export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
@@ -329,8 +329,4 @@ export const parseSearch = ($: CheerioStatic, isTagSearch: boolean): PartialSour
         }
     }
     return mangas
-}
-
-const decodeHTMLEntity = (str: string): string => {
-    return entities.decodeHTML(str)
 }

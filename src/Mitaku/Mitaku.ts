@@ -20,6 +20,8 @@ import {
     HomePageSectionsProviding
 } from '@paperback/types'
 
+import * as cheerio from 'cheerio'
+
 import {
     parseChapterDetails,
     parseChapters,
@@ -49,8 +51,6 @@ export const MitakuInfo: SourceInfo = {
 }
 
 export class Mitaku implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
-
-    constructor(private cheerio: CheerioAPI) { }
 
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,
@@ -82,7 +82,7 @@ export class Mitaku implements SearchResultsProviding, MangaProviding, ChapterPr
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
@@ -98,7 +98,7 @@ export class Mitaku implements SearchResultsProviding, MangaProviding, ChapterPr
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseChapterDetails($, mangaId, chapterId)
     }
 
@@ -150,7 +150,7 @@ export class Mitaku implements SearchResultsProviding, MangaProviding, ChapterPr
                 this.requestManager.schedule(section.request, 1)
                     .then(response => {
                         this.CloudFlareError(response.status)
-                        const $ = this.cheerio.load(response.data as string)
+                        const $ = cheerio.load(response.data as string)
                         const items = parseHomeSections($)
                         section.sectionID.items = items
                         sectionCallback(section.sectionID)
@@ -188,7 +188,7 @@ export class Mitaku implements SearchResultsProviding, MangaProviding, ChapterPr
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseHomeSections($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -241,7 +241,7 @@ export class Mitaku implements SearchResultsProviding, MangaProviding, ChapterPr
         }
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseHomeSections($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined

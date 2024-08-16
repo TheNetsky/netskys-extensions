@@ -9,7 +9,9 @@ import {
     HomeSectionType
 } from '@paperback/types'
 
-export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
+import { CheerioAPI } from 'cheerio'
+
+export const parseMangaDetails = ($: CheerioAPI, mangaId: string): SourceManga => {
     const section = $('.detail-info')
 
     const title = $('span.detail-info-right-title-font', section).text().trim()
@@ -55,7 +57,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     })
 }
 
-export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
+export const parseChapters = ($: CheerioAPI, mangaId: string): Chapter[] => {
     const chapters: Chapter[] = []
 
     for (const chapter of $('div#chapterlist ul li').children('a').toArray()) {
@@ -95,7 +97,7 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
     return chapters
 }
 
-export const parseChapterDetails = async ($: CheerioStatic, mangaId: string, chapterId: string, url: string, source: any): Promise<ChapterDetails> => {
+export const parseChapterDetails = async ($: CheerioAPI, mangaId: string, chapterId: string, url: string, source: any): Promise<ChapterDetails> => {
     const pages: string[] = []
 
     const bar = $('script[src*=chapter_bar]').length
@@ -171,7 +173,7 @@ export const parseChapterDetails = async ($: CheerioStatic, mangaId: string, cha
     return chapterDetails
 }
 
-export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: HomeSection) => void): void => {
+export const parseHomeSections = ($: CheerioAPI, sectionCallback: (section: HomeSection) => void): void => {
     const sections = [
         {
             sectionID: App.createHomeSection({
@@ -266,7 +268,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     sectionCallback(latestSection)
 }
 
-export const parseSearch = ($: CheerioStatic): PartialSourceManga[] => {
+export const parseSearch = ($: CheerioAPI): PartialSourceManga[] => {
     const mangaItems: PartialSourceManga[] = []
     const collectedIds: string[] = []
 
@@ -288,7 +290,7 @@ export const parseSearch = ($: CheerioStatic): PartialSourceManga[] => {
     return mangaItems
 }
 
-export const parseViewMore = ($: CheerioStatic, homepageSectionId: string): PartialSourceManga[] => {
+export const parseViewMore = ($: CheerioAPI, homepageSectionId: string): PartialSourceManga[] => {
     const mangaItems: PartialSourceManga[] = []
     const collectedIds: string[] = []
 
@@ -329,7 +331,7 @@ export const parseViewMore = ($: CheerioStatic, homepageSectionId: string): Part
     return mangaItems
 }
 
-export const parseTags = ($: CheerioStatic): TagSection[] => {
+export const parseTags = ($: CheerioAPI): TagSection[] => {
     const arrayTags: Tag[] = []
 
     for (const tag of $('div.tag-box > a').toArray()) {
@@ -372,7 +374,7 @@ const parseDate = (date: string): Date => {
     return time
 }
 
-export const isLastPage = ($: CheerioStatic): boolean => {
+export const isLastPage = ($: CheerioAPI): boolean => {
     let isLast = true
     const pages: number[] = []
 

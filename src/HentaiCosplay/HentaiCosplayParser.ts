@@ -10,8 +10,9 @@ import {
 } from '@paperback/types'
 
 import { decode as decodeHTMLEntity } from 'html-entities'
+import { CheerioAPI } from 'cheerio'
 
-export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
+export const parseMangaDetails = ($: CheerioAPI, mangaId: string): SourceManga => {
     const title: string = decodeHTMLEntity($('span#title > h2').text().trim())
 
     const image = $('img', $('div.icon-overlay')).first().attr('src') ?? ''
@@ -47,7 +48,7 @@ export const parseChapters = (mangaId: string): Chapter[] => {
     })]
 }
 
-export const parseChapterDetails = ($: CheerioStatic, mangaId: string): ChapterDetails => {
+export const parseChapterDetails = ($: CheerioAPI, mangaId: string): ChapterDetails => {
     const pages: string[] = []
 
 
@@ -65,7 +66,7 @@ export const parseChapterDetails = ($: CheerioStatic, mangaId: string): ChapterD
     return chapterDetails
 }
 
-export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: HomeSection) => void): void => {
+export const parseHomeSections = ($: CheerioAPI, sectionCallback: (section: HomeSection) => void): void => {
     const sections = [
         {
             sectionID: App.createHomeSection({
@@ -122,7 +123,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     }
 }
 
-export const parseViewMore = ($: CheerioStatic): PartialSourceManga[] => {
+export const parseViewMore = ($: CheerioAPI): PartialSourceManga[] => {
     const manga: PartialSourceManga[] = []
     const collectedIds: string[] = []
 
@@ -145,7 +146,7 @@ export const parseViewMore = ($: CheerioStatic): PartialSourceManga[] => {
     return manga
 }
 
-export const parseTags = ($: CheerioStatic): TagSection[] => {
+export const parseTags = ($: CheerioAPI): TagSection[] => {
     const arrayTags: Tag[] = []
     for (const tag of $('#tags li').toArray()) {
         const id = $('a', tag).attr('href')?.trim().replace(/\/$/, '').split('/').pop()
@@ -157,7 +158,7 @@ export const parseTags = ($: CheerioStatic): TagSection[] => {
     return tagSections
 }
 
-export const isLastPage = ($: CheerioStatic): boolean => {
+export const isLastPage = ($: CheerioAPI): boolean => {
     let isLast = false
 
     const lastPage = $('div.wp-pagenavi > a.last').attr('href')

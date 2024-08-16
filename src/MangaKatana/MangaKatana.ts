@@ -6,7 +6,6 @@ import {
     SearchRequest,
     PagedResults,
     SourceInfo,
-    BadgeColor,
     TagSection,
     ContentRating,
     Request,
@@ -18,6 +17,8 @@ import {
     HomePageSectionsProviding,
     Tag
 } from '@paperback/types'
+
+import * as cheerio from 'cheerio'
 
 import {
     isLastPage,
@@ -46,8 +47,6 @@ export const MangaKatanaInfo: SourceInfo = {
 }
 
 export class MangaKatana implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
-
-    constructor(private cheerio: CheerioAPI) { }
 
     requestManager = App.createRequestManager({
         requestsPerSecond: 5,
@@ -78,7 +77,7 @@ export class MangaKatana implements SearchResultsProviding, MangaProviding, Chap
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
@@ -89,7 +88,7 @@ export class MangaKatana implements SearchResultsProviding, MangaProviding, Chap
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseChapters($, mangaId)
     }
 
@@ -110,7 +109,7 @@ export class MangaKatana implements SearchResultsProviding, MangaProviding, Chap
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseTags($)
     }
 
@@ -121,7 +120,7 @@ export class MangaKatana implements SearchResultsProviding, MangaProviding, Chap
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         parseHomeSections($, sectionCallback)
     }
     async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
@@ -145,7 +144,7 @@ export class MangaKatana implements SearchResultsProviding, MangaProviding, Chap
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseViewMore($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -172,7 +171,7 @@ export class MangaKatana implements SearchResultsProviding, MangaProviding, Chap
         }
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseSearch($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined

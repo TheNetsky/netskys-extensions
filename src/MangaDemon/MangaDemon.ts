@@ -18,6 +18,8 @@ import {
     Tag
 } from '@paperback/types'
 
+import * as cheerio from 'cheerio'
+
 import {
     parseChapterDetails,
     parseChapters,
@@ -44,10 +46,6 @@ export const MangaDemonInfo: SourceInfo = {
 }
 
 export class MangaDemon implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
-
-    baseUrl = MD_DOMAIN
-
-    constructor(private cheerio: CheerioAPI) { }
 
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,
@@ -79,7 +77,7 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
@@ -91,7 +89,7 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseChapters($, mangaId)
     }
 
@@ -104,8 +102,8 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
-        return await parseChapterDetails($, this, mangaId, chapterId, this.cheerio, this.requestManager)
+        const $ = cheerio.load(response.data as string)
+        return await parseChapterDetails($, this, mangaId, chapterId, this.requestManager)
     }
 
     async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
@@ -116,7 +114,7 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         parseHomeSections($, sectionCallback)
     }
 
@@ -138,7 +136,7 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseViewMore($)
 
         metadata = { page: page + 1 }
@@ -155,7 +153,7 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseTags($)
     }
 
@@ -182,7 +180,7 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
         }
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseSearch($, isTagSearch)
 
         return App.createPagedResults({

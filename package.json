@@ -13,20 +13,19 @@
   "author": "Netsky",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "@tsconfig/recommended": "^1.0.1",
-    "@types/cheerio": "^0.22.21",
-    "@typescript-eslint/eslint-plugin": "^5.1.0",
-    "@typescript-eslint/parser": "^5.57.1",
-    "eslint": "^7.27.0",
+    "@tsconfig/recommended": "^1.0.7",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "eslint": "^7.32.0",
     "eslint-plugin-modules-newline": "^0.0.6",
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@paperback/toolchain": "^0.8.0-alpha.47",
-    "@paperback/types": "^0.8.0-alpha.47",
-    "cheerio": "^1.0.0-rc.12",
+    "@paperback/toolchain": "^0.8.7",
+    "@paperback/types": "^0.8.7",
+    "cheerio": "^1.0.0",
     "html-entities": "^2.5.2",
     "nodemon": "^2.0.22",
-    "ts-node": "^10.2.1"
+    "ts-node": "^10.9.2"
   }
 }

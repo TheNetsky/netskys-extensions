@@ -30,6 +30,8 @@ import {
     parseTags
 } from './HentaiHereParser'
 
+import * as cheerio from 'cheerio'
+
 const HH_DOMAIN = 'https://hentaihere.com'
 
 export const HentaiHereInfo: SourceInfo = {
@@ -51,9 +53,6 @@ export const HentaiHereInfo: SourceInfo = {
 }
 
 export class HentaiHere implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
-
-    constructor(private cheerio: CheerioAPI) { }
-
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15000,
@@ -84,7 +83,7 @@ export class HentaiHere implements SearchResultsProviding, MangaProviding, Chapt
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
@@ -96,7 +95,7 @@ export class HentaiHere implements SearchResultsProviding, MangaProviding, Chapt
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseChapters($)
     }
 
@@ -119,7 +118,7 @@ export class HentaiHere implements SearchResultsProviding, MangaProviding, Chapt
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         parseHomeSections($, sectionCallback)
     }
 
@@ -148,7 +147,7 @@ export class HentaiHere implements SearchResultsProviding, MangaProviding, Chapt
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseViewMore($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -165,7 +164,7 @@ export class HentaiHere implements SearchResultsProviding, MangaProviding, Chapt
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseTags($)
     }
 
@@ -186,7 +185,7 @@ export class HentaiHere implements SearchResultsProviding, MangaProviding, Chapt
         }
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseSearch($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined

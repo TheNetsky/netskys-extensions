@@ -20,6 +20,8 @@ import {
     HomePageSectionsProviding
 } from '@paperback/types'
 
+import * as cheerio from 'cheerio'
+
 import {
     parseChapterDetails,
     parseChapters,
@@ -49,8 +51,6 @@ export const OsosedkiInfo: SourceInfo = {
 }
 
 export class Ososedki implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
-
-    constructor(private cheerio: CheerioAPI) { }
 
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,
@@ -82,7 +82,7 @@ export class Ososedki implements SearchResultsProviding, MangaProviding, Chapter
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
@@ -98,7 +98,7 @@ export class Ososedki implements SearchResultsProviding, MangaProviding, Chapter
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseChapterDetails($, mangaId, chapterId)
     }
 
@@ -138,7 +138,7 @@ export class Ososedki implements SearchResultsProviding, MangaProviding, Chapter
                 this.requestManager.schedule(section.request, 1)
                     .then(response => {
                         this.CloudFlareError(response.status)
-                        const $ = this.cheerio.load(response.data as string)
+                        const $ = cheerio.load(response.data as string)
                         const items = parseHomeSections($, OS_DOMAIN, section.sectionID.id)
                         section.sectionID.items = items
                         sectionCallback(section.sectionID)
@@ -173,7 +173,7 @@ export class Ososedki implements SearchResultsProviding, MangaProviding, Chapter
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseHomeSections($, OS_DOMAIN, homepageSectionId)
 
         metadata = { page: page + 1 }
@@ -190,7 +190,7 @@ export class Ososedki implements SearchResultsProviding, MangaProviding, Chapter
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseTags($)
     }
 
@@ -214,7 +214,7 @@ export class Ososedki implements SearchResultsProviding, MangaProviding, Chapter
         }
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseHomeSections($, OS_DOMAIN, '')
 
         metadata = { page: page + 1 }

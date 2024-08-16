@@ -9,7 +9,14 @@ import {
 
 import { decode as decodeHTMLEntity } from 'html-entities'
 
-export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
+import {
+    Cheerio,
+    CheerioAPI
+} from 'cheerio'
+
+import { type Element } from 'domhandler'
+
+export const parseMangaDetails = ($: CheerioAPI, mangaId: string): SourceManga => {
     const images = parseImages($)
 
     const title = decodeHTMLEntity($('h1.entry-title').first().text().trim())
@@ -49,7 +56,7 @@ export const parseChapters = (mangaId: string): Chapter[] => {
     })]
 }
 
-export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId: string): ChapterDetails => {
+export const parseChapterDetails = ($: CheerioAPI, mangaId: string, chapterId: string): ChapterDetails => {
 
     const chapterDetails = App.createChapterDetails({
         id: chapterId,
@@ -59,7 +66,7 @@ export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId
     return chapterDetails
 }
 
-export const parseHomeSections = ($: CheerioStatic): PartialSourceManga[] => {
+export const parseHomeSections = ($: CheerioAPI): PartialSourceManga[] => {
     const collectedIds: string[] = []
     const itemArray: PartialSourceManga[] = []
 
@@ -83,7 +90,7 @@ export const parseHomeSections = ($: CheerioStatic): PartialSourceManga[] => {
     return itemArray
 }
 
-const parseImages = ($: CheerioStatic): string[] => {
+const parseImages = ($: CheerioAPI): string[] => {
     const images: string[] = []
     for (const img of $('a', 'div.msacwl-slider-wrap').toArray()) {
 
@@ -98,7 +105,7 @@ const parseImages = ($: CheerioStatic): string[] => {
     return images
 }
 
-const getImageSrc = (imageObj: Cheerio): string => {
+const getImageSrc = (imageObj: Cheerio<Element>): string => {
     let image: string | undefined
     if ((typeof imageObj?.attr('data-src')) != 'undefined') {
         image = imageObj?.attr('data-src')
@@ -121,7 +128,7 @@ const getImageSrc = (imageObj: Cheerio): string => {
     return encodeURI(decodeURI(decodeHTMLEntity(image?.trim() ?? '')))
 }
 
-export const isLastPage = ($: CheerioStatic): boolean => {
+export const isLastPage = ($: CheerioAPI): boolean => {
     let isLast = true
     const hasNext = Boolean($('a.last', 'div.wp-pagenavi').first())
 

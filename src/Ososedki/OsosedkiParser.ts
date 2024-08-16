@@ -8,8 +8,9 @@ import {
 } from '@paperback/types'
 
 import { decode as decodeHTMLEntity } from 'html-entities'
+import { CheerioAPI } from 'cheerio'
 
-export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
+export const parseMangaDetails = ($: CheerioAPI, mangaId: string): SourceManga => {
     const images = $('div.thumbs', 'div.container-fluid')
 
     const titleString = $('img', images.first()).attr('alt')?.trim() ?? ''
@@ -39,7 +40,7 @@ export const parseChapters = (mangaId: string): Chapter[] => {
     })]
 }
 
-export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId: string): ChapterDetails => {
+export const parseChapterDetails = ($: CheerioAPI, mangaId: string, chapterId: string): ChapterDetails => {
     const pages: string[] = []
 
     // Remove last image since it's the telegram icon
@@ -58,7 +59,7 @@ export const parseChapterDetails = ($: CheerioStatic, mangaId: string, chapterId
     return chapterDetails
 }
 
-export const parseHomeSections = ($: CheerioStatic, OS_DOMAIN: string, sectionID: string): PartialSourceManga[] => {
+export const parseHomeSections = ($: CheerioAPI, OS_DOMAIN: string, sectionID: string): PartialSourceManga[] => {
     const collectedIds: string[] = []
     const itemArray: PartialSourceManga[] = []
 
@@ -67,7 +68,7 @@ export const parseHomeSections = ($: CheerioStatic, OS_DOMAIN: string, sectionID
             for (const item of $('div.thumbs-more', 'div.grid-more').toArray()) {
 
                 const id = $('a', item).attr('href')?.split('/').pop()
-                const image: string = OS_DOMAIN + $('img', item).first().attr('src') ?? ''
+                const image: string = OS_DOMAIN + $('img', item).first().attr('src')
                 const title: string = $('a,text-white.text-decoration-none', item).text().trim()
                 const subtitle: string = $('i.bi.bi-images', item).parent().text().trim() + ' images'
 
@@ -86,7 +87,7 @@ export const parseHomeSections = ($: CheerioStatic, OS_DOMAIN: string, sectionID
             for (const item of $('div.thumbs', 'div.container-fluid').toArray()) {
 
                 const id = $('a', item).attr('href')?.split('/').pop()
-                const image: string = OS_DOMAIN + $('img', item).first().attr('src') ?? ''
+                const image: string = OS_DOMAIN + $('img', item).first().attr('src')
                 const title: string = $('a,text-white.text-decoration-none', item).text().trim()
                 const subtitle: string = $('span.badge.bg-dark', item).first().text().trim()
 
@@ -105,7 +106,7 @@ export const parseHomeSections = ($: CheerioStatic, OS_DOMAIN: string, sectionID
             for (const item of $('div.thumbs', 'div.container-fluid').toArray()) {
 
                 const id = $('a', item).attr('href')?.split('/').pop()
-                const image: string = OS_DOMAIN + $('img', item).first().attr('src') ?? ''
+                const image: string = OS_DOMAIN + $('img', item).first().attr('src')
                 const title: string = $('a,text-white.text-decoration-none', item).text().trim()
                 const subtitle: string = $('i.bi.bi-images', item).parent().text().trim() + ' images'
 
@@ -124,7 +125,7 @@ export const parseHomeSections = ($: CheerioStatic, OS_DOMAIN: string, sectionID
     return itemArray
 }
 
-export const parseTags = ($: CheerioStatic): TagSection[] => {
+export const parseTags = ($: CheerioAPI): TagSection[] => {
     const arrayTags: Tag[] = []
 
     for (const tag of $('li', $('li.nav-item.dropdown').first()).toArray()) {

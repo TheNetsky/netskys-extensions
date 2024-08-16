@@ -20,6 +20,8 @@ import {
     PartialSourceManga
 } from '@paperback/types'
 
+import * as cheerio from 'cheerio'
+
 import {
     Chapters,
     Series,
@@ -42,8 +44,6 @@ export const DynastyScansInfo: SourceInfo = {
 }
 
 export class DynastyScans implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
-
-    constructor(private cheerio: CheerioAPI) { }
 
     requestManager = App.createRequestManager({
         requestsPerSecond: 10,
@@ -92,7 +92,7 @@ export class DynastyScans implements SearchResultsProviding, MangaProviding, Cha
 
         let description
         if (data.description) {
-            const $ = this.cheerio.load(`<div>${data.description}</div>`)
+            const $ = cheerio.load(`<div>${data.description}</div>`)
             description = $('div').text().trim()
         } else {
             description = `Tags: ${data.tags.map((x: { name: string }) => x.name).join(', ')}`
@@ -459,7 +459,7 @@ export class DynastyScans implements SearchResultsProviding, MangaProviding, Cha
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
 
         const results: PartialSourceManga[] = []
 

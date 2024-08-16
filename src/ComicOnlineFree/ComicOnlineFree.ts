@@ -7,7 +7,6 @@ import {
     PagedResults,
     SourceInfo,
     ContentRating,
-    BadgeColor,
     Request,
     Response,
     TagSection,
@@ -18,6 +17,8 @@ import {
     Tag,
     HomePageSectionsProviding
 } from '@paperback/types'
+
+import * as cheerio from 'cheerio'
 
 import {
     parseChapterDetails,
@@ -49,8 +50,6 @@ export const ComicOnlineFreeInfo: SourceInfo = {
 
 export class ComicOnlineFree implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
 
-    constructor(private cheerio: CheerioAPI) { }
-
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15000,
@@ -81,7 +80,7 @@ export class ComicOnlineFree implements SearchResultsProviding, MangaProviding, 
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
@@ -93,7 +92,7 @@ export class ComicOnlineFree implements SearchResultsProviding, MangaProviding, 
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseChapters($, mangaId)
     }
 
@@ -105,7 +104,7 @@ export class ComicOnlineFree implements SearchResultsProviding, MangaProviding, 
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseChapterDetails($, mangaId, chapterId)
     }
 
@@ -117,7 +116,7 @@ export class ComicOnlineFree implements SearchResultsProviding, MangaProviding, 
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         parseHomeSections($, sectionCallback)
     }
 
@@ -142,7 +141,7 @@ export class ComicOnlineFree implements SearchResultsProviding, MangaProviding, 
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseViewMore($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -159,7 +158,7 @@ export class ComicOnlineFree implements SearchResultsProviding, MangaProviding, 
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseTags($)
     }
 
@@ -178,7 +177,7 @@ export class ComicOnlineFree implements SearchResultsProviding, MangaProviding, 
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseSearch($)
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
         return App.createPagedResults({

@@ -18,6 +18,8 @@ import {
     Tag
 } from '@paperback/types'
 
+import * as cheerio from 'cheerio'
+
 import {
     parseChapterDetails,
     isLastPage,
@@ -32,7 +34,7 @@ import {
 const MCR_DOMAIN = 'https://www.mgeko.cc'
 
 export const McReaderInfo: SourceInfo = {
-    version: '2.0.9',
+    version: '2.0.10',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -45,8 +47,6 @@ export const McReaderInfo: SourceInfo = {
 }
 
 export class McReader implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
-
-    constructor(private cheerio: CheerioAPI) { }
 
     requestManager = App.createRequestManager({
         requestsPerSecond: 4,
@@ -78,7 +78,7 @@ export class McReader implements SearchResultsProviding, MangaProviding, Chapter
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseMangaDetails($, mangaId)
     }
 
@@ -90,7 +90,7 @@ export class McReader implements SearchResultsProviding, MangaProviding, Chapter
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseChapters($, mangaId)
     }
 
@@ -102,7 +102,7 @@ export class McReader implements SearchResultsProviding, MangaProviding, Chapter
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseChapterDetails($, mangaId, chapterId)
     }
 
@@ -114,7 +114,7 @@ export class McReader implements SearchResultsProviding, MangaProviding, Chapter
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         parseHomeSections($, sectionCallback)
     }
 
@@ -144,7 +144,7 @@ export class McReader implements SearchResultsProviding, MangaProviding, Chapter
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseViewMore($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined
@@ -161,7 +161,7 @@ export class McReader implements SearchResultsProviding, MangaProviding, Chapter
         })
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         return parseTags($)
     }
 
@@ -185,7 +185,7 @@ export class McReader implements SearchResultsProviding, MangaProviding, Chapter
         }
 
         const response = await this.requestManager.schedule(request, 1)
-        const $ = this.cheerio.load(response.data as string)
+        const $ = cheerio.load(response.data as string)
         const manga = parseSearch($)
 
         metadata = !isLastPage($) ? { page: page + 1 } : undefined

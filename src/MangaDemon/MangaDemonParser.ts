@@ -11,9 +11,11 @@ import {
 } from '@paperback/types'
 
 import { decode as decodeHTMLEntity } from 'html-entities'
+import * as cheerio from 'cheerio'
+import { CheerioAPI } from 'cheerio'
 
 
-export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceManga => {
+export const parseMangaDetails = ($: CheerioAPI, mangaId: string): SourceManga => {
 
     const image = $('img', 'figure.cover').attr('src') ?? ''
     const titles = [(decodeHTMLEntity($('img', 'figure.cover').attr('alt') ?? ''?.trim() ?? ''))]
@@ -64,7 +66,7 @@ export const parseMangaDetails = ($: CheerioStatic, mangaId: string): SourceMang
     })
 }
 
-export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
+export const parseChapters = ($: CheerioAPI, mangaId: string): Chapter[] => {
     const chapters: Chapter[] = []
     let sortingIndex = 0
 
@@ -106,7 +108,7 @@ export const parseChapters = ($: CheerioStatic, mangaId: string): Chapter[] => {
     })
 }
 
-export const parseChapterDetails = async ($: CheerioStatic, source: any, mangaId: string, chapterId: string, cheerio: CheerioAPI, requestManager: RequestManager): Promise<ChapterDetails> => {
+export const parseChapterDetails = async ($: CheerioAPI, source: any, mangaId: string, chapterId: string, requestManager: RequestManager): Promise<ChapterDetails> => {
     const pages: string[] = []
 
     const scriptRegex = decodeHTMLEntity($.html()).match(/loaadchppa\('([\w\d]+)'\)/)
@@ -116,7 +118,7 @@ export const parseChapterDetails = async ($: CheerioStatic, source: any, mangaId
         loadMoreId = scriptRegex[1].toString()
     }
 
-    function parseImages(_$: CheerioStatic) {
+    function parseImages(_$: CheerioAPI) {
         for (const img of _$('img.imgholder').toArray()) {
             let image = _$(img).attr('src') ?? ''
             if (!image) image = _$(img).attr('data-src') ?? ''
@@ -149,7 +151,7 @@ export const parseChapterDetails = async ($: CheerioStatic, source: any, mangaId
     return chapterDetails
 }
 
-export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: HomeSection) => void): void => {
+export const parseHomeSections = ($: CheerioAPI, sectionCallback: (section: HomeSection) => void): void => {
 
     const featuredSection = App.createHomeSection({
         id: 'featured',
@@ -255,7 +257,7 @@ export const parseHomeSections = ($: CheerioStatic, sectionCallback: (section: H
     sectionCallback(updateSection)
 }
 
-export const parseViewMore = ($: CheerioStatic): PartialSourceManga[] => {
+export const parseViewMore = ($: CheerioAPI): PartialSourceManga[] => {
     const manga: PartialSourceManga[] = []
     const collectedIds: string[] = []
 
@@ -278,7 +280,7 @@ export const parseViewMore = ($: CheerioStatic): PartialSourceManga[] => {
     return manga
 }
 
-export const parseTags = ($: CheerioStatic): TagSection[] => {
+export const parseTags = ($: CheerioAPI): TagSection[] => {
     const arrayTags: Tag[] = []
     for (const tag of $('li.novel-item', 'form.nomarginandpadding').toArray()) {
         const label = $(tag).text().trim()
@@ -292,7 +294,7 @@ export const parseTags = ($: CheerioStatic): TagSection[] => {
     return tagSections
 }
 
-export const parseSearch = ($: CheerioStatic, isTagSearch: boolean): PartialSourceManga[] => {
+export const parseSearch = ($: CheerioAPI, isTagSearch: boolean): PartialSourceManga[] => {
     const mangas: PartialSourceManga[] = []
 
     if (isTagSearch) {

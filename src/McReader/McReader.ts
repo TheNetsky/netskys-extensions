@@ -34,7 +34,7 @@ import {
 const MCR_DOMAIN = 'https://www.mgeko.cc'
 
 export const McReaderInfo: SourceInfo = {
-    version: '2.0.10',
+    version: '2.0.11',
     name: 'McReader',
     icon: 'icon.png',
     author: 'Netsky',
@@ -126,7 +126,7 @@ export class McReader implements SearchResultsProviding, MangaProviding, Chapter
 
         switch (homepageSectionId) {
             case 'most_viewed':
-                param = `browse-comics/?results=${page}&filter=views`
+                param = `browse-comics/?results=${page}&filter=Views`
                 break
             case 'updated':
                 param = `browse-comics/?results=${page}&filter=Updated`

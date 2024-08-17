@@ -14930,14 +14930,9 @@ var _Sources = (() => {
   };
   var isLastPage = ($2) => {
     let isLast = false;
-    const pages = [];
-    for (const page of $2("li", "ul.pagination").toArray()) {
-      const p = Number($2(page).text().trim());
-      if (isNaN(p)) continue;
-      pages.push(p);
-    }
-    const lastPage = Math.max(...pages);
-    const currentPage = Number($2("li.active").first().text());
+    const pages = $2(".mg-pagination-table").first().remove().text().trim().split(" / ");
+    const currentPage = Number(pages[0]);
+    const lastPage = Number(pages[1]);
     if (currentPage >= lastPage) isLast = true;
     return isLast;
   };
@@ -14945,7 +14940,7 @@ var _Sources = (() => {
   // src/McReader/McReader.ts
   var MCR_DOMAIN = "https://www.mgeko.cc";
   var McReaderInfo = {
-    version: "2.0.10",
+    version: "2.0.11",
     name: "McReader",
     icon: "icon.png",
     author: "Netsky",
@@ -15027,7 +15022,7 @@ var _Sources = (() => {
       let param = "";
       switch (homepageSectionId) {
         case "most_viewed":
-          param = `browse-comics/?results=${page}&filter=views`;
+          param = `browse-comics/?results=${page}&filter=Views`;
           break;
         case "updated":
           param = `browse-comics/?results=${page}&filter=Updated`;

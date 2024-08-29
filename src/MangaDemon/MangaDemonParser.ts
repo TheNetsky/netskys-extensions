@@ -1,44 +1,36 @@
 import {
     Chapter,
     ChapterDetails,
-    Tag,
     HomeSection,
-    SourceManga,
-    PartialSourceManga,
-    TagSection,
     HomeSectionType,
-    RequestManager
+    PartialSourceManga,
+    RequestManager,
+    SourceManga,
+    Tag,
+    TagSection
 } from '@paperback/types'
-
 import { decode as decodeHTMLEntity } from 'html-entities'
-import * as cheerio from 'cheerio'
 import { CheerioAPI } from 'cheerio'
-
 
 export const parseMangaDetails = ($: CheerioAPI, mangaId: string): SourceManga => {
 
-    const image = $('img', 'figure.cover').attr('src') ?? ''
-    const titles = [(decodeHTMLEntity($('img', 'figure.cover').attr('alt') ?? ''?.trim() ?? ''))]
-    const author = $('span', 'div.author').last().text().trim()
-    const description = decodeHTMLEntity($('p.description').text().trim() ?? '')
+    const mangaInfoStats = $('li', $('#manga-info-stats')).toArray()
+    const imageObj = $('img', $('#manga-page'))
+    const image = imageObj.attr('src') ?? ''
+    const titles = [(decodeHTMLEntity(imageObj.attr('alt') ?? ''?.trim() ?? ''))]
+    const author = $(mangaInfoStats[1]).text().trim()
+    const description = decodeHTMLEntity($('div.white-font').text().trim() ?? '')
 
     const arrayTags: Tag[] = []
-    for (const tag of $('li', 'div.categories').toArray()) {
+    for (const tag of $('li', 'div.genres-list').toArray()) {
         const label = $(tag).text().trim()
-        const idRegex = $('a', tag).attr('href')?.match(/genre\[\]=(\d+)/)
+        if (!label) continue
 
-        let id = ''
-        if (idRegex && idRegex[1]) {
-            id = idRegex[1]
-        }
-
-        if (!id || !label) continue
-
-        arrayTags.push({ id: id, label: label })
+        arrayTags.push({ id: label, label: label })
     }
     const tagSections: TagSection[] = [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })]
 
-    const rawStatus = $('strong', $('small:contains(Status)').parent()).text().trim()
+    const rawStatus = $(mangaInfoStats[5]).text().trim()
     let status = 'ONGOING'
     switch (rawStatus.toUpperCase()) {
         case 'ONGOING':
@@ -70,19 +62,18 @@ export const parseChapters = ($: CheerioAPI, mangaId: string): Chapter[] => {
     const chapters: Chapter[] = []
     let sortingIndex = 0
 
-    for (const chapter of $('li', 'ul.chapter-list').toArray()) {
-        const title = decodeHTMLEntity($('strong.chapter-title', chapter).text().trim())
-        const chapterId: string = $('a', chapter).attr('href')?.replace(/\/$/, '')?.split('/').pop() ?? ''
+    for (const chapter of $('li', '#chapters-list').toArray()) {
+        const title = decodeHTMLEntity($($('a', chapter).contents()[0]).text().trim())
+
+        const chapterId: string = $('a', chapter).attr('href')?.split('?').pop() ?? ''
         if (!chapterId) continue
 
-        const date = new Date($('time.chapter-update', chapter).attr('date')?.toString() ?? '')
-        const chapNumRegex = title.match(/(\d+)(?:[-.]\d+)?/)
+        const date = new Date($('span', chapter).text() ?? '')
+        const chapNumRegex = title.match(/(\d+\.?\d?(?:[-_]\d+)?)|(\d+\.?\d?(?:[-_]\d+)?)$/)
 
         let chapNum = 0
         if (chapNumRegex && chapNumRegex[1]) {
-            let chapRegex = chapNumRegex[1]
-            if (chapRegex.includes('-')) chapRegex = chapRegex.replace('-', '.')
-            chapNum = Number(chapRegex)
+            chapNum = parseFloat(chapNumRegex[1].replace(/[-_]/gm, '.')) ?? 0
         }
 
         chapters.push({
@@ -108,47 +99,21 @@ export const parseChapters = ($: CheerioAPI, mangaId: string): Chapter[] => {
     })
 }
 
-export const parseChapterDetails = async ($: CheerioAPI, source: any, mangaId: string, chapterId: string, requestManager: RequestManager): Promise<ChapterDetails> => {
+export const parseChapterDetails = async ($: CheerioAPI, source: any, mangaId: string, chapterId: string): Promise<ChapterDetails> => {
     const pages: string[] = []
 
-    const scriptRegex = decodeHTMLEntity($.html()).match(/loaadchppa\('([\w\d]+)'\)/)
-
-    let loadMoreId = ''
-    if (scriptRegex && scriptRegex[1]) {
-        loadMoreId = scriptRegex[1].toString()
+    for (const img of $('img.imgholder').toArray()) {
+        let image = $(img).attr('src') ?? ''
+        if (!image) image = $(img).attr('data-src') ?? ''
+        if (!image) continue
+        pages.push(encodeURI(image))
     }
 
-    function parseImages(_$: CheerioAPI) {
-        for (const img of _$('img.imgholder').toArray()) {
-            let image = _$(img).attr('src') ?? ''
-            if (!image) image = _$(img).attr('data-src') ?? ''
-            if (!image) continue
-            pages.push(encodeURI(image))
-        }
-    }
-    // Parse initial images
-    parseImages($)
-
-    // If loadMore is present, make request to load the other images
-    if (loadMoreId) {
-        const request = App.createRequest({
-            url: `${source.baseUrl}/loaadchpa.php?chapter=${loadMoreId}`,
-            method: 'GET'
-        })
-
-        const response = await requestManager.schedule(request, 1)
-        const _$ = cheerio.load(response.data as string)
-
-        // If script is present, parse second half
-        parseImages(_$)
-    }
-
-    const chapterDetails = App.createChapterDetails({
+    return App.createChapterDetails({
         id: chapterId,
         mangaId: mangaId,
         pages: pages
     })
-    return chapterDetails
 }
 
 export const parseHomeSections = ($: CheerioAPI, sectionCallback: (section: HomeSection) => void): void => {
@@ -184,11 +149,11 @@ export const parseHomeSections = ($: CheerioAPI, sectionCallback: (section: Home
     // Featured
     const featuredSection_Array: PartialSourceManga[] = []
 
-    for (const manga of $('li.novel-item', $('h3:contains(Our Translation)').parent().parent()).toArray()) {
+    for (const manga of $('div.owl-element', $('h1:contains(Our Latest Translations)').next()).toArray()) {
         const image: string = $('img', manga).first().attr('src') ?? ''
         const title: string = $('img', manga).first().attr('alt') ?? ''
         const id = $('a', manga).attr('href')?.replace(/\/$/, '')?.split('/').pop() ?? ''
-        const subtitle: string = $('p.lastChapter', manga).text().trim() ?? ''
+        const subtitle: string = $('div:contains(Chapter)', manga).text().trim() ?? ''
 
         if (!id || !title) continue
         featuredSection_Array.push(App.createPartialSourceManga({
@@ -203,9 +168,9 @@ export const parseHomeSections = ($: CheerioAPI, sectionCallback: (section: Home
 
     // New
     const newSection_Array: PartialSourceManga[] = []
-    for (const manga of $('li.novel-item', $('h3:contains(New Manga!)').parent().parent()).toArray()) {
+    for (const manga of $('div.owl-element', $('h1:contains(New Titles)').next()).toArray()) {
         const image: string = $('img', manga).first().attr('src') ?? ''
-        const title: string = $('h4.novel-title', manga).text().trim() ?? ''
+        const title: string = $('img', manga).first().attr('alt') ?? ''
         const id = $('a', manga).attr('href')?.replace(/\/$/, '')?.split('/').pop() ?? ''
 
         if (!id || !title) continue
@@ -221,7 +186,7 @@ export const parseHomeSections = ($: CheerioAPI, sectionCallback: (section: Home
 
     // Most Viewed
     const mostViewedSection_Array: PartialSourceManga[] = []
-    for (const manga of $('li.novel-item', $('h3:contains(Most Viewed Today)').parent().parent()).toArray()) {
+    for (const manga of $('div.owl-element', $('h1:contains(Most Viewed Today)').next()).toArray()) {
         const image: string = $('img', manga).first().attr('src') ?? ''
         const title: string = $('img', manga).first().attr('alt') ?? ''
         const id = $('a', manga).attr('href')?.replace(/\/$/, '')?.split('/').pop() ?? ''
@@ -239,11 +204,11 @@ export const parseHomeSections = ($: CheerioAPI, sectionCallback: (section: Home
 
     // Updated
     const updateSection_Array: PartialSourceManga[] = []
-    for (const manga of $('.holder.boxsizing').toArray()) {
+    for (const manga of $('.updates-element').toArray()) {
         const image: string = $('img', manga).first().attr('src') ?? ''
         const title: string = $('img', manga).first().attr('alt') ?? ''
         const id = $('a', manga).attr('href')?.replace(/\/$/, '')?.split('/').pop() ?? ''
-        const subtitle: string = $('h5.chapternumber', manga).text().replace('update', '').trim() ?? ''
+        const subtitle: string = $('a.chplinks', manga).first().text().trim() ?? ''
 
         if (!id || !title) continue
         updateSection_Array.push(App.createPartialSourceManga({
@@ -261,11 +226,11 @@ export const parseViewMore = ($: CheerioAPI): PartialSourceManga[] => {
     const manga: PartialSourceManga[] = []
     const collectedIds: string[] = []
 
-    for (const item of $('.holder.boxsizing').toArray()) {
+    for (const item of $('.updates-element').toArray()) {
         const image: string = $('img', item).first().attr('src') ?? ''
         const title: string = $('img', item).first().attr('alt') ?? ''
         const id = $('a', item).attr('href')?.replace(/\/$/, '')?.split('/').pop() ?? ''
-        const subtitle: string = $('h5.chapternumber', item).text().replace('update', '').trim() ?? ''
+        const subtitle: string = $('a.chplinks', item).first().text().trim() ?? ''
 
         if (!id || !title || collectedIds.includes(id)) continue
         manga.push(App.createPartialSourceManga({
@@ -282,7 +247,7 @@ export const parseViewMore = ($: CheerioAPI): PartialSourceManga[] => {
 
 export const parseTags = ($: CheerioAPI): TagSection[] => {
     const arrayTags: Tag[] = []
-    for (const tag of $('li.novel-item', 'form.nomarginandpadding').toArray()) {
+    for (const tag of $('li.border-box', 'div#genres-container').toArray()) {
         const label = $(tag).text().trim()
         const id = $('input.genrespick', tag).attr('value')
 
@@ -290,34 +255,37 @@ export const parseTags = ($: CheerioAPI): TagSection[] => {
 
         arrayTags.push({ id: id, label: label })
     }
-    const tagSections: TagSection[] = [App.createTagSection({ id: '0', label: 'genres', tags: arrayTags.map(x => App.createTag(x)) })]
-    return tagSections
+    return [
+        App.createTagSection({
+            id: '0',
+            label: 'genres',
+            tags: arrayTags.map(x => App.createTag(x))
+        })
+    ]
 }
 
 export const parseSearch = ($: CheerioAPI, isTagSearch: boolean): PartialSourceManga[] => {
     const mangas: PartialSourceManga[] = []
 
     if (isTagSearch) {
-        for (const manga of $('.holder.boxsizing').toArray()) {
+        for (const manga of $('div.advanced-element').toArray()) {
             const image: string = $('img', manga).first().attr('src') ?? ''
             const title: string = $('img', manga).first().attr('alt') ?? ''
             const id = $('a', manga).attr('href')?.replace(/\/$/, '')?.split('/').pop() ?? ''
-            const subtitle: string = $('h5.chapternumber', manga).text().replace('update', '').trim() ?? ''
 
             if (!id || !title) continue
             mangas.push(App.createPartialSourceManga({
                 image: encodeURI(image),
                 title: decodeHTMLEntity(title),
-                mangaId: id,
-                subtitle: decodeHTMLEntity(subtitle)
+                mangaId: id
             }))
         }
     } else {
 
-        for (const obj of $('.boxsizing').toArray()) {
+        for (const obj of $('a').toArray()) {
             const imageDomain = 'https://readermc.org'
 
-            const title: string = $(obj).text().trim() ?? ''
+            const title: string = $('div:first-child', obj).text().trim() ?? ''
             const image = `${imageDomain}/images/thumbnails/${encodeURI(title)}.webp`
             const id = $(obj).attr('href')?.replace(/\/$/, '')?.split('/').pop() ?? ''
 

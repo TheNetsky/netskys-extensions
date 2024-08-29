@@ -30,15 +30,15 @@ import {
     parseTags
 } from './MangaDemonParser'
 
-const MD_DOMAIN = 'https://mgdemon.org'
+const MD_DOMAIN = 'https://demonicscans.org'
 
 export const MangaDemonInfo: SourceInfo = {
-    version: '1.0.8',
+    version: '1.1.0',
     name: 'MangaDemon',
     icon: 'icon.png',
     author: 'Netsky',
     authorWebsite: 'https://github.com/TheNetsky',
-    description: 'Extension that pulls manga from demonreader.org',
+    description: 'Extension that pulls manga from demonicscans.org',
     contentRating: ContentRating.MATURE,
     websiteBaseURL: MD_DOMAIN,
     sourceTags: [],
@@ -96,14 +96,14 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
         const request = App.createRequest({
             // Lmao, garbage site
-            url: `${MD_DOMAIN}/manga/${mangaId.substring(0, mangaId.lastIndexOf('-'))}/chapter/${chapterId}`,
+            url: `${MD_DOMAIN}/chaptered.php?${chapterId}`,
             method: 'GET'
         })
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = cheerio.load(response.data as string)
-        return await parseChapterDetails($, this, mangaId, chapterId, this.requestManager)
+        return await parseChapterDetails($, this, mangaId, chapterId)
     }
 
     async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
@@ -124,7 +124,7 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
 
         switch (homepageSectionId) {
             case 'updated':
-                param = `updates.php?list=${page}`
+                param = `lastupdates.php?list=${page}`
                 break
             default:
                 throw new Error('Requested to getViewMoreItems for a section ID which doesn\'t exist')
@@ -148,7 +148,7 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
 
     async getSearchTags(): Promise<TagSection[]> {
         const request = App.createRequest({
-            url: `${MD_DOMAIN}/browse`,
+            url: `${MD_DOMAIN}/advanced.php`,
             method: 'GET'
         })
 
@@ -172,7 +172,7 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
             // Tag Search
         } else {
             request = App.createRequest({
-                url: `${MD_DOMAIN}/browse.php?list=${page}${query?.includedTags?.map((x: Tag) => `&genre[]=${x.id}`).join('')}&status=all&orderby=VIEWS%20DESC`,
+                url: `${MD_DOMAIN}/advanced.php?list=${page}${query?.includedTags?.map((x: Tag) => `&genre[]=${x.id}`).join('')}&status=all&orderby=VIEWS%20DESC`,
                 method: 'GET'
             })
             metadata = { page: page + 1 }

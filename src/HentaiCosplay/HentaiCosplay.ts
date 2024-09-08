@@ -34,7 +34,7 @@ import {
 const HC_DOMAIN = 'https://hentai-cosplay-xxx.com'
 
 export const HentaiCosplayInfo: SourceInfo = {
-    version: '1.1.0',
+    version: '1.1.1',
     name: 'HentaiCosplay',
     icon: 'icon.png',
     author: 'Netsky',
@@ -61,7 +61,8 @@ export class HentaiCosplay implements SearchResultsProviding, MangaProviding, Ch
                 request.headers = {
                     ...(request.headers ?? {}),
                     ...{
-                        'referer': `${HC_DOMAIN}/`
+                        'referer': `${HC_DOMAIN}/`,
+                        'user-agent': await this.requestManager.getDefaultUserAgent()
                     }
                 }
                 request.url = request.url.replace(/^http:/, 'https:')

@@ -4,12 +4,13 @@ import {
     HomeSection,
     HomeSectionType,
     PartialSourceManga,
-    RequestManager,
     SourceManga,
     Tag,
     TagSection
 } from '@paperback/types'
+
 import { decode as decodeHTMLEntity } from 'html-entities'
+
 import { CheerioAPI } from 'cheerio'
 
 export const parseMangaDetails = ($: CheerioAPI, mangaId: string): SourceManga => {

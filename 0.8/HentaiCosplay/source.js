@@ -14844,7 +14844,7 @@ var _Sources = (() => {
   // src/HentaiCosplay/HentaiCosplay.ts
   var HC_DOMAIN = "https://hentai-cosplay-xxx.com";
   var HentaiCosplayInfo = {
-    version: "1.1.1",
+    version: "1.1.2",
     name: "HentaiCosplay",
     icon: "icon.png",
     author: "Netsky",
@@ -14993,7 +14993,8 @@ Please go to the homepage of <${_HentaiCosplay.name}> and press the cloud icon.`
         url: HC_DOMAIN,
         method: "GET",
         headers: {
-          "referer": `${HC_DOMAIN}/`
+          "referer": `${HC_DOMAIN}/`,
+          "user-agent": await this.requestManager.getDefaultUserAgent()
         }
       });
     }

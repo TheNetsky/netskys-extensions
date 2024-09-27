@@ -14719,7 +14719,6 @@ var _Sources = (() => {
     }
     const image = $2("img", "div.fixed-img").attr("data-src") ?? "";
     const author = $2("span", "div.author").next().text().trim();
-    console.log("test: " + JSON.stringify($2("p.description").text()));
     const description = (0, import_html_entities.decode)($2("p.description").text().split("The Summary is\n\n")[1]?.trim() ?? "");
     const arrayTags = [];
     for (const tag of $2("li", "div.categories").toArray()) {

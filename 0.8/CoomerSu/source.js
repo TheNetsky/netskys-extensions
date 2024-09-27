@@ -509,14 +509,14 @@ var _Sources = (() => {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       exports.BadgeColor = void 0;
-      var BadgeColor;
-      (function(BadgeColor2) {
-        BadgeColor2["BLUE"] = "default";
-        BadgeColor2["GREEN"] = "success";
-        BadgeColor2["GREY"] = "info";
-        BadgeColor2["YELLOW"] = "warning";
-        BadgeColor2["RED"] = "danger";
-      })(BadgeColor = exports.BadgeColor || (exports.BadgeColor = {}));
+      var BadgeColor2;
+      (function(BadgeColor3) {
+        BadgeColor3["BLUE"] = "default";
+        BadgeColor3["GREEN"] = "success";
+        BadgeColor3["GREY"] = "info";
+        BadgeColor3["YELLOW"] = "warning";
+        BadgeColor3["RED"] = "danger";
+      })(BadgeColor2 = exports.BadgeColor || (exports.BadgeColor = {}));
     }
   });
 
@@ -886,13 +886,13 @@ var _Sources = (() => {
     }
   });
 
-  // src/MangaDemon/MangaDemon.ts
-  var MangaDemon_exports = {};
-  __export(MangaDemon_exports, {
-    MangaDemon: () => MangaDemon,
-    MangaDemonInfo: () => MangaDemonInfo
+  // src/CoomerSu/CoomerSu.ts
+  var CoomerSu_exports = {};
+  __export(CoomerSu_exports, {
+    CoomerSu: () => CoomerSu,
+    CoomerSuInfo: () => CoomerSuInfo
   });
-  var import_types3 = __toESM(require_lib());
+  var import_types2 = __toESM(require_lib());
 
   // node_modules/cheerio/dist/browser/static.js
   var static_exports = {};
@@ -14707,71 +14707,99 @@ var _Sources = (() => {
   var parse5 = getParse((content, options, isDocument2, context) => options._useHtmlParser2 ? parseDocument(content, options) : parseWithParse5(content, options, isDocument2, context));
   var load = getLoad(parse5, (dom, options) => options._useHtmlParser2 ? esm_default(dom, options) : renderWithParse5(dom));
 
-  // src/MangaDemon/MangaDemonParser.ts
-  var import_types2 = __toESM(require_lib());
+  // src/CoomerSu/CoomerSuParser.ts
   var import_html_entities = __toESM(require_lib2());
-  var parseMangaDetails = ($2, mangaId) => {
-    const mangaInfoStats = $2("li", $2("#manga-info-stats")).toArray();
-    const imageObj = $2("img", $2("#manga-page"));
-    const image = imageObj.attr("src") ?? "";
-    const titles = [(0, import_html_entities.decode)(imageObj.attr("alt") ?? ""?.trim() ?? "")];
-    const author = $2(mangaInfoStats[1]).text().trim();
-    const description = (0, import_html_entities.decode)($2("div.white-font").text().trim() ?? "");
-    const arrayTags = [];
-    for (const tag of $2("li", "div.genres-list").toArray()) {
-      const label = $2(tag).text().trim();
-      if (!label) continue;
-      arrayTags.push({ id: label, label });
+
+  // src/CoomerSu/CoomerUtils.ts
+  async function fetchCreatorData(source, id, service) {
+    const getData = await source.stateManager.retrieve(id) ?? "";
+    if (getData) {
+      try {
+        const parsedData = JSON.parse(getData);
+        return parsedData;
+      } catch (error) {
+        false;
+      }
     }
-    const tagSections = [App.createTagSection({ id: "0", label: "genres", tags: arrayTags.map((x) => App.createTag(x)) })];
-    const rawStatus = $2(mangaInfoStats[5]).text().trim();
-    let status = "ONGOING";
-    switch (rawStatus.toUpperCase()) {
-      case "ONGOING":
-        status = "Ongoing";
-        break;
-      case "COMPLETED":
-        status = "Completed";
-        break;
-      default:
-        status = "Ongoing";
-        break;
+    const request = App.createRequest({
+      url: `${source.baseURL}/${service}/user/${id}`,
+      method: "GET"
+    });
+    const response = await source.requestManager.schedule(request, 1);
+    const $2 = load(response.data);
+    const name = $2('span[itemprop="name"]').text().trim() ?? "";
+    let image = $2("img", "a.fancy-link.image-link.user-header__avatar").attr("src") ?? "";
+    if (image.startsWith("//")) image = "https:" + image;
+    if (name) {
+      await source.stateManager.store(id, JSON.stringify({
+        name,
+        image
+      }));
     }
+    return {
+      name,
+      image
+    };
+  }
+  function daysAgo(date) {
+    const now = /* @__PURE__ */ new Date();
+    const givenDate = new Date(date);
+    const diffInMs = now.getTime() - givenDate.getTime();
+    const days = Math.floor(diffInMs / (1e3 * 60 * 60 * 24));
+    return days;
+  }
+  function getFirstOfMonth() {
+    const now = /* @__PURE__ */ new Date();
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, "0");
+    return `${year}-${month}-01`;
+  }
+  function parseURL(url) {
+    const parts = url.split("/").filter((x) => x !== "");
+    return {
+      service: parts[0],
+      creator: parts[2]
+    };
+  }
+
+  // src/CoomerSu/CoomerSuParser.ts
+  var parseMangaDetails = async (source, data2, mangaId) => {
+    const post = data2[0];
+    const creatorData = await fetchCreatorData(source, post.user, post.service);
     return App.createSourceManga({
       id: mangaId,
       mangaInfo: App.createMangaInfo({
-        titles,
-        image: encodeURI(image),
-        status,
-        author,
-        artist: author,
-        tags: tagSections,
-        desc: description
+        titles: [creatorData.name],
+        image: creatorData.image,
+        status: "Completed",
+        author: post.service,
+        artist: creatorData.name,
+        //tags: tagSections,
+        desc: "Note: All posts with ONLY videos have been filtered from the chapter list!"
       })
     });
   };
-  var parseChapters = ($2, mangaId) => {
+  var parseChapters = async (source, data2, mangaId) => {
     const chapters = [];
     let sortingIndex = 0;
-    for (const chapter of $2("li", "#chapters-list").toArray()) {
-      const title = (0, import_html_entities.decode)($2($2("a", chapter).contents()[0]).text().trim());
-      const chapterId = $2("a", chapter).attr("href")?.split("?").pop() ?? "";
-      if (!chapterId) continue;
-      const date = new Date($2("span", chapter).text() ?? "");
-      const chapNumRegex = title.match(/(\d+\.?\d?(?:[-_]\d+)?)|(\d+\.?\d?(?:[-_]\d+)?)$/);
-      let chapNum = 0;
-      if (chapNumRegex && chapNumRegex[1]) {
-        chapNum = parseFloat(chapNumRegex[1].replace(/[-_]/gm, ".")) ?? 0;
+    for (const post of data2) {
+      const title = `Posted ${daysAgo(post.published)} days ago`;
+      const chapterId = post.id;
+      const date = post.published;
+      const filteredAttachments = post.attachments.filter((x) => !x.name.includes(".mp4"));
+      if (filteredAttachments.length === 0) {
+        continue;
       }
+      if (!chapterId) continue;
       chapters.push({
         id: chapterId,
-        name: `Chapter ${chapNum}`,
+        name: (0, import_html_entities.decode)(post.title ?? title),
         langCode: "\u{1F1EC}\u{1F1E7}",
-        chapNum,
+        chapNum: 0,
         time: date,
         sortingIndex,
         volume: 0,
-        group: ""
+        group: title
       });
       sortingIndex--;
     }
@@ -14783,191 +14811,111 @@ var _Sources = (() => {
       return App.createChapter(chapter);
     });
   };
-  var parseChapterDetails = async ($2, mangaId, chapterId) => {
+  var parseChapterDetails = (source, data2, mangaId, chapterId) => {
     const pages = [];
-    for (const img of $2("img.imgholder").toArray()) {
-      let image = $2(img).attr("src") ?? "";
-      if (!image) image = $2(img).attr("data-src") ?? "";
-      if (!image) continue;
-      pages.push(encodeURI(image));
+    for (const attachment of data2.attachments) {
+      if (!attachment.path) continue;
+      if (attachment.name.endsWith(".mp4")) continue;
+      pages.push(source.baseURL + attachment.path);
     }
-    return App.createChapterDetails({
+    const chapterDetails = App.createChapterDetails({
       id: chapterId,
       mangaId,
       pages
     });
+    return chapterDetails;
   };
-  var parseHomeSections = ($2, sectionCallback) => {
-    const featuredSection = App.createHomeSection({
-      id: "featured",
-      title: "Our Translation",
-      containsMoreItems: false,
-      type: import_types2.HomeSectionType.featured
-    });
-    const newSection = App.createHomeSection({
-      id: "new",
-      title: "New Manga",
-      containsMoreItems: false,
-      type: import_types2.HomeSectionType.singleRowNormal
-    });
-    const mostViewedSection = App.createHomeSection({
-      id: "most_viewed",
-      title: "Most Viewed Today",
-      containsMoreItems: false,
-      type: import_types2.HomeSectionType.singleRowNormal
-    });
-    const updateSection = App.createHomeSection({
-      id: "updated",
-      title: "Recent Updates",
-      containsMoreItems: true,
-      type: import_types2.HomeSectionType.singleRowNormal
-    });
-    const featuredSection_Array = [];
-    for (const manga of $2("div.owl-element", $2("h1:contains(Our Latest Translations)").next()).toArray()) {
-      const image = $2("img", manga).first().attr("src") ?? "";
-      const title = $2("img", manga).first().attr("alt") ?? "";
-      const id = $2("a", manga).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
-      const subtitle = $2("div:contains(Chapter)", manga).text().trim() ?? "";
-      if (!id || !title) continue;
-      featuredSection_Array.push(App.createPartialSourceManga({
-        image: encodeURI(image),
-        title: (0, import_html_entities.decode)(title),
-        mangaId: id,
-        subtitle: (0, import_html_entities.decode)(subtitle)
-      }));
-    }
-    featuredSection.items = featuredSection_Array;
-    sectionCallback(featuredSection);
-    const newSection_Array = [];
-    for (const manga of $2("div.owl-element", $2("h1:contains(New Titles)").next()).toArray()) {
-      const image = $2("img", manga).first().attr("src") ?? "";
-      const title = $2("img", manga).first().attr("alt") ?? "";
-      const id = $2("a", manga).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
-      if (!id || !title) continue;
-      newSection_Array.push(App.createPartialSourceManga({
-        image: encodeURI(image),
-        title: (0, import_html_entities.decode)(title),
-        mangaId: id,
-        subtitle: void 0
-      }));
-    }
-    newSection.items = newSection_Array;
-    sectionCallback(newSection);
-    const mostViewedSection_Array = [];
-    for (const manga of $2("div.owl-element", $2("h1:contains(Most Viewed Today)").next()).toArray()) {
-      const image = $2("img", manga).first().attr("src") ?? "";
-      const title = $2("img", manga).first().attr("alt") ?? "";
-      const id = $2("a", manga).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
-      if (!id || !title) continue;
-      mostViewedSection_Array.push(App.createPartialSourceManga({
-        image: encodeURI(image),
-        title: (0, import_html_entities.decode)(title),
-        mangaId: id,
-        subtitle: void 0
-      }));
-    }
-    mostViewedSection.items = mostViewedSection_Array;
-    sectionCallback(mostViewedSection);
-    const updateSection_Array = [];
-    for (const manga of $2(".updates-element").toArray()) {
-      const image = $2("img", manga).first().attr("src") ?? "";
-      const title = $2("img", manga).first().attr("alt") ?? "";
-      const id = $2("a", manga).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
-      const subtitle = $2("a.chplinks", manga).first().text().trim() ?? "";
-      if (!id || !title) continue;
-      updateSection_Array.push(App.createPartialSourceManga({
-        image: encodeURI(image),
-        title: (0, import_html_entities.decode)(title),
-        mangaId: id,
-        subtitle: (0, import_html_entities.decode)(subtitle)
-      }));
-    }
-    updateSection.items = updateSection_Array;
-    sectionCallback(updateSection);
-  };
-  var parseViewMore = ($2) => {
-    const manga = [];
+  var parseGallery = async (source, $2, id) => {
+    const itemArray = [];
     const collectedIds = [];
-    for (const item of $2(".updates-element").toArray()) {
-      const image = $2("img", item).first().attr("src") ?? "";
-      const title = $2("img", item).first().attr("alt") ?? "";
-      const id = $2("a", item).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
-      const subtitle = $2("a.chplinks", item).first().text().trim() ?? "";
-      if (!id || !title || collectedIds.includes(id)) continue;
-      manga.push(App.createPartialSourceManga({
-        image: encodeURI(image),
-        title: (0, import_html_entities.decode)(title),
-        mangaId: id,
-        subtitle: (0, import_html_entities.decode)(subtitle)
-      }));
-      collectedIds.push(id);
-    }
-    return manga;
-  };
-  var parseTags = ($2) => {
-    const arrayTags = [];
-    for (const tag of $2("li.border-box", "div#genres-container").toArray()) {
-      const label = $2(tag).text().trim();
-      const id = $2("input.genrespick", tag).attr("value");
-      if (!id || !label) continue;
-      arrayTags.push({ id, label });
-    }
-    return [
-      App.createTagSection({
-        id: "0",
-        label: "genres",
-        tags: arrayTags.map((x) => App.createTag(x))
-      })
-    ];
-  };
-  var parseSearch = ($2, isTagSearch) => {
-    const mangas = [];
-    if (isTagSearch) {
-      for (const manga of $2("div.advanced-element").toArray()) {
-        const image = $2("img", manga).first().attr("src") ?? "";
-        const title = $2("img", manga).first().attr("alt") ?? "";
-        const id = $2("a", manga).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
-        if (!id || !title) continue;
-        mangas.push(App.createPartialSourceManga({
+    if (id?.includes("creator")) {
+      for (const item of $2("a.user-card", "div.card-list__items").toArray()) {
+        const id2 = $2(item).attr("href") ?? "";
+        let creator = parseURL(id2).creator ?? "";
+        if (!creator) {
+          continue;
+        }
+        let image = $2("img.fancy-image__image", item).attr("src") ?? "";
+        if (image.startsWith("//")) image = "https:" + image;
+        if (!isNaN(Number(creator))) {
+          const creatorData = await fetchCreatorData(source, creator, parseURL(id2).service ?? "");
+          creator = creatorData.name;
+          if (!image) {
+            image = creatorData.image;
+          }
+        }
+        itemArray.push(App.createPartialSourceManga({
           image: encodeURI(image),
-          title: (0, import_html_entities.decode)(title),
-          mangaId: id
+          title: (0, import_html_entities.decode)(creator),
+          mangaId: id2,
+          subtitle: parseURL(id2).service ?? ""
         }));
-      }
-    } else {
-      for (const obj of $2("a").toArray()) {
-        const imageDomain = "https://readermc.org";
-        const title = $2("div:first-child", obj).text().trim() ?? "";
-        const image = `${imageDomain}/images/thumbnails/${encodeURI(title)}.webp`;
-        const id = $2(obj).attr("href")?.replace(/\/$/, "")?.split("/").pop() ?? "";
-        if (!id || !title) continue;
-        mangas.push(App.createPartialSourceManga({
-          image,
-          title: (0, import_html_entities.decode)(title),
-          mangaId: id,
-          subtitle: void 0
-        }));
+        collectedIds.push(id2);
       }
     }
-    return mangas;
+    for (const item of $2("article", "div.card-list__items").toArray()) {
+      let creator = $2(item).attr("data-user") ?? "";
+      const service = $2(item).attr("data-service") ?? "";
+      let id2 = $2("a", item).attr("href") ?? "";
+      const idRegex = id2?.match(/\/(.+)\/post/);
+      if (idRegex && idRegex[1]) {
+        id2 = idRegex[1];
+      }
+      if (!id2) continue;
+      if (collectedIds.includes(id2)) {
+        continue;
+      }
+      let image = $2("img.post-card__image", item).attr("src") ?? "";
+      if (image.startsWith("//")) image = "https:" + image;
+      if (!isNaN(Number(creator))) {
+        const numId = id2.split("user/").pop() ?? "";
+        if (!numId) continue;
+        const creatorData = await fetchCreatorData(source, numId, service);
+        creator = creatorData.name;
+        if (!image) {
+          image = creatorData.image;
+        }
+      }
+      itemArray.push(App.createPartialSourceManga({
+        image: encodeURI(image),
+        title: (0, import_html_entities.decode)(creator),
+        mangaId: id2,
+        subtitle: service
+      }));
+      collectedIds.push(id2);
+    }
+    return itemArray;
+  };
+  var isLastPage = ($2) => {
+    let isLast = true;
+    const hasNext = Boolean($2("a.next"));
+    if (hasNext) isLast = false;
+    return isLast;
   };
 
-  // src/MangaDemon/MangaDemon.ts
-  var MD_DOMAIN = "https://demonicscans.org";
-  var MangaDemonInfo = {
-    version: "1.1.0",
-    name: "MangaDemon",
+  // src/CoomerSu/CoomerSu.ts
+  var CSU_DOMAIN = "https://coomer.su";
+  var CSU_API_DOMAIN = CSU_DOMAIN + "/api/v1";
+  var CoomerSuInfo = {
+    version: "1.0.0",
+    name: "CoomerSu",
     icon: "icon.png",
     author: "Netsky",
     authorWebsite: "https://github.com/TheNetsky",
-    description: "Extension that pulls manga from demonicscans.org",
-    contentRating: import_types3.ContentRating.MATURE,
-    websiteBaseURL: MD_DOMAIN,
-    sourceTags: [],
-    intents: import_types3.SourceIntents.MANGA_CHAPTERS | import_types3.SourceIntents.HOMEPAGE_SECTIONS | import_types3.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
+    description: "Extension that pulls comics from coomer.su",
+    contentRating: import_types2.ContentRating.ADULT,
+    websiteBaseURL: CSU_DOMAIN,
+    sourceTags: [
+      {
+        text: "18+",
+        type: import_types2.BadgeColor.YELLOW
+      }
+    ],
+    intents: import_types2.SourceIntents.MANGA_CHAPTERS | import_types2.SourceIntents.HOMEPAGE_SECTIONS | import_types2.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
   };
-  var MangaDemon = class _MangaDemon {
+  var CoomerSu = class _CoomerSu {
     constructor() {
+      this.baseURL = CSU_DOMAIN;
       this.requestManager = App.createRequestManager({
         requestsPerSecond: 4,
         requestTimeout: 15e3,
@@ -14976,7 +14924,7 @@ var _Sources = (() => {
             request.headers = {
               ...request.headers ?? {},
               ...{
-                "referer": `${MD_DOMAIN}/`,
+                "referer": `${CSU_DOMAIN}/`,
                 "user-agent": await this.requestManager.getDefaultUserAgent()
               }
             };
@@ -14987,126 +14935,227 @@ var _Sources = (() => {
           }
         }
       });
+      this.stateManager = App.createSourceStateManager();
     }
     getMangaShareUrl(mangaId) {
-      return `${MD_DOMAIN}/manga/${mangaId}`;
+      return `${CSU_DOMAIN}/${mangaId}`;
     }
     async getMangaDetails(mangaId) {
       const request = App.createRequest({
-        url: `${MD_DOMAIN}/manga/${mangaId}`,
+        url: `${CSU_API_DOMAIN}/${mangaId}`,
+        // fansly/user/512004663294308352 is the format of the mangaId
         method: "GET"
       });
       const response = await this.requestManager.schedule(request, 1);
       this.CloudFlareError(response.status);
-      const $2 = load(response.data);
-      return parseMangaDetails($2, mangaId);
+      try {
+        const data2 = JSON.parse(response.data);
+        return parseMangaDetails(this, data2, mangaId);
+      } catch (error) {
+        throw new Error(error);
+      }
     }
     async getChapters(mangaId) {
       const request = App.createRequest({
-        url: `${MD_DOMAIN}/manga/${mangaId}`,
+        url: `${CSU_API_DOMAIN}/${mangaId}`,
+        // fansly/user/512004663294308352 is the format of the mangaId
         method: "GET"
       });
       const response = await this.requestManager.schedule(request, 1);
       this.CloudFlareError(response.status);
-      const $2 = load(response.data);
-      return parseChapters($2, mangaId);
+      try {
+        const data2 = JSON.parse(response.data);
+        return parseChapters(this, data2, mangaId);
+      } catch (error) {
+        throw new Error(error);
+      }
     }
     async getChapterDetails(mangaId, chapterId) {
       const request = App.createRequest({
-        // Lmao, garbage site
-        url: `${MD_DOMAIN}/chaptered.php?${chapterId}`,
+        url: `${CSU_API_DOMAIN}/${mangaId}/post/${chapterId}`,
+        // fansly/user/512004663294308352 is the format of the mangaId, 633162354124664833 is post id aka chapterId
         method: "GET"
       });
       const response = await this.requestManager.schedule(request, 1);
       this.CloudFlareError(response.status);
-      const $2 = load(response.data);
-      return await parseChapterDetails($2, mangaId, chapterId);
+      try {
+        const data2 = JSON.parse(response.data);
+        return parseChapterDetails(this, data2, mangaId, chapterId);
+      } catch (error) {
+        throw new Error(error);
+      }
     }
     async getHomePageSections(sectionCallback) {
-      const request = App.createRequest({
-        url: MD_DOMAIN,
-        method: "GET"
-      });
-      const response = await this.requestManager.schedule(request, 1);
-      this.CloudFlareError(response.status);
-      const $2 = load(response.data);
-      parseHomeSections($2, sectionCallback);
+      const sections = [
+        {
+          request: App.createRequest({
+            url: `${CSU_DOMAIN}/artists`,
+            method: "GET"
+          }),
+          sectionID: App.createHomeSection({
+            id: "popular-creators",
+            title: "Popular Creators",
+            containsMoreItems: false,
+            // Unable to load JS to get more listings
+            type: import_types2.HomeSectionType.singleRowLarge
+          })
+        },
+        {
+          request: App.createRequest({
+            url: `${CSU_DOMAIN}/artists/updated`,
+            method: "GET"
+          }),
+          sectionID: App.createHomeSection({
+            id: "recent-creators",
+            title: "Recent Creators",
+            containsMoreItems: false,
+            // Unable to load JS to get more listings
+            type: import_types2.HomeSectionType.singleRowNormal
+          })
+        },
+        {
+          request: App.createRequest({
+            url: `${CSU_DOMAIN}/posts`,
+            method: "GET"
+          }),
+          sectionID: App.createHomeSection({
+            id: "latest",
+            title: "Latest Posts",
+            containsMoreItems: true,
+            type: import_types2.HomeSectionType.singleRowNormal
+          })
+        },
+        {
+          request: App.createRequest({
+            url: `${CSU_DOMAIN}/posts/popular`,
+            method: "GET"
+          }),
+          sectionID: App.createHomeSection({
+            id: "popular",
+            title: "Popular Posts",
+            containsMoreItems: true,
+            type: import_types2.HomeSectionType.singleRowNormal
+          })
+        },
+        {
+          request: App.createRequest({
+            url: `${CSU_DOMAIN}/posts/popular?date=${getFirstOfMonth()}&period=month`,
+            method: "GET"
+          }),
+          sectionID: App.createHomeSection({
+            id: "popular-month",
+            title: "Monthly Popular Posts",
+            containsMoreItems: true,
+            type: import_types2.HomeSectionType.singleRowNormal
+          })
+        }
+      ];
+      const promises = [];
+      for (const section of sections) {
+        sectionCallback(section.sectionID);
+        promises.push(
+          this.requestManager.schedule(section.request, 1).then(async (response) => {
+            this.CloudFlareError(response.status);
+            const $2 = load(response.data);
+            const items = await parseGallery(this, $2, section.sectionID.id);
+            section.sectionID.items = items;
+            sectionCallback(section.sectionID);
+          })
+        );
+      }
+      await Promise.all(promises);
     }
     async getViewMoreItems(homepageSectionId, metadata) {
-      const page = metadata?.page ?? 1;
+      const page = metadata?.page ?? 0;
       let param = "";
       switch (homepageSectionId) {
-        case "updated":
-          param = `lastupdates.php?list=${page}`;
+        case "popular-creators":
+          param = `artists#o=${page}`;
+          break;
+        case "recent-creators":
+          param = `artists/updated#o=${page}`;
+          break;
+        case "latest":
+          param = `posts?o=${page}`;
+          break;
+        case "popular":
+          param = `posts/popular?o=${page}`;
+          break;
+        case "popular-month":
+          param = `posts/popular?o=${page}&date=${getFirstOfMonth()}&period=month`;
           break;
         default:
           throw new Error("Requested to getViewMoreItems for a section ID which doesn't exist");
       }
       const request = App.createRequest({
-        url: `${MD_DOMAIN}/${param}`,
+        url: `${CSU_DOMAIN}/${param}`,
         method: "GET"
       });
       const response = await this.requestManager.schedule(request, 1);
       this.CloudFlareError(response.status);
       const $2 = load(response.data);
-      const manga = parseViewMore($2);
-      metadata = { page: page + 1 };
+      const posts = await parseGallery(this, $2, homepageSectionId);
+      metadata = !isLastPage($2) ? { page: page + 50 } : void 0;
       return App.createPagedResults({
-        results: manga,
+        results: posts,
         metadata
       });
     }
-    async getSearchTags() {
-      const request = App.createRequest({
-        url: `${MD_DOMAIN}/advanced.php`,
-        method: "GET"
-      });
-      const response = await this.requestManager.schedule(request, 1);
-      const $2 = load(response.data);
-      return parseTags($2);
-    }
+    /* // Crashes the app for some reason lmfao
+        async getSearchTags(): Promise<TagSection[]> {
+            const request = App.createRequest({
+                url: `${CSU_DOMAIN}/posts/tags`,
+                method: 'GET'
+            })
+    
+            const response = await this.requestManager.schedule(request, 1)
+            const $ = cheerio.load(response.data as string)
+            return parseTags($)
+        }
+    */
     async getSearchResults(query, metadata) {
-      const page = metadata?.page ?? 1;
+      const page = metadata?.page ?? 0;
       let request;
-      let isTagSearch = false;
       if (query.title) {
+        const q = page > 0 ? `?o=${page}&q=${encodeURI(query.title ?? "")}` : `?q=${encodeURI(query.title ?? "")}`;
         request = App.createRequest({
-          url: `${MD_DOMAIN}/search.php?manga=${encodeURI(query.title)}`,
+          url: `${CSU_DOMAIN}/posts${q}`,
           method: "GET"
         });
       } else {
+        const q = page > 0 ? `?o=${page}&tag=${query?.includedTags?.map((x) => x.id)[0]}` : `?tag=${query?.includedTags?.map((x) => x.id)[0]}`;
         request = App.createRequest({
-          url: `${MD_DOMAIN}/advanced.php?list=${page}${query?.includedTags?.map((x) => `&genre[]=${x.id}`).join("")}&status=all&orderby=VIEWS%20DESC`,
+          url: `${CSU_DOMAIN}/posts${q}`,
           method: "GET"
         });
-        metadata = { page: page + 1 };
-        isTagSearch = true;
       }
+      metadata = { page: page + 50 };
       const response = await this.requestManager.schedule(request, 1);
+      this.CloudFlareError(response.status);
       const $2 = load(response.data);
-      const manga = parseSearch($2, isTagSearch);
+      const posts = await parseGallery(this, $2);
       return App.createPagedResults({
-        results: manga,
+        results: posts,
         metadata
       });
     }
     CloudFlareError(status) {
       if (status == 503 || status == 403) {
         throw new Error(`CLOUDFLARE BYPASS ERROR:
-Please go to the homepage of <${_MangaDemon.name}> and press the cloud icon.`);
+Please go to the homepage of <${_CoomerSu.name}> and press the cloud icon.`);
       }
     }
     async getCloudflareBypassRequestAsync() {
       return App.createRequest({
-        url: MD_DOMAIN,
+        url: CSU_DOMAIN,
         method: "GET",
         headers: {
-          "referer": `${MD_DOMAIN}/`,
+          "referer": `${CSU_DOMAIN}/`,
           "user-agent": await this.requestManager.getDefaultUserAgent()
         }
       });
     }
   };
-  return __toCommonJS(MangaDemon_exports);
+  return __toCommonJS(CoomerSu_exports);
 })();
 this.Sources = _Sources; if (typeof exports === 'object' && typeof module !== 'undefined') {module.exports.Sources = this.Sources;}

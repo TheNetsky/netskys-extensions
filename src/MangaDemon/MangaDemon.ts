@@ -103,7 +103,7 @@ export class MangaDemon implements SearchResultsProviding, MangaProviding, Chapt
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
         const $ = cheerio.load(response.data as string)
-        return await parseChapterDetails($, this, mangaId, chapterId)
+        return await parseChapterDetails($, mangaId, chapterId)
     }
 
     async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {

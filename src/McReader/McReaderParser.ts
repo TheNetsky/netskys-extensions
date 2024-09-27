@@ -23,7 +23,6 @@ export const parseMangaDetails = ($: CheerioAPI, mangaId: string): SourceManga =
 
     const image = $('img', 'div.fixed-img').attr('data-src') ?? ''
     const author = $('span', 'div.author').next().text().trim()
-    console.log('test: ' + JSON.stringify($('p.description').text()))
     const description = decodeHTMLEntity($('p.description').text().split('The Summary is\n\n')[1]?.trim() ?? '')
 
     const arrayTags: Tag[] = []

@@ -100,7 +100,7 @@ export const parseChapters = ($: CheerioAPI, mangaId: string): Chapter[] => {
     })
 }
 
-export const parseChapterDetails = async ($: CheerioAPI, source: any, mangaId: string, chapterId: string): Promise<ChapterDetails> => {
+export const parseChapterDetails = async ($: CheerioAPI, mangaId: string, chapterId: string): Promise<ChapterDetails> => {
     const pages: string[] = []
 
     for (const img of $('img.imgholder').toArray()) {

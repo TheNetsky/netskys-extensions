@@ -39,7 +39,7 @@ const CSU_DOMAIN = 'https://coomer.su'
 const CSU_API_DOMAIN = CSU_DOMAIN + '/api/v1'
 
 export const CoomerSuInfo: SourceInfo = {
-    version: '1.0.1',
+    version: '1.0.2',
     name: 'CoomerSu',
     icon: 'icon.png',
     author: 'Netsky',

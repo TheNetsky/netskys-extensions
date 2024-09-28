@@ -10,8 +10,8 @@ export interface Post {
     published: Date;
     edited: null;
     file: {
-        name: string;
-        path: string;
+        name?: string;
+        path?: string;
     };
     attachments: Attachment[];
     poll: null;

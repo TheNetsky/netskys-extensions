@@ -41,14 +41,14 @@ export const parseMangaDetails = async (source: any, posts: Post[], mangaId: str
 export const parseChapters = async (source: any, posts: Post[], mangaId: string): Promise<Chapter[]> => {
     const chapters: Chapter[] = []
     let sortingIndex = 0
+    let i = posts.length
 
     for (const post of posts) {
         const title = `Posted ${daysAgo(post.published)} days ago`
         const chapterId = post.id
-        const date: Date = post.published
-
+        
         const filterAttachments = post.attachments.filter(x => !x.name.includes('.mp4'))
-        const filteredFile = post?.file?.name?.includes('.mp4')
+        const filteredFile = (!post.file.name || post.file.name?.includes('.mp4'))
         if (filterAttachments.length === 0 && filteredFile) {
             continue
         }
@@ -59,8 +59,8 @@ export const parseChapters = async (source: any, posts: Post[], mangaId: string)
             id: chapterId,
             name: decodeHTMLEntity(post.title ?? title),
             langCode: '🇬🇧',
-            chapNum: 0,
-            time: date,
+            chapNum: i--,
+            time: new Date(new Date(post.published).getTime()),
             sortingIndex,
             volume: 0,
             group: title
@@ -82,7 +82,7 @@ export const parseChapterDetails = (source: any, post: Post, mangaId: string, ch
     const pages: string[] = []
 
     // If the file is not an MP4, push to pages
-    if (!post.file.name.includes('.mp4')) {
+    if (post.file.name && !post.file.name.includes('.mp4')) {
         pages.push(source.baseURL + post.file.path)
     }
 

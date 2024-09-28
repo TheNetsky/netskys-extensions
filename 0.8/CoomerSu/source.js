@@ -14763,8 +14763,8 @@ var _Sources = (() => {
   }
 
   // src/CoomerSu/CoomerSuParser.ts
-  var parseMangaDetails = async (source, data2, mangaId) => {
-    const post = data2[0];
+  var parseMangaDetails = async (source, posts, mangaId) => {
+    const post = posts[0];
     const creatorData = await fetchCreatorData(source, post.user, post.service);
     return App.createSourceManga({
       id: mangaId,
@@ -14779,15 +14779,16 @@ var _Sources = (() => {
       })
     });
   };
-  var parseChapters = async (source, data2, mangaId) => {
+  var parseChapters = async (source, posts, mangaId) => {
     const chapters = [];
     let sortingIndex = 0;
-    for (const post of data2) {
+    for (const post of posts) {
       const title = `Posted ${daysAgo(post.published)} days ago`;
       const chapterId = post.id;
       const date = post.published;
-      const filteredAttachments = post.attachments.filter((x) => !x.name.includes(".mp4"));
-      if (filteredAttachments.length === 0) {
+      const filterAttachments = post.attachments.filter((x) => !x.name.includes(".mp4"));
+      const filteredFile = post?.file?.name?.includes(".mp4");
+      if (filterAttachments.length === 0 && filteredFile) {
         continue;
       }
       if (!chapterId) continue;
@@ -14811,9 +14812,12 @@ var _Sources = (() => {
       return App.createChapter(chapter);
     });
   };
-  var parseChapterDetails = (source, data2, mangaId, chapterId) => {
+  var parseChapterDetails = (source, post, mangaId, chapterId) => {
     const pages = [];
-    for (const attachment of data2.attachments) {
+    if (!post.file.name.includes(".mp4")) {
+      pages.push(source.baseURL + post.file.path);
+    }
+    for (const attachment of post.attachments) {
       if (!attachment.path) continue;
       if (attachment.name.endsWith(".mp4")) continue;
       pages.push(source.baseURL + attachment.path);
@@ -14897,7 +14901,7 @@ var _Sources = (() => {
   var CSU_DOMAIN = "https://coomer.su";
   var CSU_API_DOMAIN = CSU_DOMAIN + "/api/v1";
   var CoomerSuInfo = {
-    version: "1.0.0",
+    version: "1.0.1",
     name: "CoomerSu",
     icon: "icon.png",
     author: "Netsky",

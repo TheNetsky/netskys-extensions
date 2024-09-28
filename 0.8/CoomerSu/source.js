@@ -14782,12 +14782,12 @@ var _Sources = (() => {
   var parseChapters = async (source, posts, mangaId) => {
     const chapters = [];
     let sortingIndex = 0;
+    let i = posts.length;
     for (const post of posts) {
       const title = `Posted ${daysAgo(post.published)} days ago`;
       const chapterId = post.id;
-      const date = post.published;
       const filterAttachments = post.attachments.filter((x) => !x.name.includes(".mp4"));
-      const filteredFile = post?.file?.name?.includes(".mp4");
+      const filteredFile = !post.file.name || post.file.name?.includes(".mp4");
       if (filterAttachments.length === 0 && filteredFile) {
         continue;
       }
@@ -14796,8 +14796,8 @@ var _Sources = (() => {
         id: chapterId,
         name: (0, import_html_entities.decode)(post.title ?? title),
         langCode: "\u{1F1EC}\u{1F1E7}",
-        chapNum: 0,
-        time: date,
+        chapNum: i--,
+        time: new Date(new Date(post.published).getTime()),
         sortingIndex,
         volume: 0,
         group: title
@@ -14814,7 +14814,7 @@ var _Sources = (() => {
   };
   var parseChapterDetails = (source, post, mangaId, chapterId) => {
     const pages = [];
-    if (!post.file.name.includes(".mp4")) {
+    if (post.file.name && !post.file.name.includes(".mp4")) {
       pages.push(source.baseURL + post.file.path);
     }
     for (const attachment of post.attachments) {
@@ -14901,7 +14901,7 @@ var _Sources = (() => {
   var CSU_DOMAIN = "https://coomer.su";
   var CSU_API_DOMAIN = CSU_DOMAIN + "/api/v1";
   var CoomerSuInfo = {
-    version: "1.0.1",
+    version: "1.0.2",
     name: "CoomerSu",
     icon: "icon.png",
     author: "Netsky",

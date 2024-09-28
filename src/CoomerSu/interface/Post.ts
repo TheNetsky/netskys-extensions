@@ -9,7 +9,10 @@ export interface Post {
     added: Date;
     published: Date;
     edited: null;
-    file: any;
+    file: {
+        name: string;
+        path: string;
+    };
     attachments: Attachment[];
     poll: null;
     captions: null;

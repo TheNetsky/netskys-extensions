@@ -19,9 +19,9 @@ import {
 
 import { Post } from './interface/Post'
 
-export const parseMangaDetails = async (source: any, data: Post[], mangaId: string): Promise<SourceManga> => {
+export const parseMangaDetails = async (source: any, posts: Post[], mangaId: string): Promise<SourceManga> => {
 
-    const post = data[0] as Post
+    const post = posts[0] as Post
     const creatorData = await fetchCreatorData(source, post.user, post.service)
 
     return App.createSourceManga({
@@ -38,17 +38,18 @@ export const parseMangaDetails = async (source: any, data: Post[], mangaId: stri
     })
 }
 
-export const parseChapters = async (source: any, data: Post[], mangaId: string): Promise<Chapter[]> => {
+export const parseChapters = async (source: any, posts: Post[], mangaId: string): Promise<Chapter[]> => {
     const chapters: Chapter[] = []
     let sortingIndex = 0
 
-    for (const post of data) {
+    for (const post of posts) {
         const title = `Posted ${daysAgo(post.published)} days ago`
         const chapterId = post.id
         const date: Date = post.published
 
-        const filteredAttachments = post.attachments.filter(x => !x.name.includes('.mp4'))
-        if (filteredAttachments.length === 0) {
+        const filterAttachments = post.attachments.filter(x => !x.name.includes('.mp4'))
+        const filteredFile = post?.file?.name?.includes('.mp4')
+        if (filterAttachments.length === 0 && filteredFile) {
             continue
         }
 
@@ -77,10 +78,15 @@ export const parseChapters = async (source: any, data: Post[], mangaId: string):
     })
 }
 
-export const parseChapterDetails = (source: any, data: Post, mangaId: string, chapterId: string): ChapterDetails => {
+export const parseChapterDetails = (source: any, post: Post, mangaId: string, chapterId: string): ChapterDetails => {
     const pages: string[] = []
 
-    for (const attachment of data.attachments) {
+    // If the file is not an MP4, push to pages
+    if (!post.file.name.includes('.mp4')) {
+        pages.push(source.baseURL + post.file.path)
+    }
+
+    for (const attachment of post.attachments) {
         if (!attachment.path) continue
         if (attachment.name.endsWith('.mp4')) continue
 

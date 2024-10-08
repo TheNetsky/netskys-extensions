@@ -30,10 +30,10 @@ import {
     parseTags
 } from './MangaDemonParser'
 
-const MD_DOMAIN = 'https://demonicscans.org'
+const MD_DOMAIN = 'https://ciorti.online'
 
 export const MangaDemonInfo: SourceInfo = {
-    version: '1.1.0',
+    version: '1.1.1',
     name: 'MangaDemon',
     icon: 'icon.png',
     author: 'Netsky',

@@ -14953,9 +14953,9 @@ var _Sources = (() => {
   };
 
   // src/MangaDemon/MangaDemon.ts
-  var MD_DOMAIN = "https://demonicscans.org";
+  var MD_DOMAIN = "https://ciorti.online";
   var MangaDemonInfo = {
-    version: "1.1.0",
+    version: "1.1.1",
     name: "MangaDemon",
     icon: "icon.png",
     author: "Netsky",

@@ -1,177 +1,557 @@
-<!DOCTYPE html><html lang="en"><head><meta name="robots" content="noindex"><meta charset="utf-8"><link rel="icon" href="https://paperback.moe/icons/logo-alt.svg"><title>Netsky's Extensions (0.8)</title></head><body><header><img class="icon" src="https://paperback.moe/icons/logo-alt.svg" alt="Repository logo"><h1>Netsky's Extensions (0.8)</h1><p class="pageDescription">A Paperback extensions repository</p><a class="addToPaperbackButton" href="paperback://addRepo?displayName=Netsky's%20Extensions%20(0.8)&amp;url=https%3A%2F%2Fthenetsky.github.io%2Fnetskys-extensions%2F0.9">Add to Paperback</a></header><div class="content"><p id="repositoryDescription">Netsky's extensions for 0.8!</p><blockquote><p>A guide is available to learn everything about extensions repositories.</p><p>Check it <a href="https://paperback.moe/help/guides/adding-repos/">here</a> to learn how to add and use this repository in Paperback.</p></blockquote><blockquote><p> <span>On a Paperback installed device, press </span><a href="paperback://addRepo?displayName=Netsky's%20Extensions%20(0.8)&amp;url=https%3A%2F%2Fthenetsky.github.io%2Fnetskys-extensions%2F0.9">Add to Paperback</a><span> or use the base URL to add this repository to the app.</span></p></blockquote><div class="baseUrl"><p class="title">Base URL:</p><p>https://thenetsky.github.io/netskys-extensions/0.9</p></div><dev class="availableSources"><p class="title">Available Sources:</p><div id="listDiv"><ul><li>Dynasty Scans</li><li>HentaiCosplay<span class="el-tag el-tag--dark el-tag--mini el-tag--warning">18+</span></li><li>HentaiHere<span class="el-tag el-tag--dark el-tag--mini el-tag--warning">18+</span></li><li>MangaDemon</li><li>MangaFox</li><li>MangaHasu</li><li>MangaHere</li><li>MangaKatana</li><li>Mangahub<span class="el-tag el-tag--dark el-tag--mini el-tag--danger">Buggy</span></li><li>McReader</li><li>Mitaku<span class="el-tag el-tag--dark el-tag--mini el-tag--warning">18+</span></li><li>Ososedki<span class="el-tag el-tag--dark el-tag--mini el-tag--warning">18+</span></li><li>ReadAllComics</li><li>ReadComicsOnline</li></ul></div></dev></div></body></html><style>body
-{
-    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-    -moz-osx-font-smoothing: grayscale;
-    color: #2c3e50;
-    padding: 3.6rem 2rem 1.5rem;
-    text-align: center;
-}
-.title
-{
-    font-weight: 700;
-    margin-bottom: 8px;
-}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="robots" content="noindex" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="https://paperback.moe/pb-logo.svg" />
+    <title>Loading...</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+  </head>
 
+  <body
+    class="bg-[#1b1b1f] text-gray-200 font-[Inter] p-4 md:p-8 lg:p-12 text-center"
+    x-data="repositoryData()"
+    x-init="await initialize()"
+  >
+    <div class="container mx-auto max-w-7xl">
+      <header class="flex flex-col items-center relative mt-4">
+        <div
+          class="absolute w-28 h-28 md:w-40 md:h-40 -top-4 left-1/2 -translate-x-1/2 rounded-full"
+          style="
+            background: radial-gradient(
+                circle at 30% 30%,
+                rgba(84, 120, 219, 0.4) 0%,
+                transparent 70%
+              ),
+              radial-gradient(
+                circle at 70% 70%,
+                rgba(246, 75, 75, 0.4) 0%,
+                transparent 70%
+              );
+            filter: blur(25px);
+          "
+        ></div>
+        <div class="relative z-10">
+          <img
+            class="md:max-h-32 max-h-20 rounded-lg"
+            src="https://paperback.moe/pb-logo.svg"
+            alt="Repository logo"
+          />
+        </div>
 
-/* Header section */
-.icon
-{
-    max-height: 8rem;
-}
-h1
-{
-    font-size: 1.7rem;
-    margin: 1rem auto;
-}
-.pageDescription
-{
-    max-width: 35rem;
-    font-size: 1.3rem;
-    line-height: 1.3;
-    color: #6a8bad;
-    margin: 1rem auto;
-}
-.addToPaperbackButton
-{
-    display: inline-block;
-    width: 10rem;
-    line-height: 1.7;
-    margin: .25rem;
-    padding: .4rem;
-    color: #fff;
-    background-color: #2e84bf;
-    border-bottom: 1px solid #2977ac;
-    border-radius: 4px;
-    transition: background-color .1s ease;
-}
-.addToPaperbackButton:hover
-{
-    background-color: #3992cf;
-    text-decoration: none;
-}
+        <h1
+          x-show="repository"
+          x-text="repository?.name"
+          class="text-xl mt-4 md:text-3xl font-bold"
+        ></h1>
 
+        <p
+          x-show="repository"
+          x-text="repository?.description"
+          class="mt-4 text-center"
+        ></p>
 
-/* Content section */
-.content
-{
-    margin: auto;
-    max-width: 920px;
-    text-align: left;
-}
+        <a
+          class="addToPaperbackButton inline-block leading-7 mt-4 mx-1 py-2 px-4 text-white bg-[#f64b4b] border-b border-red-700 rounded-full transition-colors duration-100 hover:bg-[#f46565] hover:cursor-pointer"
+          @click="addToPaperback()"
+          x-show="repository"
+        >
+          Add Repository to Paperback
+        </a>
+      </header>
 
+      <div class="mx-auto text-left">
+        <!-- Error message -->
+        <div
+          x-show="error"
+          class="bg-red-500 text-white p-4 rounded-lg mt-6 text-center"
+        >
+          <p class="font-bold">Error loading repository data</p>
+          <p x-text="error" class="mt-2"></p>
+          <button
+            @click="initialize()"
+            class="mt-2 bg-white text-red-500 px-4 py-1 rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
 
-/* Blockquote section */
-blockquote
-{
-    font-size: 0.9rem;
-    color: #999;
-    border-left: .2rem solid #dfe2e5;
-    margin: 1rem 0;
-    padding: .25rem 0 .25rem 1rem;
-    line-height: 1.6;
-}
-blockquote p
-{
-    margin-top: 2px;
-    margin-bottom: 2px;
-}
-/* Link */
-a:hover {
-    text-decoration: underline;
-}
-a {
-    font-weight: 500;
-    text-decoration: none;
-    color: #2196f3;
-}
+        <div class="mt-6 space-y-4" x-show="!error">
+          <div x-show="repository" class="relative">
+            <label
+              for="source-search"
+              class="block text-sm font-medium text-gray-400"
+            >
+              Search
+            </label>
+            <input
+              type="text"
+              id="source-search"
+              x-model="searchTerm"
+              placeholder="Search sources..."
+              class="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5478db]"
+            />
+          </div>
 
+          <!-- Badge filters -->
+          <div x-show="repository" class="relative">
+            <div class="overflow-x-auto" x-show="availableBadges.length">
+              <label
+                id="badge-filter-label"
+                class="block text-sm font-medium text-gray-400 mb-2"
+              >
+                Filter
+              </label>
+              <div
+                class="inline-flex gap-2 pb-2"
+                role="group"
+                aria-labelledby="badge-filter-label"
+              >
+                <template x-for="badge in availableBadges" :key="badge.label">
+                  <button
+                    @click="toggleBadgeFilter(badge)"
+                    class="px-3 py-2 rounded-lg text-md font-medium transition-all duration-200 shrink-0 hover:cursor-pointer"
+                    :style="selectedBadges.some(b => b.label === badge.label) ?
+                            `background-color: ${badge.backgroundColor}; color: ${badge.textColor};` :
+                            `background-color: ${badge.backgroundColor + '40'}; color: ${badge.textColor};`"
+                    x-text="badge.label"
+                  ></button>
+                </template>
+              </div>
+            </div>
+          </div>
 
-/* Base URL section */
-.baseUrl
-{
-    background-color: #f0f4f8;
-    border-radius: .4rem;
-    padding: .1rem .1rem;
-}
-.baseUrl .title
-{
-    font-weight: 700;
-}
-.baseUrl p
-{
-    margin-left: 16px;
-}
+          <!-- Sort controls -->
+          <div
+            x-show="repository"
+            class="flex justify-between items-center flex-wrap gap-3"
+          >
+            <div>
+              <p class="font-bold">Available Sources:</p>
+              <p class="text-sm text-gray-400">
+                Click on sources to select them for installation
+              </p>
+            </div>
+          </div>
 
+          <div
+            x-show="repository"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <template x-for="source in filteredSources" :key="source.id">
+              <div
+                @click="toggleSource(source.id)"
+                class="bg-zinc-800 rounded-lg shadow-lg overflow-hidden hover:cursor-pointer transition-all duration-200 relative"
+                :class="selectedSources.has(source.id) ? 'ring-2 ring-[#5478db]' : ''"
+                @keydown.enter="toggleSource(source.id)"
+                tabindex="0"
+              >
+                <!-- Desktop Layout -->
+                <div class="hidden md:block">
+                  <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                      <img
+                        :src="`${baseUrl}/${source.id}/static/${source.icon}`"
+                        :alt="`${source.name} icon`"
+                        class="w-12 h-12 rounded-full"
+                        loading="lazy"
+                        onerror="this.src='https://paperback.moe/pb-placeholder.png';this.onerror='';"
+                      />
+                      <h3
+                        class="text-xl font-semibold text-gray-200"
+                        x-text="source.name"
+                      ></h3>
+                    </div>
+                    <span
+                      class="px-2 py-1 rounded text-xs font-semibold"
+                      :class="getContentRatingClass(source.contentRating)"
+                      x-text="source.contentRating"
+                    ></span>
+                  </div>
+                  <div class="p-4 border-t border-zinc-700">
+                    <p class="text-gray-300 text-sm mb-2">
+                      Version: <span x-text="source.version"></span>
+                    </p>
+                    <p
+                      class="text-gray-300 mb-4 line-clamp-2 min-h-[3rem]"
+                      x-text="source.description"
+                    ></p>
+                  </div>
+                  <div class="p-4 pt-0">
+                    <div
+                      class="flex flex-nowrap gap-2 overflow-x-auto pb-2"
+                      x-show="source.badges && source.badges.length"
+                    >
+                      <template
+                        x-for="badge in sortBadges(source.badges)"
+                        :key="badge.label"
+                      >
+                        <span
+                          class="px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap shrink-0 transition-all duration-200"
+                          :style="selectedBadges.some(b => b.label === badge.label) ?
+                                  `background-color: ${badge.backgroundColor}; color: ${badge.textColor};` :
+                                  `background-color: ${badge.backgroundColor + '40'}; color: ${badge.textColor};`"
+                          x-text="badge.label"
+                        ></span>
+                      </template>
+                    </div>
+                    <div class="text-gray-400 text-sm flex items-center mt-2">
+                      <span
+                        x-show="selectedSources.has(source.id)"
+                        class="text-[#5478db] text-xs"
+                        >• Selected</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <!-- Mobile Layout -->
+                <div class="md:hidden p-4">
+                  <div class="flex items-start justify-between">
+                    <div class="flex items-center space-x-3">
+                      <img
+                        :src="`${baseUrl}/${source.id}/static/${source.icon}`"
+                        :alt="`${source.name} icon`"
+                        class="w-12 h-12 rounded-full"
+                        loading="lazy"
+                        onerror="this.src='https://paperback.moe/pb-placeholder.png';this.onerror='';"
+                      />
+                      <div class="flex flex-col space-y-1">
+                        <h3
+                          class="text-lg font-semibold text-gray-200"
+                          x-text="source.name"
+                        ></h3>
+                        <span
+                          class="text-sm text-gray-400"
+                          x-text="`v${source.version}`"
+                        ></span>
+                      </div>
+                    </div>
+                    <span
+                      class="px-2 py-1 rounded text-xs font-semibold shrink-0"
+                      :class="getContentRatingClass(source.contentRating)"
+                      x-text="source.contentRating"
+                    ></span>
+                  </div>
+                  <p
+                    class="text-gray-300 text-sm mt-2 mb-4 line-clamp-2 min-h-[2.5rem]"
+                    x-text="source.description"
+                  ></p>
+                  <div class="mt-2">
+                    <div
+                      class="flex flex-nowrap gap-2 overflow-x-auto pb-2"
+                      x-show="source.badges && source.badges.length"
+                    >
+                      <template
+                        x-for="badge in sortBadges(source.badges)"
+                        :key="badge.label"
+                      >
+                        <span
+                          class="px-2 py-1 rounded text-sm font-medium whitespace-nowrap shrink-0 transition-all duration-200"
+                          :style="selectedBadges.some(b => b.label === badge.label) ?
+                                  `background-color: ${badge.backgroundColor}; color: ${badge.textColor};` :
+                                  `background-color: ${badge.backgroundColor + '40'}; color: ${badge.textColor};`"
+                          x-text="badge.label"
+                        ></span>
+                      </template>
+                    </div>
+                    <span
+                      x-show="selectedSources.has(source.id)"
+                      class="text-[#5478db] text-xs block mt-2"
+                      >• Selected</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
 
-/* Available sources section */
-ul
-{
-    margin-top: 0px;
-}
-.el-tag {
-    margin-left: 2px;
-    margin-right: 2px;
-}
-#listDiv {
-    line-height: 1.5;
-}
+          <!-- Empty state when no sources match filter -->
+          <div
+            x-show="repository && filteredSources.length === 0"
+            class="p-10 text-center"
+          >
+            <p class="text-lg text-gray-400">
+              No sources found matching your filters
+            </p>
+            <button
+              @click="resetFilters()"
+              class="mt-3 bg-zinc-700 hover:bg-zinc-600 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              Reset Filters
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
+    <!-- Build Information Footer -->
+    <footer
+      class="mt-4 md:mt-12 text-center text-sm text-gray-400"
+      x-show="buildInfo?.buildTime && buildInfo?.builtWith"
+    >
+      <div class="space-y-1">
+        <p>
+          Paperback Toolchain:
+          <span x-text="buildInfo?.builtWith?.toolchain"></span>
+        </p>
+        <p>
+          Paperback Types: <span x-text="buildInfo?.builtWith?.types"></span>
+        </p>
+        <p>
+          Build Time:
+          <span
+            x-text="buildInfo?.buildTime ? new Date(buildInfo.buildTime).toLocaleString() : ''"
+          >
+          </span>
+        </p>
+      </div>
+    </footer>
 
-/* Tags style */
-/* 
- * These styles are based on Element tags to match the website 
- * https://element.eleme.io/#/en-US/component/tag
- */
- .el-tag {
-    margin-left: 4px;
- }
-.el-tag {
-    background-color: #ecf5ff;
-    display: inline-block;
-    height: 32px;
-    padding: 0 10px;
-    line-height: 30px;
-    font-size: 12px;
-    color: #409eff;
-    border: 1px solid #d9ecff;
-        border-top-color: rgb(217, 236, 255);
-        border-right-color: rgb(217, 236, 255);
-        border-bottom-color: rgb(217, 236, 255);
-        border-left-color: rgb(217, 236, 255);
-    border-radius: 4px;
-    box-sizing: border-box;
-    white-space: nowrap;
-}
-.el-tag--dark, .el-tag--dark.is-hit {
-    border-color: #409eff;
-}
-.el-tag--dark {
-    background-color: #409eff;
-    color: #fff;
-}
-.el-tag--mini {
-    height: 20px;
-    padding: 0 5px;
-    line-height: 19px;
-}
-/* Tags types */
-.el-tag--dark.el-tag--success {
-    background-color: #67c23a;
-    border-color: #67c23a;
-    color: #fff;
-}
-.el-tag--dark.el-tag--info {
-    background-color: #909399;
-    border-color: #909399;
-    color: #fff;
-}
-.el-tag--dark.el-tag--danger {
-    background-color: #f56c6c;
-    border-color: #f56c6c;
-    color: #fff;
-}
-.el-tag--dark.el-tag--warning {
-    background-color: #e6a23c;
-    border-color: #e6a23c;
-    color: #fff;
-}</style>
+    <!-- Floating Install Button -->
+    <div
+      x-show="selectedSources.size > 0"
+      class="fixed bottom-6 right-6 z-50"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0 translate-y-4"
+      x-transition:enter-end="opacity-100 translate-y-0"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100 translate-y-0"
+      x-transition:leave-end="opacity-0 translate-y-4"
+    >
+      <button
+        @click="installSelectedSources()"
+        class="py-3 px-6 bg-[#f64b4b] text-white rounded-full hover:bg-[#f46565] transition-colors duration-100 shadow-lg hover:cursor-pointer flex items-center space-x-2"
+      >
+        <span>Install</span>
+        <span
+          class="bg-white/25 px-2 py-0.5 rounded-full text-sm"
+          x-text="selectedSources.size"
+        ></span>
+      </button>
+    </div>
+  </body>
+
+  <script>
+    document.addEventListener("alpine:init", () => {
+      Alpine.data("repositoryData", () => ({
+        baseUrl: window.location
+          .toString()
+          .replace("index.html", "")
+          .replace(/\/$/, ""),
+        repository: null,
+        sources: [],
+        selectedSources: new Set(),
+        buildInfo: null,
+        searchTerm: "",
+        selectedBadges: [],
+        availableBadges: [],
+        error: null,
+
+        get filteredSources() {
+          return this.sources.filter((source) => {
+            // Text search filter
+            const matchesSearch =
+              source.name
+                .toLowerCase()
+                .includes(this.searchTerm.toLowerCase()) ||
+              source.description
+                .toLowerCase()
+                .includes(this.searchTerm.toLowerCase());
+
+            // Badge filter
+            const matchesBadges =
+              this.selectedBadges.length === 0 ||
+              this.selectedBadges.every((selectedBadge) =>
+                source.badges?.some(
+                  (badge) => badge.label === selectedBadge.label
+                )
+              );
+
+            return matchesSearch && matchesBadges;
+          });
+        },
+
+        getCapabilityBadges(capabilities) {
+          const badges = [];
+          const intents = {
+            MANGA_CHAPTERS: 1,
+            MANGA_PROGRESS: 2,
+            DISCOVER_SECTIONS: 4,
+            COLLECTION_MANAGEMENT: 8,
+            CLOUDFLARE_BYPASS: 16,
+            SETTINGS_UI: 32,
+            MANGA_SEARCH: 64,
+          };
+
+          // Show badges for capabilities that can be user-facing
+          const capabilityLabels = {
+            MANGA_CHAPTERS: {
+              label: "Content Provider",
+              textColor: "#FFFFFF",
+              backgroundColor: "#4A90E2",
+              type: "capability",
+            },
+            MANGA_PROGRESS: {
+              label: "Tracker",
+              textColor: "#FFFFFF",
+              backgroundColor: "#50C878",
+              type: "capability",
+            },
+            COLLECTION_MANAGEMENT: {
+              label: "Collections Manager",
+              textColor: "#FFFFFF",
+              backgroundColor: "#E67E22",
+              type: "capability",
+            },
+            CLOUDFLARE_BYPASS: {
+              label: "Cloudflare",
+              textColor: "#FFFFFF",
+              backgroundColor: "#E74C3C",
+              type: "capability",
+            },
+          };
+
+          // Handle both bit string and array formats
+          const capabilityValues = Array.isArray(capabilities)
+            ? capabilities
+            : Object.entries(intents)
+                .filter(([_, value]) => (capabilities & value) === value)
+                .map(([_, value]) => value);
+
+          for (const [key, value] of Object.entries(intents)) {
+            if (capabilityValues.includes(value) && capabilityLabels[key]) {
+              badges.push(capabilityLabels[key]);
+            }
+          }
+
+          return badges;
+        },
+
+        async initialize() {
+          try {
+            this.error = null;
+            const response = await fetch(`${this.baseUrl}/versioning.json`);
+
+            if (!response.ok) {
+              throw new Error(
+                `Failed to load repository data (${response.status})`
+              );
+            }
+
+            const json = await response.json();
+            this.repository = json.repository;
+
+            // Add capability badges to sources
+            this.sources = json.sources.map((source) => ({
+              ...source,
+              badges: [
+                ...this.getCapabilityBadges(source.capabilities),
+                ...(source.badges || []),
+              ],
+            }));
+
+            this.buildInfo = {
+              buildTime: json.buildTime,
+              builtWith: json.builtWith,
+            };
+            document.title = this.repository.name;
+
+            // Collect unique badges from all sources by label
+            const badgeMap = new Map();
+            this.sources.forEach((source) => {
+              source.badges?.forEach((badge) => {
+                // If we already have a badge with this label, use the first occurrence
+                if (!badgeMap.has(badge.label)) {
+                  badgeMap.set(badge.label, badge);
+                }
+              });
+            });
+            this.availableBadges = Array.from(badgeMap.values());
+          } catch (err) {
+            console.error("Error initializing repository data:", err);
+            this.error = err.message || "Failed to load repository data";
+          }
+        },
+
+        resetFilters() {
+          this.searchTerm = "";
+          this.selectedBadges = [];
+        },
+
+        toggleBadgeFilter(badge) {
+          const index = this.selectedBadges.findIndex(
+            (b) => b.label === badge.label
+          );
+          if (index === -1) {
+            this.selectedBadges.push(badge);
+          } else {
+            this.selectedBadges.splice(index, 1);
+          }
+        },
+
+        getContentRatingClass(rating) {
+          const classes = {
+            MATURE: "bg-yellow-500 text-yellow-900",
+            ADULT: "bg-red-500 text-red-100",
+            SAFE: "bg-green-500 text-green-100",
+          };
+          return classes[rating.toUpperCase()] || "bg-gray-500 text-gray-100";
+        },
+
+        toggleSource(sourceId) {
+          if (this.selectedSources.has(sourceId)) {
+            this.selectedSources.delete(sourceId);
+          } else {
+            this.selectedSources.add(sourceId);
+          }
+        },
+
+        installSelectedSources() {
+          if (this.selectedSources.size === 0) {
+            alert("Please select at least one source");
+            return;
+          }
+          const sourcesToInstall = Array.from(this.selectedSources).map(
+            (id) => [id, this.baseUrl]
+          );
+          window.location.href = `paperback://installExtensions?data=${btoa(
+            JSON.stringify(sourcesToInstall)
+          )}`;
+        },
+
+        addToPaperback() {
+          if (!this.repository) {
+            alert("Versioning info is not loaded");
+            return;
+          }
+          window.location.href = `paperback://addRepo?displayName=${encodeURI(
+            this.repository.name
+          )}&url=${encodeURI(this.baseUrl)}`;
+        },
+
+        sortBadges(badges) {
+          return [...badges].sort((a, b) => {
+            const aSelected = this.selectedBadges.some(
+              (s) => s.label === a.label
+            );
+            const bSelected = this.selectedBadges.some(
+              (s) => s.label === b.label
+            );
+            return bSelected - aSelected;
+          });
+        },
+      }));
+    });
+  </script>
+</html>

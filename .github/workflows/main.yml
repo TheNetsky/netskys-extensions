@@ -1,44 +1,35 @@
-name: Bundle and Publish Sources
-on: 
+name: Bundle and Deploy
+
+on:
   push:
     branches:
-      - '**'
-      - '!main'
+      - "0.9"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
-  build:
-    name: Bundle and Publish Sources
+  bundle-deploy:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [20.x] 
-
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v4.1.2
-
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v4.0.2
+        uses: actions/checkout@v4
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-      
-      - name: Extract branch name
-        shell: bash
-        run: echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
-        id: extract_branch
-
-      - name: Checkout existing bundles
-        uses: actions/checkout@v4.1.2
-        continue-on-error: true
-        with:
-          ref: gh-pages
-          path: bundles
-
-      - run: npm install
-      - run: npm run bundle -- --folder=${{ steps.extract_branch.outputs.branch }}
-
+          node-version: 22
+          cache: npm
+      - name: Install Dependencies
+        run: npm ci
+      - name: Bundle Extensions
+        run: npm run bundle
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4.5.0
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          branch: gh-pages
-          folder: bundles
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: bundles
+          destination_dir: ${{ github.ref_name }}

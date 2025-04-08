@@ -16954,7 +16954,7 @@ Images: ${images.length}`;
       let contentRating = source.defaultContentRating;
       const genres = [];
       for (const obj of $2("div.genres-content a").toArray()) {
-        const id = $2(obj).attr("href")?.split("/tag/")[1]?.replace(/\//g, "");
+        const id = this.idCleaner($2(obj).attr("href") ?? "");
         const title2 = $2(obj).text().trim();
         if (!title2 || !id) continue;
         genres.push({ title: title2, id });

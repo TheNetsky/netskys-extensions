@@ -22,7 +22,7 @@ export class Parser {
 
         const genres: Tag[] = []
         for (const obj of $('div.genres-content a').toArray()) {
-            const id = $(obj).attr('href')?.split('/tag/')[1]?.replace(/\//g, '')
+            const id = this.idCleaner($(obj).attr('href') ?? '')
             const title = $(obj).text().trim()
 
             if (!title || !id) continue

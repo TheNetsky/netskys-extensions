@@ -20,9 +20,7 @@ import {
     SourceManga,
     URL,
     CloudflareError,
-    Response,
-    Tag,
-    TagSection
+    Response
 } from '@paperback/types'
 
 import * as cheerio from 'cheerio'
@@ -150,36 +148,14 @@ export class MitakuExtension implements Extension, SearchResultsProviding, Manga
     }
 
     async getSearchFilters(): Promise<SearchFilter[]> {
-        const [response, buffer] = await Application.scheduleRequest({
-            url: `${this.domain}/wp-json/wp/v2/tags?per_page=100`,
-            method: 'GET'
-        })
-        await this.checkResponseError(response)
-
-        const tagJSON = JSON.parse(Application.arrayBufferToUTF8String(buffer))
-
-        const arrayTags: Tag[] = []
-        for (const tag of tagJSON) {
-            const title = tag.name
-            const id = tag.slug
-
-            if (!title || !id) continue
-            arrayTags.push({ id: id, title: title })
-        }
-
-        const tagSections: TagSection[] = [{ title: 'genres', id: 'genres', tags: arrayTags }]
-        const genreTags = tagSections.find((x) => x.id === 'genres') as TagSection
 
         return [
             {
                 type: 'multiselect',
-                options: genreTags.tags.map((x) => ({
-                    id: x.id,
-                    value: x.title
-                })),
-                id: genreTags.id,
+                options: [],
+                id: '',
                 allowExclusion: false,
-                title: genreTags.title,
+                title: '',
                 value: {},
                 allowEmptySelection: true,
                 maximum: 1
@@ -253,20 +229,29 @@ export class MitakuExtension implements Extension, SearchResultsProviding, Manga
         switch (status) {
         case 403:
         case 503:
-            throw new CloudflareError({
-                url: this.domain,
-                method: 'GET',
-                headers: {
-                    'referer': `${this.domain}/`,
-                    'origin': `${this.domain}/`,
-                    'user-agent': await Application.getDefaultUserAgent()
-                }
-            }, 'Cloudflare detected!\nPlease do the Cloudflare bypass to continue!')
+            throw new CloudflareError(
+                {
+                    url: response.url,
+                    method: 'GET',
+                    headers: {
+                        referer: `${this.domain}/`,
+                        origin: `${this.domain}/`,
+                        'user-agent':
+                                await Application.getDefaultUserAgent()
+                    }
+                },
+                'Cloudflare detected!\nPlease do the Cloudflare bypass to continue!'
+            )
         case 404:
-            throw new Error(`The requested page ${response.url} was not found!`)
+            throw new Error(
+                `The requested page ${response.url} was not found!`
+            )
+        case 429:
+            throw new Error(
+                `Too many requests for ${response.url}!`
+            )
         }
     }
 }
-
 
 export const Mitaku = new MitakuExtension()

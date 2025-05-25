@@ -74,7 +74,7 @@ export class Parser {
             const postId = $(item).attr('id')
             const id = postId?.split('post-').pop()
 
-            const image: string = await this.getImageSrc($('img', item).first(), source) ?? ''
+            const image: string = this.getImageSrc($('img', item).first(), source) ?? ''
             const title: string = $('a', item).first().attr('title')?.trim() ?? ''
 
             const subtitle = $('a[rel="tag"]', item).map((i, el) => $(el).text().trim()).get().join(', ')
@@ -140,24 +140,29 @@ export class Parser {
     }
 
     // Utils
-    async getImageSrc(imageObj: Cheerio<Element> | undefined, source: MitakuExtension): Promise<string> {
+    getImageSrc(imageObj: Cheerio<Element> | undefined, source: MitakuExtension): string {
         let image: string | undefined
-        if ((typeof imageObj?.attr('data-src')) != 'undefined' && imageObj?.attr('data-src') != '') {
-            image = imageObj?.attr('data-src')
-        }
-        else if ((typeof imageObj?.attr('data-lazy-src')) != 'undefined' && imageObj?.attr('data-lazy-src') != '') {
-            image = imageObj?.attr('data-lazy-src')
-        }
-        else if ((typeof imageObj?.attr('srcset')) != 'undefined' && imageObj?.attr('srcset') != '') {
-            image = imageObj?.attr('srcset')?.split(' ')[0] ?? ''
-        }
-        else if ((typeof imageObj?.attr('src')) != 'undefined' && imageObj?.attr('src') != '') {
-            image = imageObj?.attr('src')
-        }
-        else if ((typeof imageObj?.attr('data-cfsrc')) != 'undefined' && imageObj?.attr('data-cfsrc') != '') {
-            image = imageObj?.attr('data-cfsrc')
-        } else {
-            image = ''
+        const sources = [
+            'data-src',
+            'data-lazy-src',
+            'srcset',
+            'src',
+            'data-cfsrc'
+        ];
+
+        for (const attr of sources) {
+            const val = imageObj?.attr(attr);
+
+            if (val == null || val.trim() === '') continue;
+
+            // If it's srcset, extract the first URL
+            if (attr === 'srcset') {
+                image = val.split(',')[0]?.trim().split(' ')[0] ?? '';
+            } else {
+                image = val;
+            }
+
+            break;
         }
 
         image = image?.replace(/-\d+x\d+/g, '')

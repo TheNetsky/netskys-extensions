@@ -3,7 +3,7 @@ import { ContentRating, SourceInfo, SourceIntents } from "@paperback/types";
 export default {
     name: "Mitaku",
     description: "Extension that pulls content from mitaku.net",
-    version: "1.0.0",
+    version: "1.0.1",
     icon: "icon.png",
     language: "🇬🇧",
     contentRating: ContentRating.ADULT,

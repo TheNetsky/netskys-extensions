@@ -1,5 +1,5 @@
 {
-  "buildTime": "2025-04-08T13:47:39.882Z",
+  "buildTime": "2025-05-25T09:01:06.731Z",
   "builtWith": {
     "toolchain": "1.0.0-alpha.46",
     "types": "1.0.0-alpha.46"
@@ -12,7 +12,7 @@
     {
       "name": "Mitaku",
       "description": "Extension that pulls content from mitaku.net",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "icon": "icon.png",
       "language": "🇬🇧",
       "contentRating": "ADULT",

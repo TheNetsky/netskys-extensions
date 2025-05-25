@@ -16897,7 +16897,7 @@ var source = (() => {
   var pbconfig_default = {
     name: "Mitaku",
     description: "Extension that pulls content from mitaku.net",
-    version: "1.0.0",
+    version: "1.0.1",
     icon: "icon.png",
     language: "\u{1F1EC}\u{1F1E7}",
     contentRating: import_types2.ContentRating.ADULT,
@@ -16997,7 +16997,7 @@ Images: ${images.length}`;
       for (const item of $2("article").toArray()) {
         const postId = $2(item).attr("id");
         const id = postId?.split("post-").pop();
-        const image = await this.getImageSrc($2("img", item).first(), source) ?? "";
+        const image = this.getImageSrc($2("img", item).first(), source) ?? "";
         const title = $2("a", item).first().attr("title")?.trim() ?? "";
         const subtitle = $2('a[rel="tag"]', item).map((i, el) => $2(el).text().trim()).get().join(", ");
         if (!id || isNaN(Number(id)) || !title || !subtitle) continue;
@@ -17045,20 +17045,24 @@ Images: ${images.length}`;
       return results;
     }
     // Utils
-    async getImageSrc(imageObj, source) {
+    getImageSrc(imageObj, source) {
       let image;
-      if (typeof imageObj?.attr("data-src") != "undefined" && imageObj?.attr("data-src") != "") {
-        image = imageObj?.attr("data-src");
-      } else if (typeof imageObj?.attr("data-lazy-src") != "undefined" && imageObj?.attr("data-lazy-src") != "") {
-        image = imageObj?.attr("data-lazy-src");
-      } else if (typeof imageObj?.attr("srcset") != "undefined" && imageObj?.attr("srcset") != "") {
-        image = imageObj?.attr("srcset")?.split(" ")[0] ?? "";
-      } else if (typeof imageObj?.attr("src") != "undefined" && imageObj?.attr("src") != "") {
-        image = imageObj?.attr("src");
-      } else if (typeof imageObj?.attr("data-cfsrc") != "undefined" && imageObj?.attr("data-cfsrc") != "") {
-        image = imageObj?.attr("data-cfsrc");
-      } else {
-        image = "";
+      const sources = [
+        "data-src",
+        "data-lazy-src",
+        "srcset",
+        "src",
+        "data-cfsrc"
+      ];
+      for (const attr2 of sources) {
+        const val2 = imageObj?.attr(attr2);
+        if (val2 == null || val2.trim() === "") continue;
+        if (attr2 === "srcset") {
+          image = val2.split(",")[0]?.trim().split(" ")[0] ?? "";
+        } else {
+          image = val2;
+        }
+        break;
       }
       image = image?.replace(/-\d+x\d+/g, "");
       if (image?.startsWith("/")) {
@@ -17214,31 +17218,13 @@ Images: ${images.length}`;
       };
     }
     async getSearchFilters() {
-      const [response, buffer] = await Application.scheduleRequest({
-        url: `${this.domain}/wp-json/wp/v2/tags?per_page=100`,
-        method: "GET"
-      });
-      await this.checkResponseError(response);
-      const tagJSON = JSON.parse(Application.arrayBufferToUTF8String(buffer));
-      const arrayTags = [];
-      for (const tag of tagJSON) {
-        const title = tag.name;
-        const id = tag.slug;
-        if (!title || !id) continue;
-        arrayTags.push({ id, title });
-      }
-      const tagSections = [{ title: "genres", id: "genres", tags: arrayTags }];
-      const genreTags = tagSections.find((x) => x.id === "genres");
       return [
         {
           type: "multiselect",
-          options: genreTags.tags.map((x) => ({
-            id: x.id,
-            value: x.title
-          })),
-          id: genreTags.id,
+          options: [],
+          id: "",
           allowExclusion: false,
-          title: genreTags.title,
+          title: "",
           value: {},
           allowEmptySelection: true,
           maximum: 1
@@ -17292,17 +17278,26 @@ Images: ${images.length}`;
       switch (status) {
         case 403:
         case 503:
-          throw new import_types4.CloudflareError({
-            url: this.domain,
-            method: "GET",
-            headers: {
-              "referer": `${this.domain}/`,
-              "origin": `${this.domain}/`,
-              "user-agent": await Application.getDefaultUserAgent()
-            }
-          }, "Cloudflare detected!\nPlease do the Cloudflare bypass to continue!");
+          throw new import_types4.CloudflareError(
+            {
+              url: response.url,
+              method: "GET",
+              headers: {
+                referer: `${this.domain}/`,
+                origin: `${this.domain}/`,
+                "user-agent": await Application.getDefaultUserAgent()
+              }
+            },
+            "Cloudflare detected!\nPlease do the Cloudflare bypass to continue!"
+          );
         case 404:
-          throw new Error(`The requested page ${response.url} was not found!`);
+          throw new Error(
+            `The requested page ${response.url} was not found!`
+          );
+        case 429:
+          throw new Error(
+            `Too many requests for ${response.url}!`
+          );
       }
     }
   };

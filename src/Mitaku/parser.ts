@@ -121,7 +121,7 @@ export class Parser {
             const postId = $(item).attr('id')
             const id = postId?.split('post-').pop()
 
-            const image: string = await this.getImageSrc($('img', item).first(), source) ?? ''
+            const image: string = this.getImageSrc($('img', item).first(), source) ?? ''
             const title: string = $('a', item).first().attr('title')?.trim() ?? ''
 
             const subtitle = $('a[rel="tag"]', item).map((i, el) => $(el).text().trim()).get().join(', ')

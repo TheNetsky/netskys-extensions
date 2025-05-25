@@ -1,27 +1,25 @@
 {
   "name": "netskys-extensions",
-  "version": "0.0.0",
-  "repositoryName": "Netsky's Extensions (0.8)",
-  "description": "Netsky's extensions for 0.8!",
+  "repositoryName": "Netsky's Extensions (0.9)",
+  "description": "Netsky's extensions for 0.9!",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "bundle": "npx paperback bundle",
-    "serve": "npx paperback serve",
-    "test": "npx paperback test"
+    "bundle": "paperback-cli bundle",
+    "serve": "paperback-cli serve",
+    "logcat": "paperback-cli logcat --ip=192.168.1.47",
+    "dev": "nodemon -w \"./src/**/*.ts\" -e \"ts\" -x \"npm run serve\""
   },
-  "author": "Netsky",
-  "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "@tsconfig/recommended": "^1.0.7",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
-    "eslint": "^7.32.0",
-    "eslint-plugin-modules-newline": "^0.0.6",
-    "typescript": "^4.9.5"
-  },
-  "dependencies": {
-    "@paperback/toolchain": "^0.8.7",
-    "@paperback/types": "^0.8.7",
+    "@eslint/js": "^9.23.0",
+    "@paperback/toolchain": "^1.0.0-alpha.46",
+    "@paperback/types": "^1.0.0-alpha.46",
+    "@types/eslint": "^9.6.1",
     "cheerio": "^1.0.0",
-    "html-entities": "^2.5.2"
+    "eslint": "^9.23.0",
+    "eslint-plugin-modules-newline": "^0.0.6",
+    "nodemon": "^3.1.9",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.28.0"
   }
 }

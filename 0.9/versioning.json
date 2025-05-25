@@ -1,8 +1,8 @@
 {
-  "buildTime": "2025-05-25T09:01:06.731Z",
+  "buildTime": "2025-05-25T09:35:03.144Z",
   "builtWith": {
-    "toolchain": "1.0.0-alpha.46",
-    "types": "1.0.0-alpha.46"
+    "toolchain": "1.0.0-alpha.53",
+    "types": "1.0.0-alpha.53"
   },
   "repository": {
     "name": "Netsky's Extensions (0.9)",

@@ -108,7 +108,7 @@ export const parseChapters = ($: CheerioAPI, mangaId: string): Chapter[] => {
 
 export const parseChapterDetails = ($: CheerioAPI, mangaId: string, chapterId: string): ChapterDetails => {
     const pages: string[] = []
-    for (const img of $('img', 'div#chapter-reader').toArray()) {
+    for (const img of $('.page-in img[onerror]').toArray()) {
         let image = $(img).attr('src') ?? ''
         if (!image) image = $(img).attr('data-src') ?? ''
         if (!image) continue

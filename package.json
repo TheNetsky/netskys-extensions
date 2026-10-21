@@ -19,6 +19,7 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
+    "@noble/ciphers": "^1.3.0",
     "@paperback/toolchain": "^0.8.7",
     "@paperback/types": "^0.8.7",
     "cheerio": "^1.0.0",

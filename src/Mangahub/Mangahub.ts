@@ -40,7 +40,7 @@ const MH_API_DOMAIN = 'https://api.mghcdn.com/graphql'
 const MH_CDN_DOMAIN = 'https://imgx.mghcdn.com'
 
 export const MangahubInfo: SourceInfo = {
-    version: '3.2.1',
+    version: '3.3.0',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -83,17 +83,27 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
 
     stateManager = App.createSourceStateManager()
 
-    // Returns ONLY the token value (the API expects the bare token in x-mhub-access,
-    // not a "mhub_access=...; Max-Age=...; Path=/" cookie string).
+    // The token currently in use. Order of trust:
+    //   1. the token we last chose (from a refresh, a bypass cookie, or a random one)
+    //   2. a fresh mhub_access cookie (e.g. from the CloudFlare bypass webview),
+    //      but never one we already know is used up
+    //   3. a brand-new random token (MangaHub accepts any 32-char hex id)
     getMhubAccess = async (): Promise<string> => {
-        // 1. Prefer the live cookie (set by the Cloudflare bypass webview or a refresh)
-        const cookie = this.getMhubCookie()
-        if (cookie?.value) return cookie.value
-
-        // 2. Fall back to the stored token (also handles the old "mhub_access=xyz; ..." format)
         const stored: string = (await this.stateManager.retrieve('mhub_key')) ?? ''
-        const match = /mhub_access=([^;]*)/.exec(stored)
-        return (match ? match[1] : stored) ?? ''
+        const match = /mhub_access=([^;]*)/.exec(stored)  // old "mhub_access=xyz; ..." format
+        const current = (match ? match[1] : stored) ?? ''
+        if (current) return current
+
+        const cookie = this.getMhubCookie()
+        const key = (cookie?.value && !(await this.isUsedKey(cookie.value))) ? cookie.value : this.generateRandomKey()
+        await this.stateManager.store('mhub_key', key)
+        return key
+    }
+
+    generateRandomKey(): string {
+        let key = ''
+        for (let i = 0; i < 32; i++) key += Math.floor(Math.random() * 16).toString(16)
+        return key
     }
 
     getMhubCookie() {
@@ -215,19 +225,26 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         return { status: response.status, data }
     }
 
-    // Runs a query; if the answer is missing, an error, or not JSON (usually a used-up
-    // token), refreshes the token and retries ONCE before giving a descriptive error.
+    // Runs a query. If the answer is missing, an error, or not JSON (usually a used-up
+    // token): get a new token from the site and retry; if that still fails, switch to a
+    // brand-new random token and retry one last time.
     async apiQuery(query: string, isValid: (data: any) => boolean, what: string, refreshUrl?: string): Promise<any> {
         let result = await this.sendQuery(query)
         if (!result.data?.errors && isValid(result.data)) return result.data
 
-        await this.refreshAPIKey(refreshUrl)
+        const gotSiteKey = await this.refreshAPIKey(refreshUrl)
         result = await this.sendQuery(query)
         if (!result.data?.errors && isValid(result.data)) return result.data
 
+        if (gotSiteKey) {
+            await this.useRandomKey()
+            result = await this.sendQuery(query)
+            if (!result.data?.errors && isValid(result.data)) return result.data
+        }
+
         const serverMessage = result.data?.errors?.[0]?.message
         if (serverMessage) {
-            throw new Error(`MangaHub refused the request for ${what}: ${serverMessage}\nTry the CloudFlare bypass again or come back later.`)
+            throw new Error(`MangaHub refused the request for ${what}: ${serverMessage}\nA new token didn't help, so this limit is probably on your connection. Switch networks (Wi-Fi/cellular) or come back later.`)
         }
         if (result.data === undefined) {
             throw new Error(`MangaHub sent an unreadable response (HTTP ${result.status}) for ${what}. You may be rate limited or need to redo the CloudFlare bypass.`)
@@ -496,9 +513,9 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         // Remove stored UserAgent
         await this.stateManager.store('userAgent', 'null')
 
-        // Forget the old stored token so the fresh mhub_access cookie
-        // the bypass webview receives is the one that gets used
-        await this.stateManager.store('mhub_key', '')
+        // Retire the current token: after the bypass we use the fresh cookie the
+        // webview receives, or a brand-new random token, never the old one
+        await this.retireCurrentKey()
 
         return App.createRequest({
             url: `${MH_DOMAIN}/chapter/the-last-human/chapter-1?reloadKey=1`,
@@ -566,46 +583,84 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         return params
     }
 
-    async refreshAPIKey(refreshUrl?: string): Promise<void> {
+    // Remembers the last 20 tokens we stopped using, so a stale cookie is never picked again
+    async getUsedKeys(): Promise<string[]> {
+        try {
+            const raw = await this.stateManager.retrieve('mhub_used_keys')
+            const list = typeof raw === 'string' ? JSON.parse(raw) : raw
+            return Array.isArray(list) ? list : []
+        } catch (e) {
+            return []
+        }
+    }
+
+    async isUsedKey(key: string): Promise<boolean> {
+        return (await this.getUsedKeys()).includes(key)
+    }
+
+    async retireCurrentKey(): Promise<string> {
+        const old = await this.getMhubAccess()
+        const used = (await this.getUsedKeys()).filter(k => k !== old)
+        used.push(old)
+        await this.stateManager.store('mhub_used_keys', JSON.stringify(used.slice(-20)))
+        await this.stateManager.store('mhub_key', '')
+        return old
+    }
+
+    async useRandomKey(): Promise<void> {
+        await this.retireCurrentKey()
+        await this.stateManager.store('mhub_key', this.generateRandomKey())
+    }
+
+    // Asks the site for a new token. Returns true if the site gave us a NEW one;
+    // otherwise switches to a random token and returns false.
+    async refreshAPIKey(refreshUrl?: string): Promise<boolean> {
+        const oldKey = await this.retireCurrentKey()
+
         // Only drop the stale mhub_access cookie. Do NOT wipe every cookie,
         // that also deletes cf_clearance and undoes the Cloudflare bypass.
         const cookieStore = this.requestManager?.cookieStore
         cookieStore?.getAllCookies()
             .filter(x => x.name === 'mhub_access')
             .forEach(x => cookieStore.removeCookie(x))
-        await this.stateManager.store('mhub_key', '')
 
-        // Visiting a chapter page with reloadKey=1 makes the site issue a new token
         const pageUrl = refreshUrl ?? `${MH_DOMAIN}/chapter/the-last-human/chapter-1`
-        const request = App.createRequest({
-            url: `${pageUrl}?reloadKey=1`,
-            method: 'GET',
-            headers: {
-                'Referer': `${MH_DOMAIN}/`,
-                'User-Agent': await this.requestManager.getDefaultUserAgent()
+        const userAgent = await this.requestManager.getDefaultUserAgent()
+
+        // Visiting a chapter page (first with ?reloadKey=1, then without) makes the site issue a token
+        for (const query of ['?reloadKey=1', '']) {
+            let response: Response
+            try {
+                response = await this.requestManager.schedule(App.createRequest({
+                    url: `${pageUrl}${query}`,
+                    method: 'GET',
+                    headers: { 'Referer': `${MH_DOMAIN}/`, 'User-Agent': userAgent }
+                }), 1)
+            } catch (e) {
+                continue
             }
-        })
 
-        const response = await this.requestManager.schedule(request, 1)
+            // Header names can come back in any case, and multiple cookies may arrive as an array
+            let newKey = ''
+            for (const [name, value] of Object.entries(response.headers ?? {})) {
+                if (name.toLowerCase() !== 'set-cookie') continue
+                const raw = Array.isArray(value) ? value.join('; ') : String(value)
+                const match = /mhub_access=([^;]+)/.exec(raw)
+                if (match?.[1]) newKey = match[1]
+            }
+            // Paperback may have put it straight into the cookie store instead
+            if (!newKey) newKey = this.getMhubCookie()?.value ?? ''
 
-        // Header names can come back in any case ("Set-Cookie" vs "set-cookie"),
-        // and multiple cookies may arrive as an array
-        let mhubKey = ''
-        for (const [name, value] of Object.entries(response.headers ?? {})) {
-            if (name.toLowerCase() !== 'set-cookie') continue
-            const raw = Array.isArray(value) ? value.join('; ') : String(value)
-            const match = /mhub_access=([^;]+)/.exec(raw)
-            if (match?.[1]) mhubKey = match[1]
+            if (newKey && newKey !== oldKey && !(await this.isUsedKey(newKey))) {
+                await this.stateManager.store('mhub_key', newKey)
+                return true
+            }
         }
 
-        // Paperback may have put it straight into the cookie store instead
-        if (!mhubKey) mhubKey = this.getMhubCookie()?.value ?? ''
-
-        if (mhubKey) {
-            await this.stateManager.store('mhub_key', mhubKey)
-        } else {
-            console.log('[Mangahub] refreshAPIKey: no new mhub_access token received')
-        }
+        // The site didn't give us a new token: make one up
+        console.log('[Mangahub] refreshAPIKey: no new token from the site, using a random one')
+        await this.stateManager.store('mhub_key', this.generateRandomKey())
+        return false
     }
 
 }

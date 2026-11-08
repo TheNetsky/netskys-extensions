@@ -1085,7 +1085,7 @@ var _Sources = (() => {
   var MH_API_DOMAIN = "https://api.mghcdn.com/graphql";
   var MH_CDN_DOMAIN = "https://imgx.mghcdn.com";
   var MangahubInfo = {
-    version: "3.1.0",
+    version: "3.1.1",
     name: "Mangahub",
     icon: "icon.png",
     author: "Netsky",
@@ -1101,7 +1101,7 @@ var _Sources = (() => {
     ],
     intents: import_types2.SourceIntents.MANGA_CHAPTERS | import_types2.SourceIntents.HOMEPAGE_SECTIONS | import_types2.SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
   };
-  var Mangahub = class {
+  var Mangahub = class _Mangahub {
     constructor() {
       this.requestManager = App.createRequestManager({
         requestsPerSecond: 2,
@@ -1126,8 +1126,24 @@ var _Sources = (() => {
       });
       this.stateManager = App.createSourceStateManager();
       this.getMhubAccess = async () => {
-        return await this.stateManager.retrieve("mhub_key");
+        const cookies = this.requestManager.cookieStore?.getAllCookies() ?? [];
+        const mhubCookie = cookies.find((x) => x.name === "mhub_access");
+        if (mhubCookie?.value) {
+          return mhubCookie.value;
+        }
+        const stored = await this.stateManager.retrieve("mhub_key");
+        if (typeof stored === "string" && stored) {
+          const match = /mhub_access=([^;]+)/.exec(stored);
+          return match ? match[1] ?? "" : stored;
+        }
+        return "";
       };
+    }
+    CloudFlareError(status) {
+      if (status === 503 || status === 403) {
+        throw new Error(`CLOUDFLARE BYPASS ERROR:
+Please go to the homepage of <${_Mangahub.name}> and press the cloud icon.`);
+      }
     }
     getMangaShareUrl(mangaId) {
       return `${MH_DOMAIN}/manga/${mangaId}`;
@@ -1158,6 +1174,7 @@ var _Sources = (() => {
         }
       });
       const response = await this.requestManager.schedule(request, 1);
+      this.CloudFlareError(response.status);
       let data;
       try {
         data = JSON.parse(response.data);
@@ -1190,6 +1207,7 @@ var _Sources = (() => {
         }
       });
       const response = await this.requestManager.schedule(request, 1);
+      this.CloudFlareError(response.status);
       let data;
       try {
         data = JSON.parse(response.data);
@@ -1220,6 +1238,7 @@ var _Sources = (() => {
         }
       });
       const response = await this.requestManager.schedule(request, 1);
+      this.CloudFlareError(response.status);
       let data;
       try {
         data = JSON.parse(response.data);
@@ -1265,6 +1284,7 @@ var _Sources = (() => {
         }
       });
       const response = await this.requestManager.schedule(request, 1);
+      this.CloudFlareError(response.status);
       let data;
       try {
         data = JSON.parse(response.data);
@@ -1333,6 +1353,7 @@ var _Sources = (() => {
         }
       });
       const response = await this.requestManager.schedule(request, 1);
+      this.CloudFlareError(response.status);
       try {
         const data = JSON.parse(response.data);
         parseHomeSections(data, sectionCallback);
@@ -1391,6 +1412,7 @@ var _Sources = (() => {
         }
       });
       const response = await this.requestManager.schedule(request, 1);
+      this.CloudFlareError(response.status);
       let data;
       try {
         data = JSON.parse(response.data);
@@ -1464,6 +1486,7 @@ var _Sources = (() => {
       let manga = [];
       for (const req of requests) {
         promises.push(this.requestManager.schedule(req.request, 1).then((response) => {
+          this.CloudFlareError(response.status);
           let data;
           try {
             data = JSON.parse(response.data);
@@ -1489,7 +1512,7 @@ var _Sources = (() => {
     async getCloudflareBypassRequestAsync() {
       await this.stateManager.store("userAgent", "null");
       return App.createRequest({
-        url: `${MH_DOMAIN}/chapter/the-last-human/chapter-1?reloadKey=1`,
+        url: `${MH_DOMAIN}/`,
         method: "GET",
         headers: {
           "Referer": `${MH_DOMAIN}/`,
@@ -1498,32 +1521,38 @@ var _Sources = (() => {
       });
     }
     async refreshAPIKey() {
-      await this.stateManager.store("mhub_key", "mhub_access=; Max-Age=0; Path=/");
+      const currentKey = await this.getMhubAccess();
+      await this.stateManager.store("mhub_key", "");
       this.requestManager?.cookieStore?.getAllCookies().forEach((x) => {
         this.requestManager?.cookieStore?.removeCookie(x);
       });
       const request = App.createRequest({
-        url: `${MH_DOMAIN}/chapter/the-last-human/chapter-1?reloadKey=1`,
+        url: `${MH_DOMAIN}/`,
         method: "GET",
         headers: {
           "Referer": `${MH_DOMAIN}/`,
           "User-Agent": await this.requestManager.getDefaultUserAgent(),
-          "Cookie": await this.stateManager.retrieve("mhub_key")
+          "Cookie": currentKey ? `mhub_access=${currentKey};` : ""
         }
       });
       const response = await this.requestManager.schedule(request, 1);
+      this.CloudFlareError(response.status);
       const cookieHeaders = response.headers["Set-Cookie"];
       let mhub_key = "";
       if (cookieHeaders) {
         const match = /mhub_access=([^;]+)/.exec(cookieHeaders);
         if (match) {
-          const mhubAccess = match[1] ?? "";
-          mhub_key = mhubAccess;
+          mhub_key = match[1] ?? "";
         }
       }
-      const now = Date.now();
-      const expires = now + 2 * 60 * 60 * 24 * 31;
-      await this.stateManager.store("mhub_key", `mhub_access=${mhub_key}; Max-Age=${expires}; Path=/`);
+      if (mhub_key) {
+        await this.stateManager.store("mhub_key", mhub_key);
+        this.requestManager?.cookieStore?.addCookie(App.createCookie({
+          name: "mhub_access",
+          value: mhub_key,
+          domain: "mangahub.io"
+        }));
+      }
     }
   };
   return __toCommonJS(Mangahub_exports);

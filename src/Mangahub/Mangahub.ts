@@ -1,3 +1,4 @@
+import { gcm } from '@noble/ciphers/aes.js'
 import {
     SourceManga,
     Chapter,
@@ -30,11 +31,47 @@ import {
 } from './MangahubParser'
 
 const MH_DOMAIN = 'https://mangahub.io'
-const MH_API_DOMAIN = 'https://api.mghcdn.com/graphql'
+const MH_API_DOMAIN = `${MH_DOMAIN}/graphql`
 const MH_CDN_DOMAIN = 'https://imgx.mghcdn.com'
 
+function base64UrlToBytes(str: string): Uint8Array {
+    let base64 = str.replace(/-/g, '+').replace(/_/g, '/')
+    while (base64.length % 4 !== 0) {
+        base64 += '='
+    }
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    let buffer = 0
+    let bits = 0
+    const output: number[] = []
+    for (let i = 0; i < base64.length; i++) {
+        const c = base64[i]
+        if (c === '=') break
+        const val = chars.indexOf(c)
+        if (val === -1) continue
+        buffer = (buffer << 6) | val
+        bits += 6
+        if (bits >= 8) {
+            bits -= 8
+            output.push((buffer >> bits) & 0xff)
+        }
+    }
+    return new Uint8Array(output)
+}
+
+function bytesToUtf8(bytes: Uint8Array): string {
+    let encoded = ''
+    for (let i = 0; i < bytes.length; i++) {
+        const byte = bytes[i]
+        if (byte !== undefined) {
+            encoded += '%' + ('00' + byte.toString(16)).slice(-2)
+        }
+    }
+    return decodeURIComponent(encoded)
+}
+
+
 export const MangahubInfo: SourceInfo = {
-    version: '3.1.1',
+    version: '3.1.4',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -64,13 +101,14 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         requestTimeout: 15000,
         interceptor: {
             interceptRequest: async (request: Request): Promise<Request> => {
+                const mhubAccess = await this.getMhubAccess()
                 request.headers = {
                     ...(request.headers ?? {}),
                     ...{
-                        'Referer': `${MH_DOMAIN}/`,
+                        'Referer': request.headers?.['Referer'] ?? `${MH_DOMAIN}/`,
                         'Origin': `${MH_DOMAIN}`,
                         'User-Agent': await this.requestManager.getDefaultUserAgent(),
-                        'x-mhub-access': await this.getMhubAccess()
+                        ...(mhubAccess ? { 'x-mhub-access': mhubAccess } : {})
                     }
                 }
                 return request
@@ -178,26 +216,34 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
     }
 
     async getChapterDetails(mangaId: string, chapterId: string): Promise<ChapterDetails> {
-        const request = App.createRequest({
-            url: MH_API_DOMAIN,
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            data: {
-                query: `query {
-                    chapter(x: m01, slug: "${mangaId}", number: ${Number(chapterId)}) {
-                      pages
-                      title
-                      slug
-                    }
-                  }
-                  `
-            }
-        })
+        if (!(await this.getMhubAccess())) {
+            await this.refreshAPIKey(mangaId, chapterId)
+        }
 
-        const response = await this.requestManager.schedule(request, 1)
+        const createChapterRequest = async () => {
+            const mhubAccess = await this.getMhubAccess()
+            return App.createRequest({
+                url: MH_API_DOMAIN,
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    ...(mhubAccess ? { 'x-mhub-access': mhubAccess, 'Cookie': `mhub_access=${mhubAccess};` } : {})
+                },
+                data: {
+                    query: `query {
+                        chapter(x: m01, slug: "${mangaId}", number: ${Number(chapterId)}) {
+                          pages
+                          title
+                          slug
+                        }
+                      }
+                      `
+                }
+            })
+        }
+
+        let response = await this.requestManager.schedule(await createChapterRequest(), 1)
         this.CloudFlareError(response.status)
 
         let data
@@ -209,21 +255,44 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         }
 
         if (data?.errors) {
-            await this.refreshAPIKey()
-            throw new Error('API LIMIT EXCEEDED!\nTry doing to CloudFlare again bypass or come back later!')
+            await this.refreshAPIKey(mangaId, chapterId)
+            response = await this.requestManager.schedule(await createChapterRequest(), 1)
+            this.CloudFlareError(response.status)
+            try {
+                data = JSON.parse(response.data as string)
+            } catch (e) {
+                console.log(`${e}`)
+            }
+            if (data?.errors) {
+                throw new Error('API LIMIT EXCEEDED!\nTry doing to CloudFlare again bypass or come back later!')
+            }
         }
 
         if (!data.data?.chapter?.pages) throw new Error(`Failed to parse chapter or pages property from data object mangaId:${mangaId} chapterId:${chapterId}`)
+        let pagesString = data.data.chapter.pages as string
+        if (pagesString.startsWith('enc:v1')) {
+            pagesString = await this.decryptPages(pagesString)
+        }
+
         const pages: string[] = []
 
         try {
-            const parsedPages = JSON.parse(data.data.chapter.pages)
-            for (const img of parsedPages.i) {
-                pages.push(`${MH_CDN_DOMAIN}/${parsedPages.p}${img}`)
+            const parsedPages = JSON.parse(pagesString)
+            if (parsedPages.i && Array.isArray(parsedPages.i)) {
+                for (const img of parsedPages.i) {
+                    pages.push(`${MH_CDN_DOMAIN}/${parsedPages.p ?? ''}${img}`)
+                }
+            } else if (Array.isArray(parsedPages)) {
+                for (const img of parsedPages) {
+                    pages.push(img.startsWith('http') ? img : `${MH_CDN_DOMAIN}/${String(img).replace(/^\//, '')}`)
+                }
+            } else if (typeof parsedPages === 'object' && parsedPages !== null) {
+                for (const img of Object.values(parsedPages)) {
+                    pages.push(String(img).startsWith('http') ? String(img) : `${MH_CDN_DOMAIN}/${String(img).replace(/^\//, '')}`)
+                }
             }
-
         } catch (e) {
-            throw new Error(`${e}`)
+            throw new Error(`Failed to parse chapter pages JSON: ${e}`)
         }
 
         return App.createChapterDetails({
@@ -231,6 +300,60 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
             mangaId: mangaId,
             pages: pages
         })
+    }
+
+    async decryptPages(pages: string): Promise<string> {
+        const mhubAccess = await this.getMhubAccess()
+        const request = App.createRequest({
+            url: `${MH_DOMAIN}/api/chapter-crypto`,
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Referer': `${MH_DOMAIN}/`,
+                'User-Agent': await this.requestManager.getDefaultUserAgent(),
+                ...(mhubAccess ? { 'x-mhub-access': mhubAccess, 'Cookie': `mhub_access=${mhubAccess};` } : {})
+            }
+        })
+
+        const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
+
+        let cryptoParams: any
+        try {
+            cryptoParams = JSON.parse(response.data as string)
+        } catch (e) {
+            throw new Error(`Failed to parse chapter-crypto response: ${e}`)
+        }
+
+        const parts = pages.split(':')
+        const keyId = parts[2]
+        const iv = parts[3]
+        const authTag = parts[4]
+        const ciphertext = parts[5]
+
+        if (!keyId || !iv || !authTag || !ciphertext) {
+            throw new Error(`Malformed encrypted pages payload: ${pages}`)
+        }
+
+        const keyData = cryptoParams?.keys?.[keyId] ??
+            (cryptoParams?.key && (!cryptoParams?.keyId || cryptoParams?.keyId === keyId) ? cryptoParams.key : undefined)
+
+        if (!keyData) {
+            throw new Error(`Decryption key not found for keyId: ${keyId}`)
+        }
+
+        const keyBytes = base64UrlToBytes(keyData)
+        const ivBytes = base64UrlToBytes(iv)
+        const authTagBytes = base64UrlToBytes(authTag)
+        const cipherBytes = base64UrlToBytes(ciphertext)
+
+        const combined = new Uint8Array(cipherBytes.length + authTagBytes.length)
+        combined.set(cipherBytes, 0)
+        combined.set(authTagBytes, cipherBytes.length)
+
+        const cipher = gcm(keyBytes, ivBytes)
+        const decryptedBytes = cipher.decrypt(combined)
+        return bytesToUtf8(decryptedBytes)
     }
 
     async getSearchTags(): Promise<TagSection[]> {
@@ -499,7 +622,7 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         await this.stateManager.store('userAgent', 'null')
 
         return App.createRequest({
-            url: `${MH_DOMAIN}/`,
+            url: `${MH_DOMAIN}/chapter/the-last-human/chapter-1?reloadKey=1`,
             method: 'GET',
             headers: {
                 'Referer': `${MH_DOMAIN}/`,
@@ -508,36 +631,47 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         })
     }
 
-    async refreshAPIKey() {
+    async refreshAPIKey(mangaId = 'the-last-human', chapterId = '1') {
         const currentKey = await this.getMhubAccess()
 
         // Reset stored access key
         await this.stateManager.store('mhub_key', '')
 
-        // Delete cookies
-        this.requestManager?.cookieStore?.getAllCookies().forEach(x => { this.requestManager?.cookieStore?.removeCookie(x) })
+        // Remove only mhub_access cookies so cf_clearance is preserved
+        this.requestManager?.cookieStore?.getAllCookies().forEach(x => {
+            if (x.name === 'mhub_access') {
+                this.requestManager?.cookieStore?.removeCookie(x)
+            }
+        })
 
         // Request new access token
         const request = App.createRequest({
-            url: `${MH_DOMAIN}/`,
+            url: `${MH_DOMAIN}/chapter/${mangaId}/chapter-${chapterId}?reloadKey=1`,
             method: 'GET',
             headers: {
-                'Referer': `${MH_DOMAIN}/`,
+                'Referer': `${MH_DOMAIN}/manga/${mangaId}`,
                 'User-Agent': await this.requestManager.getDefaultUserAgent(),
-                'Cookie': currentKey ? `mhub_access=${currentKey};` : ''
+                ...(currentKey ? { 'Cookie': `mhub_access=${currentKey};` } : {})
             }
         })
 
         const response = await this.requestManager.schedule(request, 1)
         this.CloudFlareError(response.status)
 
-        const cookieHeaders = response.headers['Set-Cookie']
+        const cookieHeaders = response.headers['Set-Cookie'] ?? response.headers['set-cookie']
 
         let mhub_key = ''
         if (cookieHeaders) {
             const match = /mhub_access=([^;]+)/.exec(cookieHeaders)
             if (match) {
                 mhub_key = match[1] ?? ''
+            }
+        }
+
+        if (!mhub_key) {
+            const cookie = this.requestManager?.cookieStore?.getAllCookies().find(x => x.name === 'mhub_access')
+            if (cookie?.value) {
+                mhub_key = cookie.value
             }
         }
 

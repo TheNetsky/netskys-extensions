@@ -17,7 +17,8 @@ import {
     ChapterProviding,
     MangaProviding,
     SearchResultsProviding,
-    HomePageSectionsProviding
+    HomePageSectionsProviding,
+    CloudflareBypassRequestProviding
 } from '@paperback/types'
 
 import {
@@ -33,7 +34,7 @@ const MH_API_DOMAIN = 'https://api.mghcdn.com/graphql'
 const MH_CDN_DOMAIN = 'https://imgx.mghcdn.com'
 
 export const MangahubInfo: SourceInfo = {
-    version: '3.1.0',
+    version: '3.1.1',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -50,7 +51,13 @@ export const MangahubInfo: SourceInfo = {
     intents: SourceIntents.MANGA_CHAPTERS | SourceIntents.HOMEPAGE_SECTIONS | SourceIntents.CLOUDFLARE_BYPASS_REQUIRED
 }
 
-export class Mangahub implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding {
+export class Mangahub implements SearchResultsProviding, MangaProviding, ChapterProviding, HomePageSectionsProviding, CloudflareBypassRequestProviding {
+
+    CloudFlareError(status: number): void {
+        if (status === 503 || status === 403) {
+            throw new Error(`CLOUDFLARE BYPASS ERROR:\nPlease go to the homepage of <${Mangahub.name}> and press the cloud icon.`)
+        }
+    }
 
     requestManager = App.createRequestManager({
         requestsPerSecond: 2,
@@ -77,7 +84,18 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
     stateManager = App.createSourceStateManager()
 
     getMhubAccess = async (): Promise<string> => {
-        return await this.stateManager.retrieve('mhub_key')
+        const cookies = this.requestManager.cookieStore?.getAllCookies() ?? []
+        const mhubCookie = cookies.find(x => x.name === 'mhub_access')
+        if (mhubCookie?.value) {
+            return mhubCookie.value
+        }
+
+        const stored = await this.stateManager.retrieve('mhub_key')
+        if (typeof stored === 'string' && stored) {
+            const match = /mhub_access=([^;]+)/.exec(stored)
+            return match ? (match[1] ?? '') : stored
+        }
+        return ''
     }
 
     getMangaShareUrl(mangaId: string): string { return `${MH_DOMAIN}/manga/${mangaId}` }
@@ -109,6 +127,7 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         })
 
         const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
         let data
         try {
             data = JSON.parse(response.data as string)
@@ -144,6 +163,7 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         })
 
         const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
 
         let data
         try {
@@ -178,6 +198,7 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         })
 
         const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
 
         let data
         try {
@@ -232,6 +253,7 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         })
 
         const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
         let data
         try {
             data = JSON.parse(response.data as string)
@@ -303,6 +325,7 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
             }
         })
         const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
 
         try {
             const data = JSON.parse(response.data as string)
@@ -364,6 +387,7 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         })
 
         const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
 
         let data
         try {
@@ -443,6 +467,7 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
 
         for (const req of requests) {
             promises.push(this.requestManager.schedule(req.request, 1).then((response) => {
+                this.CloudFlareError(response.status)
                 let data
                 try {
                     data = JSON.parse(response.data as string)
@@ -474,7 +499,7 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         await this.stateManager.store('userAgent', 'null')
 
         return App.createRequest({
-            url: `${MH_DOMAIN}/chapter/the-last-human/chapter-1?reloadKey=1`,
+            url: `${MH_DOMAIN}/`,
             method: 'GET',
             headers: {
                 'Referer': `${MH_DOMAIN}/`,
@@ -484,24 +509,27 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
     }
 
     async refreshAPIKey() {
+        const currentKey = await this.getMhubAccess()
+
         // Reset stored access key
-        await this.stateManager.store('mhub_key', 'mhub_access=; Max-Age=0; Path=/')
+        await this.stateManager.store('mhub_key', '')
 
         // Delete cookies
         this.requestManager?.cookieStore?.getAllCookies().forEach(x => { this.requestManager?.cookieStore?.removeCookie(x) })
 
         // Request new access token
         const request = App.createRequest({
-            url: `${MH_DOMAIN}/chapter/the-last-human/chapter-1?reloadKey=1`,
+            url: `${MH_DOMAIN}/`,
             method: 'GET',
             headers: {
                 'Referer': `${MH_DOMAIN}/`,
                 'User-Agent': await this.requestManager.getDefaultUserAgent(),
-                'Cookie': await this.stateManager.retrieve('mhub_key')
+                'Cookie': currentKey ? `mhub_access=${currentKey};` : ''
             }
         })
 
         const response = await this.requestManager.schedule(request, 1)
+        this.CloudFlareError(response.status)
 
         const cookieHeaders = response.headers['Set-Cookie']
 
@@ -509,15 +537,18 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         if (cookieHeaders) {
             const match = /mhub_access=([^;]+)/.exec(cookieHeaders)
             if (match) {
-                const mhubAccess = match[1] ?? ''
-                mhub_key = mhubAccess
+                mhub_key = match[1] ?? ''
             }
         }
 
-        const now: number = Date.now()
-        const expires: number = now + 2 * 60 * 60 * 24 * 31
-
-        await this.stateManager.store('mhub_key', `mhub_access=${mhub_key}; Max-Age=${expires}; Path=/`)
+        if (mhub_key) {
+            await this.stateManager.store('mhub_key', mhub_key)
+            this.requestManager?.cookieStore?.addCookie(App.createCookie({
+                name: 'mhub_access',
+                value: mhub_key,
+                domain: 'mangahub.io'
+            }))
+        }
     }
 
 }

@@ -40,7 +40,7 @@ const MH_API_DOMAIN = 'https://api.mghcdn.com/graphql'
 const MH_CDN_DOMAIN = 'https://imgx.mghcdn.com'
 
 export const MangahubInfo: SourceInfo = {
-    version: '3.3.0',
+    version: '3.4.0',
     name: 'Mangahub',
     icon: 'icon.png',
     author: 'Netsky',
@@ -61,7 +61,7 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
 
     requestManager = App.createRequestManager({
         requestsPerSecond: 2,
-        requestTimeout: 15000,
+        requestTimeout: 20000,
         interceptor: {
             interceptRequest: async (request: Request): Promise<Request> => {
                 request.headers = {
@@ -253,33 +253,15 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
     }
 
     async getSearchTags(): Promise<TagSection[]> {
-        const request = App.createRequest({
-            url: MH_API_DOMAIN,
-            method: 'POST',
-            headers: {
-                'accept': 'application/json',
-                'content-type': 'application/json'
-            },
-            data: {
-                query: `query {
+        const data = await this.apiQuery(`query {
                     genres {
                       id
                       slug
                       title
                     }
-                }`
-            }
-        })
-
-        const response = await this.requestManager.schedule(request, 1)
-        let data
-        try {
-            data = JSON.parse(response.data as string)
-        } catch (e) {
-            throw new Error(`${e}`)
-        }
-
-        if (data.data.genres?.length == 0) throw new Error('Failed to parse genres property from data object!')
+                }`,
+        (d) => Array.isArray(d?.data?.genres) && d.data.genres.length > 0,
+        'the genre list')
 
         const arrayTags: Tag[] = []
         for (const genre of data.data.genres) {
@@ -289,15 +271,7 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
     }
 
     async getHomePageSections(sectionCallback: (section: HomeSection) => void): Promise<void> {
-        const request = App.createRequest({
-            url: MH_API_DOMAIN,
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            data: {
-                query: `query {
+        const data = await this.apiQuery(`query {
                     latest_popular: latestPopular(x: m01) {
                         id
                         title
@@ -339,30 +313,22 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
                           latestChapter
                     }
                 }
-            }`
-            }
-        })
-        const response = await this.requestManager.schedule(request, 1)
+            }`,
+        (d) => !!(d?.data && (d.data.latest_popular || d.data.latest || d.data.popular || d.data.new || d.data.completed)),
+        'the Discover page')
 
-        try {
-            const data = JSON.parse(response.data as string)
-            parseHomeSections(data, sectionCallback)
-        } catch (e) {
-            throw new Error(`${e}`)
+        // A section MangaHub left out just shows up empty instead of breaking the whole page
+        data.data.latest_popular = data.data.latest_popular ?? []
+        data.data.latest = data.data.latest ?? []
+        for (const key of ['popular', 'new', 'completed']) {
+            data.data[key] = { rows: data.data[key]?.rows ?? [] }
         }
+        parseHomeSections(data, sectionCallback)
     }
 
     async getViewMoreItems(homepageSectionId: string, metadata: any): Promise<PagedResults> {
         const offset: number = metadata?.offset ?? 0
-        const request = App.createRequest({
-            url: MH_API_DOMAIN,
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            data: {
-                query: `query {
+        const data = await this.apiQuery(`query {
                     latest: search(x: m01, mod: LATEST, offset: ${offset}) {
                         rows {
                             id
@@ -399,19 +365,13 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
                             latestChapter
                     }
                 }
-            }`
-            }
-        })
+            }`,
+        (d) => !!(d?.data && (d.data.latest || d.data.popular || d.data.new || d.data.completed)),
+        'more results')
 
-        const response = await this.requestManager.schedule(request, 1)
-
-        let data
-        try {
-            data = JSON.parse(response.data as string)
-        } catch (e) {
-            throw new Error(`${e}`)
+        for (const key of ['latest', 'popular', 'new', 'completed']) {
+            data.data[key] = { rows: data.data[key]?.rows ?? [] }
         }
-
         const manga = parseViewMore(homepageSectionId, data)
         metadata = { offset: offset + 30 }
         return App.createPagedResults({
@@ -422,78 +382,35 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
 
     async getSearchResults(query: SearchRequest, metadata: any): Promise<PagedResults> {
         const offset: number = metadata?.offset ?? 0
-        const searchTag = query?.includedTags?.map((x: Tag) => x.id)
+        const searchTag = query?.includedTags?.map((x: Tag) => x.id) ?? []
+        const title = (query?.title ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+        const genre = searchTag[0] ?? ''
 
-        const requests = [
-            //No Alt Titles
-            {
-                request: App.createRequest({
-                    url: MH_API_DOMAIN,
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    data: {
-                        query: `query {
-                            search(x: m01, alt: false, q: "${query?.title ? query.title : ''}", genre: "${searchTag[0] ? searchTag[0] : ''}", offset:${offset}) {
-                              rows {
-                                id
-                                title
-                                slug
-                                image
-                                latestChapter
-                                genres
-                              }
-                            }
-                          }
-                          `
-                    }
-                })
-            },
-            {
-                request: App.createRequest({
-                    url: MH_API_DOMAIN,
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    data: {
-                        query: `query {
-                            search(x: m01, alt: true, q: "${query?.title ? query.title : ''}", genre: "${searchTag[0] ? searchTag[0] : ''}", offset:${offset}) {
-                              rows {
-                                id
-                                title
-                                slug
-                                image
-                                latestChapter
-                                genres
-                              }
-                            }
-                          }
-                          `
-                    }
-                })
-            }
-        ]
-
-        const promises: Promise<void>[] = []
         let manga: PartialSourceManga[] = []
-
-        for (const req of requests) {
-            promises.push(this.requestManager.schedule(req.request, 1).then((response) => {
-                let data
-                try {
-                    data = JSON.parse(response.data as string)
-                } catch (e) {
-                    throw new Error(`${e}`)
-                }
+        let firstError: unknown
+        // Without alt titles, then with them. One at a time so token refreshes don't collide.
+        for (const alt of [false, true]) {
+            try {
+                const data = await this.apiQuery(`query {
+                            search(x: m01, alt: ${alt}, q: "${title}", genre: "${genre}", offset:${offset}) {
+                              rows {
+                                id
+                                title
+                                slug
+                                image
+                                latestChapter
+                                genres
+                              }
+                            }
+                          }`,
+                (d) => Array.isArray(d?.data?.search?.rows),
+                'search results')
                 manga = manga.concat(parseSearch(data))
-            }))
+            } catch (e) {
+                firstError = firstError ?? e
+            }
         }
-
-        await Promise.all(promises)
+        if (manga.length == 0 && firstError) throw firstError
 
         const seen = new Set()
         manga = manga.filter(x => {
@@ -517,8 +434,11 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
         // webview receives, or a brand-new random token, never the old one
         await this.retireCurrentKey()
 
+        // Open MangaHub's small JSON endpoint instead of a chapter page: it has no ads or
+        // pop-up redirects, and it is the mangahub.io endpoint the extension needs to reach.
+        // Tokens are handled automatically now, so the bypass only has to pass Cloudflare.
         return App.createRequest({
-            url: `${MH_DOMAIN}/chapter/the-last-human/chapter-1?reloadKey=1`,
+            url: `${MH_DOMAIN}/api/chapter-crypto`,
             method: 'GET',
             headers: {
                 'Referer': `${MH_DOMAIN}/`,
@@ -639,6 +559,8 @@ export class Mangahub implements SearchResultsProviding, MangaProviding, Chapter
             } catch (e) {
                 continue
             }
+            // Cloudflare is challenging page loads: don't wait on a second one, use a random token
+            if (response.status == 403 || response.status == 503) break
 
             // Header names can come back in any case, and multiple cookies may arrive as an array
             let newKey = ''
